@@ -1,0 +1,172 @@
+﻿<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
+    <ProductVersion>8.0.50727</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{83A0FD7E-E57D-4758-B2FB-620AFC556888}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <RootNamespace>NdnDotNet</RootNamespace>
+    <AssemblyName>ndn-dot-net</AssemblyName>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>..\bin\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>..\bin\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\..\..\..\..\jndn\src\net\named_data\jndn\ContentType.java">
+      <Link>ContentType.java</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\..\jndn\src\net\named_data\jndn\Data.java">
+      <Link>Data.java</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\..\jndn\src\net\named_data\jndn\encoding\BinaryXml.java">
+      <Link>encoding\BinaryXml.java</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\..\jndn\src\net\named_data\jndn\encoding\BinaryXmlDecoder.java">
+      <Link>encoding\BinaryXmlDecoder.java</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\..\jndn\src\net\named_data\jndn\encoding\BinaryXmlElementReader.java">
+      <Link>encoding\BinaryXmlElementReader.java</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\..\jndn\src\net\named_data\jndn\encoding\BinaryXmlEncoder.java">
+      <Link>encoding\BinaryXmlEncoder.java</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\..\jndn\src\net\named_data\jndn\encoding\BinaryXmlStructureDecoder.java">
+      <Link>encoding\BinaryXmlStructureDecoder.java</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\..\jndn\src\net\named_data\jndn\encoding\BinaryXmlWireFormat.java">
+      <Link>encoding\BinaryXmlWireFormat.java</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\..\jndn\src\net\named_data\jndn\encoding\der\DerNode.java">
+      <Link>encoding\der\DerNode.java</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\..\jndn\src\net\named_data\jndn\encoding\ElementListener.java">
+      <Link>encoding\ElementListener.java</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\..\jndn\src\net\named_data\jndn\encoding\EncodingException.java">
+      <Link>encoding\EncodingException.java</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\..\jndn\src\net\named_data\jndn\encoding\OID.java">
+      <Link>encoding\OID.java</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\..\jndn\src\net\named_data\jndn\encoding\WireFormat.java">
+      <Link>encoding\WireFormat.java</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\..\jndn\src\net\named_data\jndn\Exclude.java">
+      <Link>Exclude.java</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\..\jndn\src\net\named_data\jndn\Interest.java">
+      <Link>Interest.java</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\..\jndn\src\net\named_data\jndn\KeyLocator.java">
+      <Link>KeyLocator.java</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\..\jndn\src\net\named_data\jndn\KeyLocatorType.java">
+      <Link>KeyLocatorType.java</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\..\jndn\src\net\named_data\jndn\KeyNameType.java">
+      <Link>KeyNameType.java</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\..\jndn\src\net\named_data\jndn\MetaInfo.java">
+      <Link>MetaInfo.java</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\..\jndn\src\net\named_data\jndn\Name.java">
+      <Link>Name.java</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\..\jndn\src\net\named_data\jndn\OnData.java">
+      <Link>OnData.java</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\..\jndn\src\net\named_data\jndn\OnInterest.java">
+      <Link>OnInterest.java</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\..\jndn\src\net\named_data\jndn\OnRegisterFailed.java">
+      <Link>OnRegisterFailed.java</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\..\jndn\src\net\named_data\jndn\OnTimeout.java">
+      <Link>OnTimeout.java</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\..\jndn\src\net\named_data\jndn\PublisherPublicKeyDigest.java">
+      <Link>PublisherPublicKeyDigest.java</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\..\jndn\src\net\named_data\jndn\security\certificate\PublicKey.java">
+      <Link>security\certificate\PublicKey.java</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\..\jndn\src\net\named_data\jndn\security\DigestAlgorithm.java">
+      <Link>security\DigestAlgorithm.java</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\..\jndn\src\net\named_data\jndn\security\identity\PrivateKeyStorage.java">
+      <Link>security\identity\PrivateKeyStorage.java</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\..\jndn\src\net\named_data\jndn\security\KeyClass.java">
+      <Link>security\KeyClass.java</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\..\jndn\src\net\named_data\jndn\security\KeyType.java">
+      <Link>security\KeyType.java</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\..\jndn\src\net\named_data\jndn\security\OnVerified.java">
+      <Link>security\OnVerified.java</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\..\jndn\src\net\named_data\jndn\security\OnVerifyFailed.java">
+      <Link>security\OnVerifyFailed.java</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\..\jndn\src\net\named_data\jndn\security\policy\PolicyManager.java">
+      <Link>security\policy\PolicyManager.java</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\..\jndn\src\net\named_data\jndn\security\SecurityException.java">
+      <Link>security\SecurityException.java</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\..\jndn\src\net\named_data\jndn\security\ValidationRequest.java">
+      <Link>security\ValidationRequest.java</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\..\jndn\src\net\named_data\jndn\Sha256WithRsaSignature.java">
+      <Link>Sha256WithRsaSignature.java</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\..\jndn\src\net\named_data\jndn\Signature.java">
+      <Link>Signature.java</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\..\jndn\src\net\named_data\jndn\transport\Transport.java">
+      <Link>transport\Transport.java</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\..\jndn\src\net\named_data\jndn\util\Blob.java">
+      <Link>util\Blob.java</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\..\jndn\src\net\named_data\jndn\util\ChangeCountable.java">
+      <Link>util\ChangeCountable.java</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\..\jndn\src\net\named_data\jndn\util\ChangeCounter.java">
+      <Link>util\ChangeCounter.java</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\..\jndn\src\net\named_data\jndn\util\DynamicByteBuffer.java">
+      <Link>util\DynamicByteBuffer.java</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\..\jndn\src\net\named_data\jndn\util\SignedBlob.java">
+      <Link>util\SignedBlob.java</Link>
+    </Compile>
+    <Compile Include="ByteBuffer.jsl" />
+    <Compile Include="Properties\AssemblyInfo.jsl" />
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.VisualJSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

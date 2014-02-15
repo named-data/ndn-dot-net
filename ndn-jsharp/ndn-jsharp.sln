@@ -1,0 +1,20 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 9.00
+# Visual J# Express 2005
+Project("{E6FDF86B-F3D1-11D4-8576-0002A516ECE8}") = "ndn-jsharp", "ndn-jsharp.vjsproj", "{83A0FD7E-E57D-4758-B2FB-620AFC556888}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x86 = Debug|x86
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{83A0FD7E-E57D-4758-B2FB-620AFC556888}.Debug|x86.ActiveCfg = Debug|x86
+		{83A0FD7E-E57D-4758-B2FB-620AFC556888}.Debug|x86.Build.0 = Debug|x86
+		{83A0FD7E-E57D-4758-B2FB-620AFC556888}.Release|x86.ActiveCfg = Release|x86
+		{83A0FD7E-E57D-4758-B2FB-620AFC556888}.Release|x86.Build.0 = Release|x86
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

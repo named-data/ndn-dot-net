@@ -1,0 +1,180 @@
+package java.nio;
+
+public class ByteBuffer
+{
+	private ByteBuffer(byte[] array)
+	{
+		array_ = array;
+		offset_ = 0;
+		capacity_ = array_.length;
+		position_ = 0;
+		limit_ = capacity_;
+	}
+
+	private ByteBuffer(ByteBuffer byteBuffer)
+	{
+		array_ = byteBuffer.array_;
+		offset_ = byteBuffer.offset_;
+		capacity_ = byteBuffer.capacity_;
+		position_ = byteBuffer.position_;
+		limit_ = byteBuffer.limit_;
+	}
+
+	public static ByteBuffer allocate(int capacity)
+	{
+		return new ByteBuffer(new byte[capacity]);
+	}
+
+	public static ByteBuffer wrap(byte[] array)
+	{
+		return new ByteBuffer(array);
+	}
+
+	public final ByteBuffer asReadOnlyBuffer()
+	{
+		// TODO: Set a read-only flag.
+		return new ByteBuffer(this);
+	}
+
+	public final byte[] array()
+	{
+		return array_;
+	}
+
+	public final int capacity()
+	{
+		return capacity_;
+	}
+
+	public final ByteBuffer duplicate()
+	{
+		return new ByteBuffer(this);
+	}
+
+	public final void flip()
+	{
+		limit_ = position_;
+		position_ = 0;
+	}
+
+	public final byte get()
+	{
+		if (position_ >= limit_)
+			throw new RuntimeException("ByteBuffer.get: position() must be < limit().");
+
+		return get(position_++);
+	}
+
+	public final byte get(int index)
+	{
+		if (index < 0)
+			throw new IllegalArgumentException("ByteBuffer.get: index cannot be negative.");
+		if (index >= capacity_)
+			throw new IllegalArgumentException("ByteBuffer.get: index cannot be >= capacity().");
+
+		return array_[offset_ + index];
+	}
+
+	public final boolean hasRemaining()
+	{
+		return position_ < limit_;
+	}
+
+	public final int limit()
+	{
+		return limit_;
+	}
+
+	public final void limit(int newLimit)
+	{
+		if (newLimit < 0)
+			throw new IllegalArgumentException("ByteBuffer.limit: newLimit cannot be negative.");
+		if (newLimit > capacity_)
+			throw new IllegalArgumentException("ByteBuffer.limit: newLimit cannot be > capacity().");
+
+		limit_ = newLimit;
+		if (position_ > newLimit)
+			position_ = newLimit;
+	}
+
+	public final int position()
+	{
+		return position_;
+	}
+
+	public final void position(int newPosition)
+	{
+		if (newPosition < 0)
+			throw new IllegalArgumentException("ByteBuffer.position: newPosition cannot be negative.");
+		if (newPosition > limit_)
+			throw new IllegalArgumentException("ByteBuffer.position: newPosition cannot be > limit().");
+
+		position_ = newPosition;
+	}
+
+	public final ByteBuffer put(byte b)
+	{
+		if (position_ >= limit_)
+			throw new RuntimeException("ByteBuffer.put: position() must be < limit().");
+
+		return put(position_++, b);
+	}
+
+	public final ByteBuffer put(int index, byte b)
+	{
+		if (index < 0)
+			throw new IllegalArgumentException("ByteBuffer.put: index cannot be negative.");
+		if (index >= capacity_)
+			throw new IllegalArgumentException("ByteBuffer.put: index cannot be >= capacity().");
+
+		array_[offset_ + index] = b;
+		return this;
+	}
+
+	public final ByteBuffer put(byte[] src, int offset, int length)
+	{
+		// TODO: Implement efficiently.
+		for (int i = offset; i < offset + length; ++i)
+			put(src[i]); 
+
+		return this;
+	}
+
+	public final ByteBuffer put(byte[] src)
+	{
+		return put(src, 0, src.length);
+	}
+
+	public final ByteBuffer put(ByteBuffer src)
+	{
+		// TODO: Implement efficiently.
+		while (src.hasRemaining())
+			put(src.get());
+
+		return this;
+	}
+
+	public final int remaining()
+	{
+		return limit_ - position_;
+	}
+
+	public final ByteBuffer slice()
+	{
+		ByteBuffer result = new ByteBuffer(this);
+		// result.get(0) returns this.get(position_).
+		result.offset_ = offset_ + position_;
+		result.capacity_ = remaining();
+		result.position_ = 0;
+		result.limit_ = remaining();
+
+		return result;
+	}
+
+	private byte[] array_;
+	private int offset_; // get(0) returns array_[offset_].
+	private int capacity_;
+
+	private int position_;
+	private int limit_;
+}
