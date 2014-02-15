@@ -1,3 +1,0 @@
-[submodule "ndn-jsharp/jndn"]
-	path = ndn-jsharp/jndn
-	url = https://github.com/named-data/jndn
