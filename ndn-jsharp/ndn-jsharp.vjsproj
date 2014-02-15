@@ -29,136 +29,50 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\..\..\..\..\jndn\src\net\named_data\jndn\ContentType.java">
-      <Link>ContentType.java</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\..\jndn\src\net\named_data\jndn\Data.java">
-      <Link>Data.java</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\..\jndn\src\net\named_data\jndn\encoding\BinaryXml.java">
-      <Link>encoding\BinaryXml.java</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\..\jndn\src\net\named_data\jndn\encoding\BinaryXmlDecoder.java">
-      <Link>encoding\BinaryXmlDecoder.java</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\..\jndn\src\net\named_data\jndn\encoding\BinaryXmlElementReader.java">
-      <Link>encoding\BinaryXmlElementReader.java</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\..\jndn\src\net\named_data\jndn\encoding\BinaryXmlEncoder.java">
-      <Link>encoding\BinaryXmlEncoder.java</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\..\jndn\src\net\named_data\jndn\encoding\BinaryXmlStructureDecoder.java">
-      <Link>encoding\BinaryXmlStructureDecoder.java</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\..\jndn\src\net\named_data\jndn\encoding\BinaryXmlWireFormat.java">
-      <Link>encoding\BinaryXmlWireFormat.java</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\..\jndn\src\net\named_data\jndn\encoding\der\DerNode.java">
-      <Link>encoding\der\DerNode.java</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\..\jndn\src\net\named_data\jndn\encoding\ElementListener.java">
-      <Link>encoding\ElementListener.java</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\..\jndn\src\net\named_data\jndn\encoding\EncodingException.java">
-      <Link>encoding\EncodingException.java</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\..\jndn\src\net\named_data\jndn\encoding\OID.java">
-      <Link>encoding\OID.java</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\..\jndn\src\net\named_data\jndn\encoding\WireFormat.java">
-      <Link>encoding\WireFormat.java</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\..\jndn\src\net\named_data\jndn\Exclude.java">
-      <Link>Exclude.java</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\..\jndn\src\net\named_data\jndn\Interest.java">
-      <Link>Interest.java</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\..\jndn\src\net\named_data\jndn\KeyLocator.java">
-      <Link>KeyLocator.java</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\..\jndn\src\net\named_data\jndn\KeyLocatorType.java">
-      <Link>KeyLocatorType.java</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\..\jndn\src\net\named_data\jndn\KeyNameType.java">
-      <Link>KeyNameType.java</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\..\jndn\src\net\named_data\jndn\MetaInfo.java">
-      <Link>MetaInfo.java</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\..\jndn\src\net\named_data\jndn\Name.java">
-      <Link>Name.java</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\..\jndn\src\net\named_data\jndn\OnData.java">
-      <Link>OnData.java</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\..\jndn\src\net\named_data\jndn\OnInterest.java">
-      <Link>OnInterest.java</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\..\jndn\src\net\named_data\jndn\OnRegisterFailed.java">
-      <Link>OnRegisterFailed.java</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\..\jndn\src\net\named_data\jndn\OnTimeout.java">
-      <Link>OnTimeout.java</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\..\jndn\src\net\named_data\jndn\PublisherPublicKeyDigest.java">
-      <Link>PublisherPublicKeyDigest.java</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\..\jndn\src\net\named_data\jndn\security\certificate\PublicKey.java">
-      <Link>security\certificate\PublicKey.java</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\..\jndn\src\net\named_data\jndn\security\DigestAlgorithm.java">
-      <Link>security\DigestAlgorithm.java</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\..\jndn\src\net\named_data\jndn\security\identity\PrivateKeyStorage.java">
-      <Link>security\identity\PrivateKeyStorage.java</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\..\jndn\src\net\named_data\jndn\security\KeyClass.java">
-      <Link>security\KeyClass.java</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\..\jndn\src\net\named_data\jndn\security\KeyType.java">
-      <Link>security\KeyType.java</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\..\jndn\src\net\named_data\jndn\security\OnVerified.java">
-      <Link>security\OnVerified.java</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\..\jndn\src\net\named_data\jndn\security\OnVerifyFailed.java">
-      <Link>security\OnVerifyFailed.java</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\..\jndn\src\net\named_data\jndn\security\policy\PolicyManager.java">
-      <Link>security\policy\PolicyManager.java</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\..\jndn\src\net\named_data\jndn\security\SecurityException.java">
-      <Link>security\SecurityException.java</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\..\jndn\src\net\named_data\jndn\security\ValidationRequest.java">
-      <Link>security\ValidationRequest.java</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\..\jndn\src\net\named_data\jndn\Sha256WithRsaSignature.java">
-      <Link>Sha256WithRsaSignature.java</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\..\jndn\src\net\named_data\jndn\Signature.java">
-      <Link>Signature.java</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\..\jndn\src\net\named_data\jndn\transport\Transport.java">
-      <Link>transport\Transport.java</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\..\jndn\src\net\named_data\jndn\util\Blob.java">
-      <Link>util\Blob.java</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\..\jndn\src\net\named_data\jndn\util\ChangeCountable.java">
-      <Link>util\ChangeCountable.java</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\..\jndn\src\net\named_data\jndn\util\ChangeCounter.java">
-      <Link>util\ChangeCounter.java</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\..\jndn\src\net\named_data\jndn\util\DynamicByteBuffer.java">
-      <Link>util\DynamicByteBuffer.java</Link>
-    </Compile>
-    <Compile Include="..\..\..\..\..\jndn\src\net\named_data\jndn\util\SignedBlob.java">
-      <Link>util\SignedBlob.java</Link>
-    </Compile>
     <Compile Include="ByteBuffer.jsl" />
+    <Compile Include="jndn\src\net\named_data\jndn\ContentType.java" />
+    <Compile Include="jndn\src\net\named_data\jndn\Data.java" />
+    <Compile Include="jndn\src\net\named_data\jndn\encoding\BinaryXml.java" />
+    <Compile Include="jndn\src\net\named_data\jndn\encoding\BinaryXmlDecoder.java" />
+    <Compile Include="jndn\src\net\named_data\jndn\encoding\BinaryXmlElementReader.java" />
+    <Compile Include="jndn\src\net\named_data\jndn\encoding\BinaryXmlEncoder.java" />
+    <Compile Include="jndn\src\net\named_data\jndn\encoding\BinaryXmlStructureDecoder.java" />
+    <Compile Include="jndn\src\net\named_data\jndn\encoding\BinaryXmlWireFormat.java" />
+    <Compile Include="jndn\src\net\named_data\jndn\encoding\der\DerNode.java" />
+    <Compile Include="jndn\src\net\named_data\jndn\encoding\ElementListener.java" />
+    <Compile Include="jndn\src\net\named_data\jndn\encoding\EncodingException.java" />
+    <Compile Include="jndn\src\net\named_data\jndn\encoding\OID.java" />
+    <Compile Include="jndn\src\net\named_data\jndn\encoding\WireFormat.java" />
+    <Compile Include="jndn\src\net\named_data\jndn\Exclude.java" />
+    <Compile Include="jndn\src\net\named_data\jndn\Interest.java" />
+    <Compile Include="jndn\src\net\named_data\jndn\KeyLocator.java" />
+    <Compile Include="jndn\src\net\named_data\jndn\KeyLocatorType.java" />
+    <Compile Include="jndn\src\net\named_data\jndn\KeyNameType.java" />
+    <Compile Include="jndn\src\net\named_data\jndn\MetaInfo.java" />
+    <Compile Include="jndn\src\net\named_data\jndn\Name.java" />
+    <Compile Include="jndn\src\net\named_data\jndn\OnData.java" />
+    <Compile Include="jndn\src\net\named_data\jndn\OnInterest.java" />
+    <Compile Include="jndn\src\net\named_data\jndn\OnRegisterFailed.java" />
+    <Compile Include="jndn\src\net\named_data\jndn\OnTimeout.java" />
+    <Compile Include="jndn\src\net\named_data\jndn\PublisherPublicKeyDigest.java" />
+    <Compile Include="jndn\src\net\named_data\jndn\security\certificate\PublicKey.java" />
+    <Compile Include="jndn\src\net\named_data\jndn\security\DigestAlgorithm.java" />
+    <Compile Include="jndn\src\net\named_data\jndn\security\identity\PrivateKeyStorage.java" />
+    <Compile Include="jndn\src\net\named_data\jndn\security\KeyClass.java" />
+    <Compile Include="jndn\src\net\named_data\jndn\security\KeyType.java" />
+    <Compile Include="jndn\src\net\named_data\jndn\security\OnVerified.java" />
+    <Compile Include="jndn\src\net\named_data\jndn\security\OnVerifyFailed.java" />
+    <Compile Include="jndn\src\net\named_data\jndn\security\policy\PolicyManager.java" />
+    <Compile Include="jndn\src\net\named_data\jndn\security\SecurityException.java" />
+    <Compile Include="jndn\src\net\named_data\jndn\security\ValidationRequest.java" />
+    <Compile Include="jndn\src\net\named_data\jndn\Sha256WithRsaSignature.java" />
+    <Compile Include="jndn\src\net\named_data\jndn\Signature.java" />
+    <Compile Include="jndn\src\net\named_data\jndn\transport\Transport.java" />
+    <Compile Include="jndn\src\net\named_data\jndn\util\Blob.java" />
+    <Compile Include="jndn\src\net\named_data\jndn\util\ChangeCountable.java" />
+    <Compile Include="jndn\src\net\named_data\jndn\util\ChangeCounter.java" />
+    <Compile Include="jndn\src\net\named_data\jndn\util\DynamicByteBuffer.java" />
+    <Compile Include="jndn\src\net\named_data\jndn\util\SignedBlob.java" />
     <Compile Include="Properties\AssemblyInfo.jsl" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.VisualJSharp.targets" />
