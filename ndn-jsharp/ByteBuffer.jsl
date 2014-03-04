@@ -14,7 +14,7 @@ public class ByteBuffer
 	private ByteBuffer(byte[] array)
 	{
 		array_ = array;
-		offset_ = 0;
+		arrayOffset_ = 0;
 		capacity_ = array_.length;
 		position_ = 0;
 		limit_ = capacity_;
@@ -23,7 +23,7 @@ public class ByteBuffer
 	private ByteBuffer(ByteBuffer byteBuffer)
 	{
 		array_ = byteBuffer.array_;
-		offset_ = byteBuffer.offset_;
+		arrayOffset_ = byteBuffer.arrayOffset_;
 		capacity_ = byteBuffer.capacity_;
 		position_ = byteBuffer.position_;
 		limit_ = byteBuffer.limit_;
@@ -48,6 +48,11 @@ public class ByteBuffer
 	public final byte[] array()
 	{
 		return array_;
+	}
+
+	public final int arrayOffset()
+	{
+		return arrayOffset_;
 	}
 
 	public final int capacity()
@@ -81,7 +86,7 @@ public class ByteBuffer
 		if (index >= capacity_)
 			throw new IllegalArgumentException("ByteBuffer.get: index cannot be >= capacity().");
 
-		return array_[offset_ + index];
+		return array_[arrayOffset_ + index];
 	}
 
 	public final boolean hasRemaining()
@@ -136,7 +141,7 @@ public class ByteBuffer
 		if (index >= capacity_)
 			throw new IllegalArgumentException("ByteBuffer.put: index cannot be >= capacity().");
 
-		array_[offset_ + index] = b;
+		array_[arrayOffset_ + index] = b;
 		return this;
 	}
 
@@ -172,7 +177,7 @@ public class ByteBuffer
 	{
 		ByteBuffer result = new ByteBuffer(this);
 		// result.get(0) returns this.get(position_).
-		result.offset_ = offset_ + position_;
+		result.arrayOffset_ = arrayOffset_ + position_;
 		result.capacity_ = remaining();
 		result.position_ = 0;
 		result.limit_ = remaining();
@@ -181,7 +186,7 @@ public class ByteBuffer
 	}
 
 	private byte[] array_;
-	private int offset_; // get(0) returns array_[offset_].
+	private int arrayOffset_; // get(0) returns array_[arrayOffset_].
 	private int capacity_;
 
 	private int position_;
