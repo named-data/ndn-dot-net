@@ -157,7 +157,11 @@ namespace net.named_data.jndn.transport
 
       while (true)
       {
-        // TODO: Poll to see if there is data to receive.
+		// Set the timeout to 0 to return immediately.
+		if (!socket_.Poll(0, SelectMode.SelectRead))
+			// Nothing to read.
+			return;
+
         int bytesRead = socket_.Receive(inputBuffer_.array(), inputBuffer_.capacity(), 0);
         if (bytesRead <= 0)
           return;
