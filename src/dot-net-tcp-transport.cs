@@ -19,10 +19,10 @@ namespace net.named_data.jndn.transport
   /// </summary>
   public class DotNetTcpTransport : Transport
   {
-    /**
-     * A TcpTransport::ConnectionInfo extends Transport::ConnectionInfo to hold 
-     * the host and port info for the TCP connection.
-     */
+    /// <summary>
+    /// A TcpTransport::ConnectionInfo extends Transport::ConnectionInfo to hold 
+    /// the host and port info for the TCP connection.
+    /// </summary>
     public new class ConnectionInfo : Transport.ConnectionInfo
     {
       /// <summary>
@@ -157,10 +157,10 @@ namespace net.named_data.jndn.transport
 
       while (true)
       {
-		// Set the timeout to 0 to return immediately.
-		if (!socket_.Poll(0, SelectMode.SelectRead))
-			// Nothing to read.
-			return;
+        // Set the timeout to 0 to return immediately.
+        if (!socket_.Poll(0, SelectMode.SelectRead))
+          // Nothing to read.
+          return;
 
         int bytesRead = socket_.Receive(inputBuffer_.array(), inputBuffer_.capacity(), 0);
         if (bytesRead <= 0)
