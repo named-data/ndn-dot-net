@@ -130,8 +130,14 @@ namespace net.named_data.jndn.transport
         throw new System.IO.IOException
           ("Cannot send because the socket is not open.  Use connect.");
 
-      // Use the underlying data.array() for efficiency.
-      socket_.Send(data.array(), data.arrayOffset() + data.position(), data.remaining(), 0);
+      // ByteBuffer is readonly so we can't call array(), and we can't do a low-level
+      //   operation on the array, so we have to copy.
+      var buffer = new byte[data.remaining()];
+      int savePosition = data.position();
+      data.get(buffer);
+      data.position(savePosition);
+
+      socket_.Send(buffer);
     }
 
     /// <summary>
