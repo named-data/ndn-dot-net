@@ -55,7 +55,7 @@ namespace TestNdnDotNet
             Console.Out.WriteLine("scope: " +
                 (interest.getScope() >= 0 ? "" + interest.getScope() : "<none>"));
             Console.Out.WriteLine("nonce: " +
-                (interest.getNonce().size() >= 0 ? "" + interest.getNonce().toHex() : "<none>"));
+                (interest.getNonce().size() > 0 ? "" + interest.getNonce().toHex() : "<none>"));
         }
 
         static void Main(string[] args)
