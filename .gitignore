@@ -1,7 +1,6 @@
-# Temporary Visual Studio files
-ndn-jsharp/obj
-*.suo
-
 # Emacs temp files
 *~
 
+# Eclipse files
+/eclipse/.metadata
+/eclipse/jndn/bin
