@@ -1,0 +1,174 @@
+/**
+ * Copyright (C) 2013-2015 Regents of the University of California.
+ * @author: Jeff Thompson <jefft0@remap.ucla.edu>
+ * @author: From code in ndn-cxx by Yingdi Yu <yingdi@cs.ucla.edu>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * A copy of the GNU Lesser General Public License is in the file COPYING.
+ */
+
+package net.named_data.jndn.security.certificate;
+
+import java.security.KeyFactory;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.X509EncodedKeySpec;
+import java.util.List;
+import net.named_data.jndn.encoding.der.DerDecodingException;
+import net.named_data.jndn.encoding.der.DerNode;
+import net.named_data.jndn.security.DigestAlgorithm;
+import net.named_data.jndn.security.KeyType;
+import net.named_data.jndn.security.UnrecognizedDigestAlgorithmException;
+import net.named_data.jndn.security.UnrecognizedKeyFormatException;
+import net.named_data.jndn.util.Blob;
+import net.named_data.jndn.util.Common;
+
+public class PublicKey {
+  public PublicKey()
+  {
+    keyType_ = null;
+    keyDer_ = new Blob();
+  }
+
+  /**
+   * Create a new PublicKey by decoding the keyDer. Set the key type from the
+   * decoding.
+   * @param keyDer The blob of the SubjectPublicKeyInfo DER.
+   * @throws UnrecognizedKeyFormatException if can't decode the key DER.
+   */
+  public PublicKey(Blob keyDer) throws UnrecognizedKeyFormatException
+  {
+    keyDer_ = keyDer;
+
+    // Get the public key OID.
+    String oidString = null;
+    try {
+      DerNode parsedNode = DerNode.parse(keyDer.buf(), 0);
+      List rootChildren = parsedNode.getChildren();
+      List algorithmIdChildren =
+        DerNode.getSequence(rootChildren, 0).getChildren();
+      oidString = ((DerNode)algorithmIdChildren.get(0)).toVal().toString();
+    }
+    catch (DerDecodingException ex) {
+      throw new UnrecognizedKeyFormatException
+        ("PublicKey: Error decoding the public key" +
+         ex.getMessage());
+    }
+
+    // Verify that the we can decode.
+    if (oidString.equals(RSA_ENCRYPTION_OID)) {
+      keyType_ = KeyType.RSA;
+
+      KeyFactory keyFactory = null;
+      try {
+        keyFactory = KeyFactory.getInstance("RSA");
+      }
+      catch (NoSuchAlgorithmException exception) {
+        // Don't expect this to happen.
+        throw new UnrecognizedKeyFormatException
+          ("RSA is not supported: " + exception.getMessage());
+      }
+
+      try {
+        keyFactory.generatePublic
+          (new X509EncodedKeySpec(keyDer.getImmutableArray()));
+      }
+      catch (InvalidKeySpecException exception) {
+        // Don't expect this to happen.
+        throw new UnrecognizedKeyFormatException
+          ("X509EncodedKeySpec is not supported for RSA: " + exception.getMessage());
+      }
+    }
+    else if (oidString.equals(EC_ENCRYPTION_OID)) {
+      keyType_ = KeyType.ECDSA;
+
+      KeyFactory keyFactory = null;
+      try {
+        keyFactory = KeyFactory.getInstance("EC");
+      }
+      catch (NoSuchAlgorithmException exception) {
+        // Don't expect this to happen.
+        throw new UnrecognizedKeyFormatException
+          ("EC is not supported: " + exception.getMessage());
+      }
+
+      try {
+        keyFactory.generatePublic
+          (new X509EncodedKeySpec(keyDer.getImmutableArray()));
+      }
+      catch (InvalidKeySpecException exception) {
+        // Don't expect this to happen.
+        throw new UnrecognizedKeyFormatException
+          ("X509EncodedKeySpec is not supported for EC: " + exception.getMessage());
+      }
+    }
+    else
+      throw new UnrecognizedKeyFormatException(
+        "PublicKey: Unrecognized OID " + oidString);
+  }
+
+  /**
+   * Encode the public key into DER.
+   * @return the encoded DER syntax tree.
+   */
+  public final DerNode
+  toDer() throws DerDecodingException
+  {
+    return DerNode.parse(keyDer_.buf());
+  }
+
+  public KeyType
+  getKeyType() { return keyType_; }
+
+  /*
+   * Get the digest of the public key.
+   * @param digestAlgorithm The digest algorithm.
+   */
+  public final Blob
+  getDigest(DigestAlgorithm digestAlgorithm) throws UnrecognizedDigestAlgorithmException
+  {
+    if (digestAlgorithm == DigestAlgorithm.SHA256) {
+      return new Blob(Common.digestSha256(keyDer_.buf()));
+    }
+    else
+      throw new UnrecognizedDigestAlgorithmException("Wrong format!");
+  }
+
+  /*
+   * Get the digest of the public key using DigestAlgorithm.SHA256.
+   */
+  public final Blob
+  getDigest()
+  {
+    try {
+      return getDigest(DigestAlgorithm.SHA256);
+    }
+    catch (UnrecognizedDigestAlgorithmException ex) {
+      // We don't expect this exception.
+      throw new Error("UnrecognizedDigestAlgorithmException " + ex.getMessage());
+    }
+  }
+
+  /*
+   * Get the raw bytes of the public key in DER format.
+   */
+  public final Blob
+  getKeyDer() { return keyDer_; }
+
+  private static String RSA_ENCRYPTION_OID = "1.2.840.113549.1.1.1";
+  private static String EC_ENCRYPTION_OID = "1.2.840.10045.2.1";
+
+  private final KeyType keyType_;
+  private final Blob keyDer_;   /**< PublicKeyInfo in DER */
+}
