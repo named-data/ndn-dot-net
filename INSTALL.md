@@ -21,8 +21,10 @@ Java to C# Translation
 
     rm -rf src/cs/*
 
-* Start Eclipse 3.6.0.
+* Start Eclipse 3.6.0. (If necessary, follow the instructions to install the Java 6 runtime.)
 * Use the menu File->Switch Workspace to open ndn-dot-net/eclipse.
+* In the Package Explorer on the left, you should see the jndn project. If not, click menu
+  File->New->Java Project. Under "Project Name", type "jndn" and click Finish.
 * (The project jndn already has a snapshot of the jNDN Java files.)
 * Click menu File->Export. Select Other->ILOG Java to CSharp Translator. Click Next.
 * Select the "jndn" project, click Next.
