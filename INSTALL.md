@@ -8,8 +8,8 @@ These steps are only needed to do the translation from jNDN Java files to C#
 
 ## Mac OS X 10.10.2 and Mac OS X 10.11
 
-* Download and unzip Eclipse 3.6.0 (Helios) from 
-  http://www.eclipse.org/downloads/download.php?file=/eclipse/downloads/drops/R-3.6-201006080911/eclipse-SDK-3.6-macosx-cocoa-x86_64.tar.gz .
+* Download and unzip Eclipse 3.6.2 (Helios SR2) for Mac Cocoa 64-bit from
+  http://www.eclipse.org/downloads/download.php?file=/technology/epp/downloads/release/helios/SR2/eclipse-java-helios-SR2-macosx-cocoa-x86_64.tar.gz .
 * Download the j2cstranslator plugin for Eclipse 3.6.0 from
   http://sourceforge.net/projects/j2cstranslator/files/j2cstranslator/Eclipse3.6/1.3.6.2001_05_19_01/
 * Put the j2cstranslator plugin jar file in eclipse/plugins .
