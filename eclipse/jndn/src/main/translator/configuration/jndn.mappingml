@@ -1,0 +1,80 @@
+<!-- -->
+<!-- ILOG Java 2 CSharp translator mapping file for project jndn -->
+<!-- -->
+<mapping>
+   <!--          -->
+   <!-- packages -->
+   <!--          -->
+   <packages>
+      <!--               -->
+      <!-- net.named_data.jndn -->
+      <!--              -->
+      <package name="net.named_data.jndn">
+      </package>
+      <!--               -->
+      <!-- net.named_data.jndn.encoding -->
+      <!--              -->
+      <package name="net.named_data.jndn.encoding">
+      </package>
+      <!--               -->
+      <!-- net.named_data.jndn.encoding.der -->
+      <!--              -->
+      <package name="net.named_data.jndn.encoding.der">
+      </package>
+      <!--               -->
+      <!-- net.named_data.jndn.encoding.tlv -->
+      <!--              -->
+      <package name="net.named_data.jndn.encoding.tlv">
+      </package>
+      <!--               -->
+      <!-- net.named_data.jndn.encrypt -->
+      <!--              -->
+      <package name="net.named_data.jndn.encrypt">
+      </package>
+      <!--               -->
+      <!-- net.named_data.jndn.encrypt.algo -->
+      <!--              -->
+      <package name="net.named_data.jndn.encrypt.algo">
+      </package>
+      <!--               -->
+      <!-- net.named_data.jndn.impl -->
+      <!--              -->
+      <package name="net.named_data.jndn.impl">
+      </package>
+      <!--               -->
+      <!-- net.named_data.jndn.security -->
+      <!--              -->
+      <package name="net.named_data.jndn.security">
+      </package>
+      <!--               -->
+      <!-- net.named_data.jndn.security.certificate -->
+      <!--              -->
+      <package name="net.named_data.jndn.security.certificate">
+      </package>
+      <!--               -->
+      <!-- net.named_data.jndn.security.identity -->
+      <!--              -->
+      <package name="net.named_data.jndn.security.identity">
+      </package>
+      <!--               -->
+      <!-- net.named_data.jndn.security.policy -->
+      <!--              -->
+      <package name="net.named_data.jndn.security.policy">
+      </package>
+      <!--               -->
+      <!-- net.named_data.jndn.sync -->
+      <!--              -->
+      <package name="net.named_data.jndn.sync">
+      </package>
+      <!--               -->
+      <!-- net.named_data.jndn.transport -->
+      <!--              -->
+      <package name="net.named_data.jndn.transport">
+      </package>
+      <!--               -->
+      <!-- net.named_data.jndn.util -->
+      <!--              -->
+      <package name="net.named_data.jndn.util">
+      </package>
+   </packages>
+</mapping>
