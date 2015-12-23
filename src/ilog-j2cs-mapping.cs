@@ -42,11 +42,26 @@ namespace ILOG.J2CsMapping.Collections {
     public static void
     Put(Hashtable map, object key, object value) { map[key] = value; }
 
-    public static void 
-    Remove(Hashtable map, object key) { map.Remove(key); }
+    public static object 
+    Remove(Hashtable map, object key) 
+    {
+      // Imitate Java HashMap.remove.
+      object oldValue = null;
+      if (map.ContainsKey(key))
+        oldValue = map[key];
+      
+      map.Remove(key); 
+      return oldValue;
+    }
 
-    public static void 
-    Remove(IList list, object entry) { list.Remove(entry); }
+    public static bool 
+    Remove(IList list, object entry)
+    { 
+      // Imitate Java List.remove.
+      bool hadValue = list.Contains(entry);
+      list.Remove(entry); 
+      return hadValue;
+    }
 
     public static void 
     RemoveAt(IList list, int index) { list.RemoveAt(index); }
