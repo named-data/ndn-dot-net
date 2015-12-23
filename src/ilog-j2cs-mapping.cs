@@ -36,8 +36,22 @@ namespace ILOG.J2CsMapping.Collections {
     public static void 
     Clear(IList list) { list.Clear(); }
 
+    public static object
+    Get(Hashtable map, object key) { return map[key]; }
+
+    public static void
+    Put(Hashtable map, object key, object value) { map[key] = value; }
+
+    public static void 
+    Remove(Hashtable map, object key) { map.Remove(key); }
+
+    public static void 
+    Remove(IList list, object entry) { list.Remove(entry); }
+
     public static void 
     RemoveAt(IList list, int index) { list.RemoveAt(index); }
+
+    public static IList synchronizedList(IList list) { return list; }
   }
 }
 
@@ -470,12 +484,22 @@ namespace ILOG.J2CsMapping.Util {
 }
 
 namespace ILOG.J2CsMapping.Util.Logging {
+  public enum Level { SEVERE, WARNING, INFO, CONFIG, FINE, FINER, FINEST }
+
   public class Logger {
     public Logger(string className) {
       className_ = className;
     }
 
-    public static Logger getLogger(string className) { return new Logger(className); }
+    public static Logger 
+    getLogger(string className) { return new Logger(className); }
+
+    public void log(Level level, string message, object arg)
+    {
+      // TODO: Implement.
+    }
+
+    public void log(Level level, string message) { log(level, message, null); }
 
     private string className_;
   }
