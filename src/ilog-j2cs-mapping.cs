@@ -31,13 +31,13 @@ using System.Text.RegularExpressions;
 namespace ILOG.J2CsMapping.Collections {
   public class Collections {
     public static void 
-    Add(ArrayList list, object value) { list.Add(value); }
+    Add(IList list, object value) { list.Add(value); }
 
     public static void 
-    Clear(ArrayList list) { list.Clear(); }
+    Clear(IList list) { list.Clear(); }
 
     public static void 
-    RemoveAt(ArrayList list, int index) { list.RemoveAt(index); }
+    RemoveAt(IList list, int index) { list.RemoveAt(index); }
   }
 }
 
@@ -347,8 +347,7 @@ namespace ILOG.J2CsMapping.NIO {
     public int 
     compareTo(ByteBuffer other)
     {
-      // TODO: Implement.
-      return 1;
+      throw new NotImplementedException("ByteBuffer.compareTo is not implemented");
     }
 
     public int 
@@ -417,6 +416,14 @@ namespace ILOG.J2CsMapping.Reflect {
 }
 
 namespace ILOG.J2CsMapping.Text {
+  public class Matcher {
+    // TODO: Implement.
+  }
+
+  public class Pattern {
+    // TODO: Implement.
+  }
+
   public class RegExUtil {
     public static string[]
     Split(String str, string regex) { return Regex.Split(str, regex); }
@@ -463,4 +470,13 @@ namespace ILOG.J2CsMapping.Util {
 }
 
 namespace ILOG.J2CsMapping.Util.Logging {
+  public class Logger {
+    public Logger(string className) {
+      className_ = className;
+    }
+
+    public static Logger getLogger(string className) { return new Logger(className); }
+
+    private string className_;
+  }
 }
