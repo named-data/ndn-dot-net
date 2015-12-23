@@ -18,6 +18,7 @@
  */
 
 using System;
+using System.Collections;
 using System.Text;
 using System.Globalization;
 using System.Text.RegularExpressions;
@@ -43,15 +44,28 @@ namespace net.named_data.jndn.util {
     public static int 
     getNumericType(this EncryptAlgorithmType algorithmType) { return (int)algorithmType; }
 
+    // Hashtable extensions.
+    public static bool 
+    clear(this Hashtable map) { return map.Clear(); }
+
     // String extensions.
     public static bool 
+    contains(this String str, string value) { return str.Contains(value); }
+
+    public static bool 
     endsWith(this String str, string value) { return str.EndsWith(value); }
+
+    public static bool 
+    equals(this String str, string value) { return str.Equals(value); }
 
     public static int 
     indexOf(this String str, char value) { return str.IndexOf(value); }
 
     public static int 
     indexOf(this String str, char value, int startIndex) { return str.IndexOf(value, startIndex); }
+
+    public static string
+    replace(this String str, string oldValue, string newValue) { return str.Replace(oldValue, newValue); }
 
     public static string[]
     split(this String str, string regex) { return Regex.Split(str, regex); }
