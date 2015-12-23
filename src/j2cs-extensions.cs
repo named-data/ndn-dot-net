@@ -44,6 +44,9 @@ namespace net.named_data.jndn.util {
     getNumericType(this EncryptAlgorithmType algorithmType) { return (int)algorithmType; }
 
     // String extensions.
+    public static bool 
+    endsWith(this String str, string value) { return str.EndsWith(value); }
+
     public static int 
     indexOf(this String str, char value) { return str.IndexOf(value); }
 
@@ -84,6 +87,10 @@ namespace net.named_data.jndn.util {
 
   public class BufferUnderflowException : Exception {
     public BufferUnderflowException(string message) : base(message) {}
+  }
+
+  public interface IRunnable {
+    void run();
   }
 
   public class ParseException : Exception {
@@ -138,6 +145,11 @@ namespace net.named_data.jndn.util {
   }
 }
 
+namespace System {
+  class PrivateKey {
+  }
+}
+
 namespace System.Collections {
   /// <summary>
   /// This is used with SimpleDateFormat.
@@ -153,4 +165,7 @@ namespace System.Collections {
           ("TimeZone.getTimeZone does not support timeZone " + timeZone);
     }
   }
+}
+
+namespace System.spec {
 }
