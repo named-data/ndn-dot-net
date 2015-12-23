@@ -21,6 +21,7 @@ using System;
 using System.Text;
 using System.Globalization;
 using System.Text.RegularExpressions;
+using  System.Security.Cryptography;
 using net.named_data.jndn;
 using net.named_data.jndn.encoding.der;
 using net.named_data.jndn.encrypt.algo;
@@ -120,6 +121,20 @@ namespace net.named_data.jndn.util {
   }
 
   public class SecureRandom {
+    public void nextBytes(byte[] array) { generator_.GetBytes(array); }
+
+    /// <summary>
+    /// When when the code calls Next(), it always casts to a byte, so for
+    /// simplicity just return a byte.
+    /// </summary>
+    public byte Next() 
+    {
+      var result = new byte[1];
+      generator_.GetBytes(result);
+      return result[0];
+    }
+
+    private static RNGCryptoServiceProvider generator_ = new RNGCryptoServiceProvider();
   }
 }
 
