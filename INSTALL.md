@@ -30,8 +30,9 @@ Java to C# Translation
 * Under "Translation Destination Directory", click Browse and browse to `ndn-dot-net/src` .
 * In the Translate Projects window, Click Finish. The output is in `ndn-dot-net/src/net` .
 * (The translator creates an Eclipse project with temporary Java files, for example `translation_ndn-dot-net_Tue_Dec_22_08_27_23_PST_2015`. Delete it.)
-* Globally capitalize the override methods `equals` and `toString`. In a terminal change directory to `ndn-dot-net/src/net` and enter:
+* Globally capitalize the override methods `equals` and `toString` as follows.
 
+In a terminal change directory to `ndn-dot-net/src/net` and enter:
 
     (unset LANG; find . -type f -exec sed -i '' 's/public override bool equals(Object other)/public override bool Equals(Object other)/g' {} +)
     (unset LANG; find . -type f -exec sed -i '' 's/public override String toString()/public override String ToString()/g' {} +)
