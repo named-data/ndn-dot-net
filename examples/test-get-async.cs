@@ -1,44 +1,51 @@
 /**
- * Copyright (C) 2014 Regents of the University of California.
+ * Copyright (C) 2014-2015 Regents of the University of California.
  * @author: Jeff Thompson <jefft0@remap.ucla.edu>
- * See COPYING for copyright and distribution information.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * A copy of the GNU Lesser General Public License is in the file COPYING.
  */
 
 using System;
 using System.Collections.Generic;
 using System.Text;
 
-using java.nio;
 using net.named_data.jndn;
 using net.named_data.jndn.encoding;
 using net.named_data.jndn.transport;
 using net.named_data.jndn.util;
 
-class Counter : ElementListener {
+class Counter : OnData, OnTimeout {
   public void 
-  onReceivedElement(ByteBuffer element) 
+  onData(Interest interest, Data data)
   {
-    if (element.get(0) == 0x04) {
-      ++callbackCount_;
-      try {
-        Data data = new Data();
-        data.wireDecode(element);
-
-        Console.Out.WriteLine
-          ("Got data packet with name " + data.getName().toUri());
-        ByteBuffer content = data.getContent().buf();
-		string contentString = "";
-        for (int i = content.position(); i < content.limit(); ++i)
-		  contentString += (char)content.get(i);
-		Console.Out.WriteLine(contentString);
-      } 
-      catch (EncodingException e) 
-      {
-        Console.Out.WriteLine("EncodingException " + e.getMessage());
-      }
-    }
+    ++callbackCount_;
+    Console.Out.WriteLine("Got data packet with name " + data.getName().toUri());
+    var content = data.getContent().buf();
+    var contentString = "";
+    for (int i = content.position(); i < content.limit(); ++i)
+      contentString += (char)content.get(i);
+    Console.Out.WriteLine(contentString);
   }
   
+  public void 
+  onTimeout(Interest interest)
+  {
+    ++callbackCount_;
+    Console.Out.WriteLine("Time out for interest " + interest.getName().toUri());
+  }
+
   public int callbackCount_ = 0;
 }
 
@@ -46,32 +53,27 @@ namespace TestNdnDotNet
 {
   class TestGetAsync {
 	static void Main(string[] args)
-	{
-	  try {
-        Counter counter = new Counter();
+    {
+     // try {
+        var face = new Face
+          (new DotNetTcpTransport(), 
+           new DotNetTcpTransport.ConnectionInfo("aleph.ndn.ucla.edu"));
 
-        TcpTransport transport = new TcpTransport();
-        // Connect to port 9695 until the testbed hubs use NDNx and are 
-        //   connected to the test repo.
-        transport.connect(new TcpTransport.ConnectionInfo
-          ("ndn-remap-p02.it.ucla.edu", 9695), counter);
+        Counter counter = new Counter();
 
         Name name1 = new Name("/");
         Console.Out.WriteLine("Express name " + name1.toUri());
-        Interest interest = new Interest(name1, 4000.0);
-        Blob encoding = interest.wireEncode();
-        transport.send(encoding.buf());
+        face.expressInterest(name1, counter, counter);
 
         // The main event loop.
         while (counter.callbackCount_ < 1) {
-          transport.processEvents();
+          face.processEvents();
           // We need to sleep for a few milliseconds so we don't use 100% of the CPU.
-		  System.Threading.Thread.Sleep(5);
+          System.Threading.Thread.Sleep(5);
         }
-	  }
-	  catch (Exception e) {
-		Console.Out.WriteLine("exception: " + e.Message);
-      }
+     // } catch (Exception e) {
+     //   Console.Out.WriteLine("exception: " + e.Message);
+     // }
     }
   }
 }
