@@ -45,8 +45,8 @@ namespace net.named_data.jndn.util {
     getNumericType(this EncryptAlgorithmType algorithmType) { return (int)algorithmType; }
 
     // Hashtable extensions.
-    public static bool 
-    clear(this Hashtable map) { return map.Clear(); }
+    public static void 
+    clear(this Hashtable map) { map.Clear(); }
 
     // String extensions.
     public static bool 
