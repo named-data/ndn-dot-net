@@ -1,4 +1,3 @@
-ndn-dot-net
-===========
-
-NDN Client Library for .NET
+--------------------------------------------------------------------------
+NDN-DOT-NET: A Named Data Networking client library for the .NET Framework
+--------------------------------------------------------------------------
