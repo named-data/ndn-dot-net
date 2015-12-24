@@ -52,7 +52,7 @@ class Counter : OnData, OnTimeout {
 namespace TestNdnDotNet
 {
   class TestGetAsync {
-	static void Main(string[] args)
+    static void Main(string[] args)
     {
       try {
         var face = new Face
