@@ -54,7 +54,7 @@ namespace TestNdnDotNet
   class TestGetAsync {
 	static void Main(string[] args)
     {
-     // try {
+      try {
         var face = new Face
           (new DotNetTcpTransport(), 
            new DotNetTcpTransport.ConnectionInfo("aleph.ndn.ucla.edu"));
@@ -71,9 +71,9 @@ namespace TestNdnDotNet
           // We need to sleep for a few milliseconds so we don't use 100% of the CPU.
           System.Threading.Thread.Sleep(5);
         }
-     // } catch (Exception e) {
-     //   Console.Out.WriteLine("exception: " + e.Message);
-     // }
+      } catch (Exception e) {
+        Console.Out.WriteLine("exception: " + e.Message);
+      }
     }
   }
 }
