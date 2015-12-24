@@ -75,6 +75,13 @@ namespace net.named_data.jndn.util {
 
     // StringBuilder extensions.
     public static StringBuilder 
+    append(this StringBuilder builder, char value) 
+    { 
+      builder.Append(value);
+      return builder;
+    }
+
+    public static StringBuilder 
     append(this StringBuilder builder, int value) 
     { 
       builder.Append(value);
