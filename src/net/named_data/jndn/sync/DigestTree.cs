@@ -17,7 +17,7 @@ namespace net.named_data.jndn.sync {
 	using System.IO;
 	using System.Runtime.CompilerServices;
 	using System.Security.Cryptography;
-  using net.named_data.jndn.util;
+	using net.named_data.jndn.util;
 	
 	public class DigestTree {
 		public DigestTree() {
@@ -270,5 +270,7 @@ namespace net.named_data.jndn.sync {
 		// Use ArrayList without generics so it works with older Java compilers.
 		private readonly ArrayList digestNode_; // of DigestTree.Node
 		private String root_;
+		// This is to force an import of net.named_data.jndn.util.
+		private static Common dummyCommon_ = new Common();
 	}
 }
