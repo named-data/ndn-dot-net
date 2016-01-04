@@ -41,9 +41,6 @@ namespace net.named_data.jndn.util {
     getNumericType(this ContentType contentType) { return (int)contentType; }
 
     public static int 
-    getNumericType(this DerNodeType nodeType) { return (int)nodeType; }
-
-    public static int 
     getNumericType(this EncryptAlgorithmType algorithmType) { return (int)algorithmType; }
 
     // Hashtable extensions.
