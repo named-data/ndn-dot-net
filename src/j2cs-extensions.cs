@@ -18,18 +18,20 @@
  */
 
 using System;
+using System.IO;
 using System.Collections;
 using System.Text;
 using System.Globalization;
 using System.Text.RegularExpressions;
-using  System.Security.Cryptography;
+using System.Security.Cryptography;
+using ILOG.J2CsMapping.NIO;
 using net.named_data.jndn;
 using net.named_data.jndn.encoding.der;
 using net.named_data.jndn.encrypt.algo;
 
 namespace net.named_data.jndn.util {
   /// <summary>
-  /// We set the j2cstranslator to not capitalize method names, but it mistakenly doesn't
+  /// We set j2cstranslator to not capitalize method names, but it mistakenly doesn't
   /// capitalize method names for .NET classes, so this has extension methods for the
   /// uncapitalized methods to call the capitalized ones.
   /// </summary>
@@ -110,12 +112,24 @@ namespace net.named_data.jndn.util {
     public BufferUnderflowException(string message) : base(message) {}
   }
 
+  public class InvalidKeyException : Exception {
+    public InvalidKeyException(string message) : base(message) {}
+  }
+
+  public class InvalidKeySpecException : Exception {
+    public InvalidKeySpecException(string message) : base(message) {}
+  }
+
   public interface IRunnable {
     void run();
   }
 
   public class ParseException : Exception {
     public ParseException(string message) : base(message) {}
+  }
+
+  public class SignatureException : Exception {
+    public SignatureException(string message) : base(message) {}
   }
 
   /// <summary>
@@ -166,8 +180,161 @@ namespace net.named_data.jndn.util {
   }
 }
 
+/// <summary>
+/// j2cstranslator makes naive assumptions and puts some Java classes into the System
+/// name space, so we have to pollute the System name space with them.
+/// </summary>
 namespace System {
-  class PrivateKey {
+  /// <summary>
+  /// j2cstranslator naively converts java.security.KeyFactory to System.KeyFactory.
+  /// </summary>
+  public abstract class KeyFactory {
+    public static KeyFactory
+    getInstance(string type)
+    {
+      if (type == "RSA")
+        return new RsaKeyFactory();
+      else
+        throw new NotImplementedException("KeyFactory type is not implemented: " + type);
+    }
+
+    public abstract PrivateKey
+    generatePrivate(KeySpec keySpec);
+  }
+
+  public class RsaKeyFactory : KeyFactory {
+    public override PrivateKey
+    generatePrivate(KeySpec keySpec)
+    {
+      if (!(keySpec is PKCS8EncodedKeySpec))
+        throw new net.named_data.jndn.util.InvalidKeySpecException
+          ("RsaKeyFactory.generatePrivate expects a PKCS8EncodedKeySpec");
+      
+      // Decode the PKCS #8 private key.
+      var parsedNode = DerNode.parse(new ByteBuffer(((PKCS8EncodedKeySpec)keySpec).KeyDer), 0);
+      var pkcs8Children = parsedNode.getChildren();
+      var algorithmIdChildren = DerNode.getSequence(pkcs8Children, 1).getChildren();
+      var oidString = ((DerNode.DerOid)algorithmIdChildren[0]).toVal().ToString();
+      var rsaPrivateKeyDer = ((DerNode)pkcs8Children[2]).getPayload();
+
+      var RSA_ENCRYPTION_OID = "1.2.840.113549.1.1.1";
+      if (oidString != RSA_ENCRYPTION_OID)
+        throw new net.named_data.jndn.util.InvalidKeySpecException
+          ("The PKCS #8 private key is not RSA_ENCRYPTION");
+
+      // Decode the PKCS #1 RSAPrivateKey.
+      parsedNode = DerNode.parse(rsaPrivateKeyDer.buf(), 0);
+      var rsaPrivateKeyChildren = parsedNode.getChildren();
+
+      // Copy the parameters.
+      RSAParameters parameters = new RSAParameters();
+      parameters.Modulus = ((DerNode)rsaPrivateKeyChildren[1]).getPayload().getImmutableArray();
+      parameters.Exponent = ((DerNode)rsaPrivateKeyChildren[2]).getPayload().getImmutableArray();
+      parameters.D = ((DerNode)rsaPrivateKeyChildren[3]).getPayload().getImmutableArray();
+      parameters.P = ((DerNode)rsaPrivateKeyChildren[4]).getPayload().getImmutableArray();
+      parameters.Q = ((DerNode)rsaPrivateKeyChildren[5]).getPayload().getImmutableArray();
+      parameters.DP = ((DerNode)rsaPrivateKeyChildren[6]).getPayload().getImmutableArray();
+      parameters.DQ = ((DerNode)rsaPrivateKeyChildren[7]).getPayload().getImmutableArray();
+      parameters.InverseQ = ((DerNode)rsaPrivateKeyChildren[8]).getPayload().getImmutableArray();
+
+      return new RsaSecurityPrivateKey(parameters);
+    }
+  }
+
+  /// <summary>
+  /// j2cstranslator naively converts java.security.KeySpec to System.KeySpec.
+  /// </summary>
+  public abstract class KeySpec {
+  }
+
+  public class PKCS8EncodedKeySpec : KeySpec {
+    public PKCS8EncodedKeySpec(byte[] keyDer)
+    {
+      KeyDer = keyDer;
+    }
+
+    public readonly byte[] KeyDer;
+  }
+
+  /// <summary>
+  /// j2cstranslator naively converts java.security.PrivateKey to System.PrivateKey.
+  /// </summary>
+  public class PrivateKey {
+  }
+
+  public class RsaSecurityPrivateKey : PrivateKey {
+    /// <summary>
+    /// Create an RsaPrivateKey with the RSAParameters used by RSACryptoServiceProvider.
+    /// </summary>
+    /// <param name="parameters">Parameters.</param>
+    public RsaSecurityPrivateKey(RSAParameters parameters)
+    {
+      Parameters = parameters;
+    }
+
+    public readonly RSAParameters Parameters;
+  }
+
+  /// <summary>
+  /// j2cstranslator naively converts java.security.Signature to System.Signature.
+  /// We also globally rename System.Signature to System.SecuritySignature to not
+  /// conclict with Signature when using net.named_data.jndn.
+  /// </summary>
+  public abstract class SecuritySignature {
+    public static SecuritySignature 
+    getInstance(string type)
+    {
+      if (type == "SHA256withRSA")
+        return new Sha256withRsaSecuritySignature();
+      else
+        throw new NotImplementedException("SecuritySignature type is not implemented: " + type);
+    }
+
+    public abstract void
+    initSign(PrivateKey privateKey);
+
+    public abstract byte[]
+    sign();
+
+    public abstract void
+    update(ByteBuffer data);
+  }
+
+  public class Sha256withRsaSecuritySignature : SecuritySignature {
+    public override void
+    initSign(PrivateKey privateKey)
+    {
+      if (!(privateKey is RsaSecurityPrivateKey))
+        throw new net.named_data.jndn.util.InvalidKeyException
+        ("Sha256withRsaSecuritySignature.initSign expects an RsaSecurityPrivateKey");
+
+      provider_ = new RSACryptoServiceProvider();
+      provider_.ImportParameters(((RsaSecurityPrivateKey)privateKey).Parameters);
+
+      memoryStream_ = new MemoryStream();
+    }
+
+    public override byte[]
+    sign()
+    {
+      memoryStream_.Flush();
+      var result = provider_.SignData(memoryStream_, new SHA256CryptoServiceProvider());
+
+      // We don't need the data in the stream any more.
+      memoryStream_.Dispose();
+      memoryStream_ = null;
+
+      return result;
+    }
+      
+    public override void
+    update(ByteBuffer data)
+    {
+      memoryStream_.Write(data.array(), 0, data.array().Length);
+    }
+
+    private RSACryptoServiceProvider provider_;
+    private MemoryStream memoryStream_;
   }
 }
 
