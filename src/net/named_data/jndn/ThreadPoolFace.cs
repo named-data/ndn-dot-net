@@ -30,13 +30,13 @@ namespace net.named_data.jndn {
 		public sealed class Anonymous_C3 : OnData {
 				public sealed class Anonymous_C5 : IRunnable {
 								private readonly ThreadPoolFace.Anonymous_C3  outer_Anonymous_C3;
-								private readonly Data data;
 								private readonly Interest localInterest;
+								private readonly Data data;
 					
 								public Anonymous_C5(ThreadPoolFace.Anonymous_C3  paramouter_Anonymous_C3,
-										Data data_0, Interest localInterest_1) {
-									this.data = data_0;
-									this.localInterest = localInterest_1;
+										Interest localInterest_0, Data data_1) {
+									this.localInterest = localInterest_0;
+									this.data = data_1;
 									this.outer_Anonymous_C3 = paramouter_Anonymous_C3;
 								}
 					
@@ -56,7 +56,7 @@ namespace net.named_data.jndn {
 				}
 		
 				public void onData(Interest localInterest_0, Data data_1) {
-					outer_ThreadPoolFace.threadPool_.submit(new net.named_data.jndn.ThreadPoolFace.Anonymous_C3.Anonymous_C5 (this, data_1, localInterest_0));
+					outer_ThreadPoolFace.threadPool_.submit(new net.named_data.jndn.ThreadPoolFace.Anonymous_C3.Anonymous_C5 (this, localInterest_0, data_1));
 				}
 			}
 	
@@ -93,21 +93,20 @@ namespace net.named_data.jndn {
 	
 		public sealed class Anonymous_C1 : IRunnable {
 				private readonly ThreadPoolFace outer_ThreadPoolFace;
-				private readonly OnData onDataSubmit;
+				private readonly Interest interest;
 				private readonly long pendingInterestId;
+				private readonly OnData onDataSubmit;
 				private readonly OnTimeout onTimeoutSubmit;
 				private readonly WireFormat wireFormat;
-				private readonly Interest interest;
 		
 				public Anonymous_C1(ThreadPoolFace paramouter_ThreadPoolFace,
-						OnData onDataSubmit_0, long pendingInterestId_1,
-						OnTimeout onTimeoutSubmit_2, WireFormat wireFormat_3,
-						Interest interest_4) {
-					this.onDataSubmit = onDataSubmit_0;
+						Interest interest_0, long pendingInterestId_1, OnData onDataSubmit_2,
+						OnTimeout onTimeoutSubmit_3, WireFormat wireFormat_4) {
+					this.interest = interest_0;
 					this.pendingInterestId = pendingInterestId_1;
-					this.onTimeoutSubmit = onTimeoutSubmit_2;
-					this.wireFormat = wireFormat_3;
-					this.interest = interest_4;
+					this.onDataSubmit = onDataSubmit_2;
+					this.onTimeoutSubmit = onTimeoutSubmit_3;
+					this.wireFormat = wireFormat_4;
 					this.outer_ThreadPoolFace = paramouter_ThreadPoolFace;
 				}
 		
@@ -171,8 +170,8 @@ namespace net.named_data.jndn {
 			OnTimeout onTimeoutSubmit_6 = (onTimeout == null) ? null
 					: new ThreadPoolFace.Anonymous_C2 (this, finalOnTimeout_5);
 	
-			threadPool_.submit(new ThreadPoolFace.Anonymous_C1 (this, onDataSubmit_4, pendingInterestId_2,
-					onTimeoutSubmit_6, wireFormat_1, interest_0));
+			threadPool_.submit(new ThreadPoolFace.Anonymous_C1 (this, interest_0, pendingInterestId_2, onDataSubmit_4,
+					onTimeoutSubmit_6, wireFormat_1));
 	
 			return pendingInterestId_2;
 		}
