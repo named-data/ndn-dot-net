@@ -163,7 +163,6 @@ namespace net.named_data.jndn.security.policy {
 		/// <returns>true if the signature verifies, false if not.</returns>
 		protected static internal bool verifySha256WithRsaSignature(Blob signature,
 				SignedBlob signedBlob, Blob publicKeyDer) {
-#if false
 			KeyFactory keyFactory = null;
 			try {
 				keyFactory = System.KeyFactory.getInstance("RSA");
@@ -173,7 +172,7 @@ namespace net.named_data.jndn.security.policy {
 						+ exception.Message);
 			}
 	
-			PublicKey publicKey = null;
+			System.SecurityPublicKey publicKey = null;
 			try {
 				publicKey = keyFactory.generatePublic(new X509EncodedKeySpec(
 						publicKeyDer.getImmutableArray()));
@@ -183,9 +182,9 @@ namespace net.named_data.jndn.security.policy {
 						+ exception_0.Message);
 			}
 	
-			Signature rsaSignature = null;
+			System.SecuritySignature rsaSignature = null;
 			try {
-				rsaSignature = System.Signature.getInstance("SHA256withRSA");
+				rsaSignature = System.SecuritySignature.getInstance("SHA256withRSA");
 			} catch (Exception e) {
 				// Don't expect this to happen.
 				throw new SecurityException(
@@ -205,9 +204,6 @@ namespace net.named_data.jndn.security.policy {
 				throw new SecurityException("SignatureException: "
 						+ exception_2.Message);
 			}
-#else
-      throw new NotImplementedException("verifySha256WithRsaSignature is not implemented");
-#endif
 		}
 	
 		/// <summary>
@@ -220,7 +216,6 @@ namespace net.named_data.jndn.security.policy {
 		/// <returns>true if the signature verifies, false if not.</returns>
 		protected static internal bool verifySha256WithEcdsaSignature(Blob signature,
 				SignedBlob signedBlob, Blob publicKeyDer) {
-#if false
 			KeyFactory keyFactory = null;
 			try {
 				keyFactory = System.KeyFactory.getInstance("EC");
@@ -230,7 +225,7 @@ namespace net.named_data.jndn.security.policy {
 						+ exception.Message);
 			}
 	
-			PublicKey publicKey = null;
+			System.SecurityPublicKey publicKey = null;
 			try {
 				publicKey = keyFactory.generatePublic(new X509EncodedKeySpec(
 						publicKeyDer.getImmutableArray()));
@@ -240,9 +235,10 @@ namespace net.named_data.jndn.security.policy {
 						+ exception_0.Message);
 			}
 	
-			Signature ecSignature = null;
+			System.SecuritySignature ecSignature = null;
 			try {
-				ecSignature = System.Signature.getInstance("SHA256withECDSA");
+				ecSignature = System.SecuritySignature
+						.getInstance("SHA256withECDSA");
 			} catch (Exception e) {
 				// Don't expect this to happen.
 				throw new SecurityException(
@@ -262,9 +258,6 @@ namespace net.named_data.jndn.security.policy {
 				throw new SecurityException("SignatureException: "
 						+ exception_2.Message);
 			}
-#else
-      throw new NotImplementedException("verifySha256WithEcdsaSignature is not implemented");
-#endif
 		}
 	
 		/// <summary>
