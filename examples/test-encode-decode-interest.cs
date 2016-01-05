@@ -187,6 +187,22 @@ namespace TestNdnDotNet {
           "" + interest.getNonce().toHex() : "<none>"));
     }
 
+    private class VerifyCallbacks : OnVerifiedInterest, OnVerifyInterestFailed {
+      public VerifyCallbacks(string prefix) { prefix_ = prefix; }
+
+      private string prefix_;
+
+      public void onVerifiedInterest(Interest interest)
+      {
+        Console.Out.WriteLine(prefix_ + " signature verification: VERIFIED");
+      }
+
+      public void onVerifyInterestFailed(Interest interest)
+      {
+        Console.Out.WriteLine(prefix_ + " signature verification: FAILED");
+      }
+    }
+
     static void Main(string[] args)
     {
       var interest = new Interest();
@@ -246,10 +262,8 @@ namespace TestNdnDotNet {
       Console.Out.WriteLine("Re-decoded fresh Interest:");
       dumpInterest(reDecodedFreshInterest);
 
-#if false // TODO: Implement verify in the library.
       VerifyCallbacks callbacks = new VerifyCallbacks("Freshly-signed Interest");
       keyChain.verifyInterest(reDecodedFreshInterest, callbacks, callbacks);
-#endif
     }
   }
 }
