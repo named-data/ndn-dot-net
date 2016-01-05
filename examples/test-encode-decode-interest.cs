@@ -242,8 +242,8 @@ namespace TestNdnDotNet {
           new SelfVerifyPolicyManager(identityStorage));
 
       // Initialize the storage.
-      Name keyName = new Name("/testname/DSK-123");
-      Name certificateName = keyName.getSubName(0, keyName.size() - 1).append
+      var keyName = new Name("/testname/DSK-123");
+      var certificateName = keyName.getSubName(0, keyName.size() - 1).append
         ("KEY").append(keyName.get(-1)).append("ID-CERT").append("0");
       identityStorage.addKey(keyName, KeyType.RSA, new Blob(DEFAULT_RSA_PUBLIC_KEY_DER));
       privateKeyStorage.setKeyPairForKeyName
