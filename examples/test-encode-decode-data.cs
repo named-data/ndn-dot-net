@@ -178,7 +178,7 @@ namespace TestNdnDotNet {
         ByteBuffer buf = data.getContent().buf();
         while(buf.remaining() > 0)
           Console.Out.Write((char)buf.get());
-        Console.Out.WriteLine();
+        Console.Out.WriteLine("");
         Console.Out.WriteLine("content (hex): " + data.getContent().toHex());
       }
       else
@@ -255,7 +255,6 @@ namespace TestNdnDotNet {
 
     static void Main(string[] args)
     {
-
       var data = new Data();
       data.wireDecode(new Blob(TlvData));
       Console.Out.WriteLine("Decoded Data:");
@@ -267,7 +266,7 @@ namespace TestNdnDotNet {
 
       var reDecodedData = new Data();
       reDecodedData.wireDecode(encoding);
-      Console.Out.WriteLine();
+      Console.Out.WriteLine("");
       Console.Out.WriteLine("Re-decoded Data:");
       dumpData(reDecodedData);
 
@@ -294,7 +293,7 @@ namespace TestNdnDotNet {
       freshData.getMetaInfo().setFreshnessPeriod(5000);
       freshData.getMetaInfo().setFinalBlockId(new Name("/%00%09").get(0));
       keyChain.sign(freshData, certificateName);
-      Console.Out.WriteLine();
+      Console.Out.WriteLine("");
       Console.Out.WriteLine("Freshly-signed Data:");
       dumpData(freshData);
 
