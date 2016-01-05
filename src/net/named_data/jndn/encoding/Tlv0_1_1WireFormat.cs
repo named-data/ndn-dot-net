@@ -411,7 +411,6 @@ namespace net.named_data.jndn.encoding {
 		/// <exception cref="EncodingException">For invalid encoding.</exception>
 		public override Signature decodeSignatureInfoAndValue(ByteBuffer signatureInfo,
 				ByteBuffer signatureValue) {
-#if false
 			// Use a SignatureHolder to imitate a Data object for _decodeSignatureInfo.
 			Tlv0_1_1WireFormat.SimpleSignatureHolder  signatureHolder = new Tlv0_1_1WireFormat.SimpleSignatureHolder ();
 			TlvDecoder decoder = new TlvDecoder(signatureInfo);
@@ -422,9 +421,6 @@ namespace net.named_data.jndn.encoding {
 					new Blob(decoder.readBlobTlv(net.named_data.jndn.encoding.tlv.Tlv.SignatureValue), true));
 	
 			return signatureHolder.getSignature();
-#else
-      throw new NotImplementedException("decodeSignatureInfoAndValue is not implemented");
-#endif
 		}
 	
 		/// <summary>
@@ -882,7 +878,7 @@ namespace net.named_data.jndn.encoding {
 					- saveLength);
 		}
 	
-		private static void decodeSignatureInfo(Data signatureHolder,
+		private static void decodeSignatureInfo(SignatureHolder signatureHolder,
 				TlvDecoder decoder) {
 			int endOffset = decoder.readNestedTlvsStart(net.named_data.jndn.encoding.tlv.Tlv.SignatureInfo);
 	
