@@ -73,9 +73,10 @@ namespace net.named_data.jndn.encrypt.algo {
 			Blob publicExponent = ((DerNode) rsaPrivateKeyChildren[2])
 					.getPayload();
 	
-			PublicKey publicKey = keyFactory_.generatePublic(new RSAPublicKeySpec(
-					new Int64(modulus.getImmutableArray()), new Int64(
-							publicExponent.getImmutableArray())));
+			System.SecurityPublicKey publicKey = keyFactory_
+					.generatePublic(new RSAPublicKeySpec(new Int64(modulus
+							.getImmutableArray()), new Int64(publicExponent
+							.getImmutableArray())));
 	
 			return new EncryptKey(new Blob(publicKey.getEncoded()));
 		}
@@ -117,7 +118,7 @@ namespace net.named_data.jndn.encrypt.algo {
 		/// <returns>The encrypted data.</returns>
 		public static Blob encrypt(Blob keyBits, Blob plainData,
 				EncryptParams paras) {
-			PublicKey publicKey = keyFactory_
+			System.SecurityPublicKey publicKey = keyFactory_
 					.generatePublic(new X509EncodedKeySpec(keyBits
 							.getImmutableArray()));
 	
