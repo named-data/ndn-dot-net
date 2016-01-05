@@ -197,6 +197,9 @@ namespace System {
 
     public abstract PrivateKey
     generatePrivate(KeySpec keySpec);
+
+    public abstract SecurityPublicKey
+    generatePublic(KeySpec keySpec);
   }
 
   public class RsaKeyFactory : KeyFactory {
@@ -206,36 +209,78 @@ namespace System {
       if (!(keySpec is PKCS8EncodedKeySpec))
         throw new net.named_data.jndn.util.InvalidKeySpecException
           ("RsaKeyFactory.generatePrivate expects a PKCS8EncodedKeySpec");
-      
-      // Decode the PKCS #8 private key.
-      var parsedNode = DerNode.parse(new ByteBuffer(((PKCS8EncodedKeySpec)keySpec).KeyDer), 0);
-      var pkcs8Children = parsedNode.getChildren();
-      var algorithmIdChildren = DerNode.getSequence(pkcs8Children, 1).getChildren();
-      var oidString = ((DerNode.DerOid)algorithmIdChildren[0]).toVal().ToString();
-      var rsaPrivateKeyDer = ((DerNode)pkcs8Children[2]).getPayload();
 
-      var RSA_ENCRYPTION_OID = "1.2.840.113549.1.1.1";
-      if (oidString != RSA_ENCRYPTION_OID)
+      try {
+        // Decode the PKCS #8 private key.
+        var parsedNode = DerNode.parse(new ByteBuffer(((PKCS8EncodedKeySpec)keySpec).KeyDer), 0);
+        var pkcs8Children = parsedNode.getChildren();
+        var algorithmIdChildren = DerNode.getSequence(pkcs8Children, 1).getChildren();
+        var oidString = ((DerNode.DerOid)algorithmIdChildren[0]).toVal().ToString();
+        var rsaPrivateKeyDer = ((DerNode)pkcs8Children[2]).getPayload();
+
+        if (oidString != RSA_ENCRYPTION_OID)
+          throw new net.named_data.jndn.util.InvalidKeySpecException
+            ("The PKCS #8 private key is not RSA_ENCRYPTION");
+
+        // Decode the PKCS #1 RSAPrivateKey.
+        parsedNode = DerNode.parse(rsaPrivateKeyDer.buf(), 0);
+        var rsaPrivateKeyChildren = parsedNode.getChildren();
+
+        // Copy the parameters.
+        RSAParameters parameters = new RSAParameters();
+        parameters.Modulus = ((DerNode)rsaPrivateKeyChildren[1]).getPayload().getImmutableArray();
+        parameters.Exponent = ((DerNode)rsaPrivateKeyChildren[2]).getPayload().getImmutableArray();
+        parameters.D = ((DerNode)rsaPrivateKeyChildren[3]).getPayload().getImmutableArray();
+        parameters.P = ((DerNode)rsaPrivateKeyChildren[4]).getPayload().getImmutableArray();
+        parameters.Q = ((DerNode)rsaPrivateKeyChildren[5]).getPayload().getImmutableArray();
+        parameters.DP = ((DerNode)rsaPrivateKeyChildren[6]).getPayload().getImmutableArray();
+        parameters.DQ = ((DerNode)rsaPrivateKeyChildren[7]).getPayload().getImmutableArray();
+        parameters.InverseQ = ((DerNode)rsaPrivateKeyChildren[8]).getPayload().getImmutableArray();
+
+        return new RsaSecurityPrivateKey(parameters);
+      } catch (DerDecodingException ex) {
         throw new net.named_data.jndn.util.InvalidKeySpecException
+          ("RsaKeyFactory.generatePrivate error decoding the private key DER: " + ex);
+      }
+    }
+
+    public override SecurityPublicKey
+    generatePublic(KeySpec keySpec)
+    {
+      if (!(keySpec is X509EncodedKeySpec))
+        throw new net.named_data.jndn.util.InvalidKeySpecException
+        ("RsaKeyFactory.generatePublic expects a X509EncodedKeySpec");
+
+      try {
+        // Decode the X.509 public key.
+        var parsedNode = DerNode.parse(new ByteBuffer(((X509EncodedKeySpec)keySpec).KeyDer), 0);
+        var rootChildren = parsedNode.getChildren();
+        var algorithmIdChildren = DerNode.getSequence(rootChildren, 0).getChildren();
+        var oidString = ((DerNode.DerOid)algorithmIdChildren[0]).toVal().ToString();
+        var rsaPublicKeyDerBitString = ((DerNode)rootChildren[1]).getPayload();
+
+        if (oidString != RSA_ENCRYPTION_OID)
+          throw new net.named_data.jndn.util.InvalidKeySpecException
           ("The PKCS #8 private key is not RSA_ENCRYPTION");
 
-      // Decode the PKCS #1 RSAPrivateKey.
-      parsedNode = DerNode.parse(rsaPrivateKeyDer.buf(), 0);
-      var rsaPrivateKeyChildren = parsedNode.getChildren();
+        // Decode the PKCS #1 RSAPublicKey.
+        // Skip the leading 0 byte in the DER BitString.
+        parsedNode = DerNode.parse(rsaPublicKeyDerBitString.buf(), 1);
+        var rsaPublicKeyChildren = parsedNode.getChildren();
 
-      // Copy the parameters.
-      RSAParameters parameters = new RSAParameters();
-      parameters.Modulus = ((DerNode)rsaPrivateKeyChildren[1]).getPayload().getImmutableArray();
-      parameters.Exponent = ((DerNode)rsaPrivateKeyChildren[2]).getPayload().getImmutableArray();
-      parameters.D = ((DerNode)rsaPrivateKeyChildren[3]).getPayload().getImmutableArray();
-      parameters.P = ((DerNode)rsaPrivateKeyChildren[4]).getPayload().getImmutableArray();
-      parameters.Q = ((DerNode)rsaPrivateKeyChildren[5]).getPayload().getImmutableArray();
-      parameters.DP = ((DerNode)rsaPrivateKeyChildren[6]).getPayload().getImmutableArray();
-      parameters.DQ = ((DerNode)rsaPrivateKeyChildren[7]).getPayload().getImmutableArray();
-      parameters.InverseQ = ((DerNode)rsaPrivateKeyChildren[8]).getPayload().getImmutableArray();
+        // Copy the parameters.
+        RSAParameters parameters = new RSAParameters();
+        parameters.Modulus = ((DerNode)rsaPublicKeyChildren[0]).getPayload().getImmutableArray();
+        parameters.Exponent = ((DerNode)rsaPublicKeyChildren[1]).getPayload().getImmutableArray();
 
-      return new RsaSecurityPrivateKey(parameters);
+        return new RsaSecurityPublicKey(parameters);
+        } catch (DerDecodingException ex) {
+          throw new net.named_data.jndn.util.InvalidKeySpecException
+          ("RsaKeyFactory.generatePublic error decoding the public key DER: " + ex);
+      }
     }
+
+    private static string RSA_ENCRYPTION_OID = "1.2.840.113549.1.1.1";
   }
 
   /// <summary>
@@ -246,6 +291,15 @@ namespace System {
 
   public class PKCS8EncodedKeySpec : KeySpec {
     public PKCS8EncodedKeySpec(byte[] keyDer)
+    {
+      KeyDer = keyDer;
+    }
+
+    public readonly byte[] KeyDer;
+  }
+
+  public class X509EncodedKeySpec : KeySpec {
+    public X509EncodedKeySpec(byte[] keyDer)
     {
       KeyDer = keyDer;
     }
@@ -273,6 +327,27 @@ namespace System {
   }
 
   /// <summary>
+  /// j2cstranslator naively converts java.security.PublicKey to System.PublicKey.
+  /// We also globally rename System.PublicKey to System.SecurityPublicKey to not
+  /// conclict with PublicKey when using net.named_data.security.certificate.
+  /// </summary>
+  public class SecurityPublicKey {
+  }
+
+  public class RsaSecurityPublicKey : SecurityPublicKey {
+    /// <summary>
+    /// Create an RsaSecurityPublicKey with the RSAParameters used by RSACryptoServiceProvider.
+    /// </summary>
+    /// <param name="parameters">Parameters.</param>
+    public RsaSecurityPublicKey(RSAParameters parameters)
+    {
+      Parameters = parameters;
+    }
+
+    public readonly RSAParameters Parameters;
+  }
+
+  /// <summary>
   /// j2cstranslator naively converts java.security.Signature to System.Signature.
   /// We also globally rename System.Signature to System.SecuritySignature to not
   /// conclict with Signature when using net.named_data.jndn.
@@ -290,11 +365,17 @@ namespace System {
     public abstract void
     initSign(PrivateKey privateKey);
 
+    public abstract void
+    initVerify(SecurityPublicKey publicKey);
+
     public abstract byte[]
     sign();
 
     public abstract void
     update(ByteBuffer data);
+
+    public abstract bool
+    verify(byte[] signature);
   }
 
   public class Sha256withRsaSecuritySignature : SecuritySignature {
@@ -311,11 +392,24 @@ namespace System {
       memoryStream_ = new MemoryStream();
     }
 
+    public override void
+    initVerify(SecurityPublicKey publicKey)
+    {
+      if (!(publicKey is RsaSecurityPublicKey))
+        throw new net.named_data.jndn.util.InvalidKeyException
+        ("Sha256withRsaSecuritySignature.initVerify expects an RsaSecurityPublicKey");
+
+      provider_ = new RSACryptoServiceProvider();
+      provider_.ImportParameters(((RsaSecurityPublicKey)publicKey).Parameters);
+
+      memoryStream_ = new MemoryStream();
+    }
+
     public override byte[]
     sign()
     {
       memoryStream_.Flush();
-      var result = provider_.SignData(memoryStream_, new SHA256CryptoServiceProvider());
+      var result = provider_.SignData(memoryStream_.ToArray(), new SHA256CryptoServiceProvider());
 
       // We don't need the data in the stream any more.
       memoryStream_.Dispose();
@@ -327,7 +421,21 @@ namespace System {
     public override void
     update(ByteBuffer data)
     {
-      memoryStream_.Write(data.array(), 0, data.array().Length);
+      memoryStream_.Write(data.array(), data.arrayOffset(), data.remaining());
+    }
+
+    public override bool
+    verify(byte[] signature)
+    {
+      memoryStream_.Flush();
+      var result = provider_.VerifyData
+        (memoryStream_.ToArray(), new SHA256CryptoServiceProvider(), signature);
+
+      // We don't need the data in the stream any more.
+      memoryStream_.Dispose();
+      memoryStream_ = null;
+
+      return result;
     }
 
     private RSACryptoServiceProvider provider_;
