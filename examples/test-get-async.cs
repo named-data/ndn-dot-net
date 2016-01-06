@@ -59,9 +59,9 @@ namespace TestNdnDotNet
           (new DotNetTcpTransport(), 
            new DotNetTcpTransport.ConnectionInfo("aleph.ndn.ucla.edu"));
 
-        Counter counter = new Counter();
+        var counter = new Counter();
 
-        Name name1 = new Name("/");
+        var name1 = new Name("/");
         Console.Out.WriteLine("Express name " + name1.toUri());
         face.expressInterest(name1, counter, counter);
 
