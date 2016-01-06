@@ -61,12 +61,23 @@ namespace TestNdnDotNet
 
         var counter = new Counter();
 
+        // Try to fetch anything.
         var name1 = new Name("/");
         Console.Out.WriteLine("Express name " + name1.toUri());
         face.expressInterest(name1, counter, counter);
 
+        // Try to fetch using a known name.
+        var name2 = new Name("/ndn/edu/ucla/remap/demo/ndn-js-test/hello.txt/%FDU%8D%9DM");
+        Console.Out.WriteLine("Express name " + name2.toUri());
+        face.expressInterest(name2, counter, counter);
+
+        // Expect this to time out.
+        var name3 = new Name("/test/timeout");
+        Console.Out.WriteLine("Express name " + name3.toUri());
+        face.expressInterest(name3, counter, counter);
+
         // The main event loop.
-        while (counter.callbackCount_ < 1) {
+        while (counter.callbackCount_ < 3) {
           face.processEvents();
           // We need to sleep for a few milliseconds so we don't use 100% of the CPU.
           System.Threading.Thread.Sleep(5);
