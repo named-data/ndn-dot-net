@@ -26,6 +26,7 @@ using System.Text.RegularExpressions;
 using System.Security.Cryptography;
 using ILOG.J2CsMapping.NIO;
 using net.named_data.jndn;
+using net.named_data.jndn.util;
 using net.named_data.jndn.encoding.der;
 using net.named_data.jndn.encrypt.algo;
 
@@ -228,14 +229,16 @@ namespace System {
 
         // Copy the parameters.
         RSAParameters parameters = new RSAParameters();
-        parameters.Modulus = ((DerNode)rsaPrivateKeyChildren[1]).getPayload().getImmutableArray();
-        parameters.Exponent = ((DerNode)rsaPrivateKeyChildren[2]).getPayload().getImmutableArray();
-        parameters.D = ((DerNode)rsaPrivateKeyChildren[3]).getPayload().getImmutableArray();
-        parameters.P = ((DerNode)rsaPrivateKeyChildren[4]).getPayload().getImmutableArray();
-        parameters.Q = ((DerNode)rsaPrivateKeyChildren[5]).getPayload().getImmutableArray();
-        parameters.DP = ((DerNode)rsaPrivateKeyChildren[6]).getPayload().getImmutableArray();
-        parameters.DQ = ((DerNode)rsaPrivateKeyChildren[7]).getPayload().getImmutableArray();
-        parameters.InverseQ = ((DerNode)rsaPrivateKeyChildren[8]).getPayload().getImmutableArray();
+        var modulus = getIntegerArrayWithoutLeadingZero(((DerNode)rsaPrivateKeyChildren[1]).getPayload());
+        parameters.Modulus = modulus;
+        parameters.Exponent = getIntegerArrayWithoutLeadingZero(((DerNode)rsaPrivateKeyChildren[2]).getPayload());
+        // RSAParameters expects the integer array of the correct length.
+        parameters.D = getIntegerArrayOfSize(((DerNode)rsaPrivateKeyChildren[3]).getPayload(), modulus.Length);
+        parameters.P = getIntegerArrayOfSize(((DerNode)rsaPrivateKeyChildren[4]).getPayload(), modulus.Length / 2);
+        parameters.Q = getIntegerArrayOfSize(((DerNode)rsaPrivateKeyChildren[5]).getPayload(), modulus.Length / 2);
+        parameters.DP = getIntegerArrayOfSize(((DerNode)rsaPrivateKeyChildren[6]).getPayload(), modulus.Length / 2);
+        parameters.DQ = getIntegerArrayOfSize(((DerNode)rsaPrivateKeyChildren[7]).getPayload(), modulus.Length / 2);
+        parameters.InverseQ = getIntegerArrayOfSize(((DerNode)rsaPrivateKeyChildren[8]).getPayload(), modulus.Length / 2);
 
         return new RsaSecurityPrivateKey(parameters);
       } catch (DerDecodingException ex) {
@@ -270,14 +273,52 @@ namespace System {
 
         // Copy the parameters.
         RSAParameters parameters = new RSAParameters();
-        parameters.Modulus = ((DerNode)rsaPublicKeyChildren[0]).getPayload().getImmutableArray();
-        parameters.Exponent = ((DerNode)rsaPublicKeyChildren[1]).getPayload().getImmutableArray();
+        parameters.Modulus = getIntegerArrayWithoutLeadingZero(((DerNode)rsaPublicKeyChildren[0]).getPayload());
+        parameters.Exponent = getIntegerArrayWithoutLeadingZero(((DerNode)rsaPublicKeyChildren[1]).getPayload());
 
         return new RsaSecurityPublicKey(parameters);
         } catch (DerDecodingException ex) {
           throw new net.named_data.jndn.util.InvalidKeySpecException
           ("RsaKeyFactory.generatePublic error decoding the public key DER: " + ex);
       }
+    }
+
+    /// <summary>
+    /// A Der Integer is signed which means it can have a leading zero, but we need
+    /// to strip the leading zero to use it in an RSAParameters.
+    /// </summary>
+    /// <returns>The array without leading a zero.</returns>
+    /// <param name="integer">The DER Integer payload.</param>
+    private static byte[]
+    getIntegerArrayWithoutLeadingZero(Blob integer)
+    {
+      var buffer = integer.buf();
+      if (buffer.get(buffer.position()) == 0)
+        return getIntegerArrayOfSize(integer, buffer.remaining() - 1);
+      else
+        return integer.getImmutableArray();
+    }
+
+    /// <summary>
+    /// Strip leading zeros until the integer Blob has the given size. This is
+    /// necessary because RSAParameters expects integer byte arrays of a given
+    /// size based on the size of the modulus.
+    /// </summary>
+    /// <returns>The array of the given size.</returns>
+    /// <param name="integer">The DER Integer payload.</param>
+    /// <param name="size">The number of bytes.</param>
+    private static byte[]
+    getIntegerArrayOfSize(Blob integer, int size)
+    {
+      var buffer = integer.buf();
+      while (buffer.remaining() < size) {
+        if (buffer.get(buffer.position()) != 0)
+          throw new Exception("getIntegerArrayOfSize: The leading byte to strip is not zero");
+        buffer.position(buffer.position() + 1);
+      }
+
+      // If position was unchanged, this does not copy.
+      return new Blob(buffer, false).getImmutableArray();
     }
 
     private static string RSA_ENCRYPTION_OID = "1.2.840.113549.1.1.1";
