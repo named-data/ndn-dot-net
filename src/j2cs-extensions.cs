@@ -311,7 +311,7 @@ namespace System {
     getIntegerArrayOfSize(Blob integer, int size)
     {
       var buffer = integer.buf();
-      while (buffer.remaining() < size) {
+      while (buffer.remaining() > size) {
         if (buffer.get(buffer.position()) != 0)
           throw new Exception("getIntegerArrayOfSize: The leading byte to strip is not zero");
         buffer.position(buffer.position() + 1);
