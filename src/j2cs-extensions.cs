@@ -26,6 +26,7 @@ using System.Text.RegularExpressions;
 using System.Security.Cryptography;
 using ILOG.J2CsMapping.NIO;
 using net.named_data.jndn;
+using net.named_data.jndn.encoding;
 using net.named_data.jndn.util;
 using net.named_data.jndn.encoding.der;
 using net.named_data.jndn.encrypt.algo;
@@ -289,7 +290,7 @@ namespace System {
     /// </summary>
     /// <returns>The array without leading a zero.</returns>
     /// <param name="integer">The DER Integer payload.</param>
-    private static byte[]
+    public static byte[]
     getIntegerArrayWithoutLeadingZero(Blob integer)
     {
       var buffer = integer.buf();
@@ -307,7 +308,7 @@ namespace System {
     /// <returns>The array of the given size.</returns>
     /// <param name="integer">The DER Integer payload.</param>
     /// <param name="size">The number of bytes.</param>
-    private static byte[]
+    public static byte[]
     getIntegerArrayOfSize(Blob integer, int size)
     {
       var buffer = integer.buf();
@@ -321,7 +322,85 @@ namespace System {
       return new Blob(buffer, false).getImmutableArray();
     }
 
-    private static string RSA_ENCRYPTION_OID = "1.2.840.113549.1.1.1";
+    /// <summary>
+    /// Return the integer byte array as a ByteBuffer, prepending a zero byte if
+    /// the first byte of the integer is >= 0x80.
+    /// </summary>
+    /// <returns>The positive integer buffer.</returns>
+    /// <param name="integer">The integer byte array. If this doesn't prepend a zero,
+    /// then this just returns ByteBuffer.wrap(integer).</param>
+    public static ByteBuffer
+    getPositiveIntegerBuffer(byte[] integer)
+    {
+      if (integer.Length == 0 || integer[0] < 0x80)
+        return ByteBuffer.wrap(integer);
+
+      var result = ByteBuffer.allocate(integer.Length + 1);
+      result.put((byte)0);
+      result.put(integer);
+      result.flip();
+      return result;
+    }
+
+    public static string RSA_ENCRYPTION_OID = "1.2.840.113549.1.1.1";
+  }
+
+  /// <summary>
+  /// j2cstranslator naively converts java.security.KeyPair to System.KeyPair.
+  /// </summary>
+  public class KeyPair {
+    public KeyPair(SecurityPublicKey publicKey, PrivateKey privateKey)
+    {
+      publicKey_ = publicKey;
+      privateKey_ = privateKey;
+    }
+
+    public SecurityPublicKey
+    getPublic() { return publicKey_; }
+
+    public PrivateKey
+    getPrivate() { return privateKey_; }
+
+    private SecurityPublicKey publicKey_;
+    private PrivateKey privateKey_;
+  }
+
+  /// <summary>
+  /// j2cstranslator naively converts java.security.KeyPairGenerator to System.KeyPairGenerator.
+  /// </summary>
+  public abstract class KeyPairGenerator {
+    public static KeyPairGenerator 
+    getInstance(string type)
+    {
+      if (type == "RSA")
+        return new RsaKeyPairGenerator();
+      else
+        throw new NotImplementedException("KeyPairGenerator type is not implemented: " + type);
+    }
+
+    public abstract void
+    initialize(int keySize);
+
+    public abstract KeyPair
+    generateKeyPair();
+  }
+
+  public class RsaKeyPairGenerator : KeyPairGenerator {
+    public override void
+    initialize(int keySize)
+    {
+      keySize_ = keySize;
+    }
+
+    public override KeyPair
+    generateKeyPair()
+    {
+      var parameters = new RSACryptoServiceProvider(keySize_).ExportParameters(true);
+      return new KeyPair
+        (new RsaSecurityPublicKey(parameters), new RsaSecurityPrivateKey(parameters));
+    }
+
+    private int keySize_;
   }
 
   /// <summary>
@@ -351,7 +430,9 @@ namespace System {
   /// <summary>
   /// j2cstranslator naively converts java.security.PrivateKey to System.PrivateKey.
   /// </summary>
-  public class PrivateKey {
+  public abstract class PrivateKey {
+    public abstract byte[]
+    getEncoded();
   }
 
   public class RsaSecurityPrivateKey : PrivateKey {
@@ -364,6 +445,42 @@ namespace System {
       Parameters = parameters;
     }
 
+    public override byte[]
+    getEncoded()
+    {
+      // First encode an PKCS #1 RSAPrivateKey.
+      var rsaPrivateKey = new DerNode.DerSequence();
+      rsaPrivateKey.addChild(new DerNode.DerInteger(0));
+      rsaPrivateKey.addChild(new DerNode.DerInteger
+        (RsaKeyFactory.getPositiveIntegerBuffer(Parameters.Modulus)));
+      rsaPrivateKey.addChild(new DerNode.DerInteger
+        (RsaKeyFactory.getPositiveIntegerBuffer(Parameters.Exponent)));
+      rsaPrivateKey.addChild(new DerNode.DerInteger
+        (RsaKeyFactory.getPositiveIntegerBuffer(Parameters.D)));
+      rsaPrivateKey.addChild(new DerNode.DerInteger
+        (RsaKeyFactory.getPositiveIntegerBuffer(Parameters.P)));
+      rsaPrivateKey.addChild(new DerNode.DerInteger
+        (RsaKeyFactory.getPositiveIntegerBuffer(Parameters.Q)));
+      rsaPrivateKey.addChild(new DerNode.DerInteger
+        (RsaKeyFactory.getPositiveIntegerBuffer(Parameters.DP)));
+      rsaPrivateKey.addChild(new DerNode.DerInteger
+        (RsaKeyFactory.getPositiveIntegerBuffer(Parameters.DQ)));
+      rsaPrivateKey.addChild(new DerNode.DerInteger
+        (RsaKeyFactory.getPositiveIntegerBuffer(Parameters.InverseQ)));
+
+      // Encode rsaPrivateKey as a PKCS #8 private key.
+      var algorithmIdentifier = new DerNode.DerSequence();
+      algorithmIdentifier.addChild(new DerNode.DerOid(new OID(RsaKeyFactory.RSA_ENCRYPTION_OID)));
+      algorithmIdentifier.addChild(new DerNode.DerNull());
+
+      var privateKey = new DerNode.DerSequence();
+      privateKey.addChild(new DerNode.DerInteger(0));
+      privateKey.addChild(algorithmIdentifier);
+      privateKey.addChild(new DerNode.DerOctetString(rsaPrivateKey.encode().buf()));
+
+      return privateKey.encode().getImmutableArray();
+    }
+
     public readonly RSAParameters Parameters;
   }
 
@@ -372,7 +489,9 @@ namespace System {
   /// We also globally rename System.PublicKey to System.SecurityPublicKey to not
   /// conclict with PublicKey when using net.named_data.security.certificate.
   /// </summary>
-  public class SecurityPublicKey {
+  public abstract class SecurityPublicKey {
+    public abstract byte[]
+    getEncoded();
   }
 
   public class RsaSecurityPublicKey : SecurityPublicKey {
@@ -383,6 +502,28 @@ namespace System {
     public RsaSecurityPublicKey(RSAParameters parameters)
     {
       Parameters = parameters;
+    }
+
+    public override byte[]
+    getEncoded()
+    {
+      // First encode an PKCS #1 RSAPublicKey.
+      var rsaPublicKey = new DerNode.DerSequence();
+      rsaPublicKey.addChild(new DerNode.DerInteger
+        (RsaKeyFactory.getPositiveIntegerBuffer(Parameters.Modulus)));
+      rsaPublicKey.addChild(new DerNode.DerInteger
+        (RsaKeyFactory.getPositiveIntegerBuffer(Parameters.Exponent)));
+
+      // Encode rsaPublicKey as an X.509 public key.
+      var algorithmIdentifier = new DerNode.DerSequence();
+      algorithmIdentifier.addChild(new DerNode.DerOid(new OID(RsaKeyFactory.RSA_ENCRYPTION_OID)));
+      algorithmIdentifier.addChild(new DerNode.DerNull());
+
+      var publicKey = new DerNode.DerSequence();
+      publicKey.addChild(algorithmIdentifier);
+      publicKey.addChild(new DerNode.DerBitString(rsaPublicKey.encode().buf(), 0));
+
+      return publicKey.encode().getImmutableArray();
     }
 
     public readonly RSAParameters Parameters;
