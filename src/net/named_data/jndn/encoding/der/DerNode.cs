@@ -794,7 +794,7 @@ namespace net.named_data.jndn.encoding.der {
 			public static SimpleDateFormat getDateFormat() {
 				SimpleDateFormat dateFormat = new SimpleDateFormat(
 						"yyyyMMddHHmmss'Z'");
-				dateFormat.setTimeZone(System.Collections.TimeZone.getTimeZone("GMT"));
+				dateFormat.setTimeZone(System.Collections.TimeZone.getTimeZone("UTC"));
 				return dateFormat;
 			}
 	
