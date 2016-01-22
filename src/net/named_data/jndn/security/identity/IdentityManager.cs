@@ -909,7 +909,6 @@ namespace net.named_data.jndn.security.identity {
 		/// <param name="keyName">The name of the public key.</param>
 		/// <returns>The generated certificate.</returns>
 		public IdentityCertificate selfSign(Name keyName) {
-#if false
 			IdentityCertificate certificate = new IdentityCertificate();
 	
 			Blob keyBlob = identityStorage_.getKey(keyName);
@@ -948,9 +947,6 @@ namespace net.named_data.jndn.security.identity {
 			signByCertificate(certificate, certificate.getName());
 	
 			return certificate;
-#else
-      throw new NotImplementedException("IdentityManager.selfSign is not implemented");
-#endif
 		}
 	
 		/// <summary>

@@ -460,6 +460,34 @@ namespace ILOG.J2CsMapping.Text {
 }
 
 namespace ILOG.J2CsMapping.Util {
+  public class Calendar {
+    private Calendar(DateTime dateTime)
+    {
+      dateTime_ = dateTime;
+    }
+
+    public static readonly int YEAR = 1;
+
+    public static  Calendar
+    getInstance() { return new Calendar(DateTime.Now); }
+
+    public double
+    getTimeInMillis() { return (dateTime_ - epoch_).TotalMilliseconds; }
+
+    public void
+    add(int field, int amount)
+    {
+      if (field == YEAR)
+        dateTime_ = dateTime_.AddYears(amount);
+      else
+        throw new NotSupportedException
+        ("Calendar does not support field " + field);
+    }
+
+    private DateTime dateTime_;
+    private static DateTime epoch_ = new DateTime(1970, 1, 1);
+  }
+
   public class IlNumber {
     public static string
     ToString(int x, int radix)
