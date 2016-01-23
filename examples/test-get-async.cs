@@ -55,9 +55,7 @@ namespace TestNdnDotNet
     static void Main(string[] args)
     {
       try {
-        var face = new Face
-          (new DotNetTcpTransport(), 
-           new DotNetTcpTransport.ConnectionInfo("aleph.ndn.ucla.edu"));
+        var face = new Face("aleph.ndn.ucla.edu");
 
         var counter = new Counter();
 
