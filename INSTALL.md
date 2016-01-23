@@ -33,7 +33,7 @@ Java to C# Translation
 * We need to globally capitalize the override methods `equals` and `toString`, 
   rename classes Signathre and PublicKey in the System namespace which conflict,
   fix the use of DateTime.Now.Millisecond, fix .length and .parseInt in OID.cs,
-  remove the generated TcpTransport.cs since we use dot-net-tcp-transport.cs:
+  remove the generated TcpTransport.cs since we use src/tcp-transport.cs:
 
 In a terminal change directory to `ndn-dot-net/src/net` and enter:
 
