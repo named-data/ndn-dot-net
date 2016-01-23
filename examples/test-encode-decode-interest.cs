@@ -251,8 +251,7 @@ namespace TestNdnDotNet {
          new ByteBuffer(DEFAULT_RSA_PRIVATE_KEY_DER));
 
       // Make a Face just so that we can sign the interest.
-      var face = new Face
-        (new DotNetTcpTransport(), new DotNetTcpTransport.ConnectionInfo("localhost"));
+      var face = new Face("localhost");
       face.setCommandSigningInfo(keyChain, certificateName);
       face.makeCommandInterest(freshInterest);
 
