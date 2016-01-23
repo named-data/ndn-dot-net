@@ -28,10 +28,10 @@ using net.named_data.jndn.util;
 namespace net.named_data.jndn.transport
 {
   /// <summary>
-  /// A DotNetTcpTransport extends Transport to connect using a .NET 
+  /// A TcpTransport extends Transport to connect using a .NET 
   /// System.Net.Sockets.Socket over TCP.
   /// </summary>
-  public class DotNetTcpTransport : Transport
+  public class TcpTransport : Transport
   {
     /// <summary>
     /// A TcpTransport::ConnectionInfo extends Transport::ConnectionInfo to hold 

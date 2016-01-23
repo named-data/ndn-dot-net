@@ -53,7 +53,6 @@ namespace net.named_data.jndn {
 			node_ = new Node(transport, connectionInfo);
 		}
 	
-#if false
 		/// <summary>
 		/// Create a new Face for communication with an NDN hub at host:port using the
 		/// default TcpTransport.
@@ -92,7 +91,6 @@ namespace net.named_data.jndn {
 			node_ = new Node(new TcpTransport(), new TcpTransport.ConnectionInfo(
 					"localhost", 6363));
 		}
-#endif
 	
 		/// <summary>
 		/// Send the Interest through the transport, read the entire response and call
