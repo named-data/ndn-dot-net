@@ -110,7 +110,6 @@ namespace net.named_data.jndn {
 				return false;
 	
 			if (hasRegexFilter()) {
-#if false
 				// Perform a prefix match and regular expression match for the remaining
 				// components.
 				if (!prefix_.match(name))
@@ -118,9 +117,6 @@ namespace net.named_data.jndn {
 	
 				return null != net.named_data.jndn.util.NdnRegexMatcher.match(regexFilterPattern_,
 						name.getSubName(prefix_.size()));
-#else
-        throw new NotImplementedException("InterestFilter with regex is not implemented");
-#endif
 			} else
 				// Just perform a prefix match.
 				return prefix_.match(name);
