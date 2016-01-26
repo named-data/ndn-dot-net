@@ -41,10 +41,9 @@ namespace net.named_data.jndn.util {
 		/// <param name="data">The input byte buffer. This does not change the position.</param>
 		/// <returns>The digest.</returns>
 		public static byte[] digestSha256(ByteBuffer data) {
-#if false
-			MD5 sha256;
+			SecuritySHA256 sha256;
 			try {
-				sha256 = System.Security.Cryptography.MD5.Create();
+				sha256 = System.Security.Cryptography.SecuritySHA256.Create();
 			} catch (Exception exception) {
 				// Don't expect this to happen.
 				throw new Exception("MessageDigest: SHA-256 is not supported: "
@@ -54,9 +53,6 @@ namespace net.named_data.jndn.util {
 			sha256.update(data);
 			data.position(savePosition);
 			return sha256.Hash;
-#else
-      throw new NotImplementedException("digestSha256 is not implemented");
-#endif
 		}
 	
 		/// <summary>
