@@ -446,11 +446,52 @@ namespace ILOG.J2CsMapping.Reflect {
 
 namespace ILOG.J2CsMapping.Text {
   public class Matcher {
-    // TODO: Implement.
+    public Matcher(Match match)
+    {
+      match_ = match;
+    }
+
+    public bool
+    Find() 
+    {
+      if (!didFirstFind_)
+        // We already tried to match.
+        didFirstFind_ = true;
+      else
+        match_ = match_.NextMatch();
+      
+      return match_.Success;
+    }
+
+    public int
+    start(int groupNumber) { return match_.Groups[groupNumber].Index; }
+
+    public int
+    end(int groupNumber) 
+    { 
+      return match_.Groups[groupNumber].Index + match_.Groups[groupNumber].Length; 
+    }
+
+    public string
+    Group(int groupNumber) { return match_.Groups[groupNumber].Value; }
+
+    private Match match_;
+    private bool didFirstFind_ = false;
   }
 
   public class Pattern {
-    // TODO: Implement.
+    private Pattern(Regex regex)
+    {
+      regex_ = regex;
+    }
+
+    public static Pattern
+    Compile(string pattern) { return new Pattern(new Regex(pattern)); }
+
+    public Matcher
+    Matcher(string text) { return new Matcher(regex_.Match(text)); }
+
+    private Regex regex_;
   }
 
   public class RegExUtil {
@@ -522,6 +563,21 @@ namespace ILOG.J2CsMapping.Util {
       else
         throw new NotSupportedException
           ("StringUtil.GetBytes does not support encoding " + encoding);
+    }
+
+    public static string
+    NewString(char[] array) { return new string(array); }
+
+    public static string
+    ReplaceFirst(string str, string regex, string replacement)
+    {
+      var match = new Regex(regex).Match(str);
+      if (!match.Success)
+        return str;
+
+      int start = match.Groups[0].Index;
+      int end = start + match.Groups[0].Length;
+      return str.Substring(0, start) + replacement + str.Substring(end);
     }
   }
 }
