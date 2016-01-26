@@ -270,15 +270,11 @@ namespace net.named_data.jndn.security.policy {
 		/// <returns>true if the signature verifies, false if not.</returns>
 		protected static internal bool verifyDigestSha256Signature(Blob signature,
 				SignedBlob signedBlob) {
-#if false
 			// Set signedPortionDigest to the digest of the signed portion of the signedBlob.
 			byte[] signedPortionDigest = net.named_data.jndn.util.Common
 					.digestSha256(signedBlob.signedBuf());
 	
 			return ILOG.J2CsMapping.Collections.Arrays.Equals(signedPortionDigest,signature.getImmutableArray());
-#else
-      throw new NotImplementedException("verifyDigestSha256Signature is not implemented");
-#endif
 		}
 	}
 }
