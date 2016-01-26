@@ -33,6 +33,7 @@ Java to C# Translation
 * We need to globally capitalize the override methods `equals` and `toString`, 
   rename classes Signathre and PublicKey in the System namespace which conflict,
   fix the use of DateTime.Now.Millisecond, fix .length and .parseInt in OID.cs,
+  fix the erronous translation to @"\0",
   remove the generated TcpTransport.cs since we use src/tcp-transport.cs:
 
 In a terminal change directory to `ndn-dot-net/src/net` and enter:
@@ -44,4 +45,5 @@ In a terminal change directory to `ndn-dot-net/src/net` and enter:
     sed -i '' 's/DateTime\.Now\.Millisecond/(DateTime.Now - new DateTime(1970, 1, 1)).TotalMilliseconds/g' named_data/jndn/util/Common.cs
     sed -i '' 's/\.length/.Length/g' named_data/jndn/encoding/OID.cs
     sed -i '' 's/\.parseInt/.Parse/g' named_data/jndn/encoding/OID.cs
+    sed -i '' 's/@"\\0"/"\\0"/g' named_data/jndn/util/BoostInfoTree.cs
     rm named_data/jndn/transport/TcpTransport.cs
