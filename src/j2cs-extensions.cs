@@ -625,6 +625,39 @@ namespace System {
   }
 }
 
+namespace System.Security.Cryptography {
+  /// <summary>
+  /// j2cstranslator naively converts java.security.MessageDigest to MD5 (!) and uses the
+  /// Java interface. The INSTALL file instructions replace MD5 with this class.
+  /// </summary>
+  class SecuritySHA256 {
+    public static SecuritySHA256
+    Create() { return new SecuritySHA256(); }
+
+    public void
+    update(ByteBuffer data)
+    {
+      memoryStream_.Write(data.array(), data.arrayOffset(), data.remaining());
+    }
+
+    public byte[] Hash {
+      get { 
+        memoryStream_.Flush();
+        var result = sha256_.ComputeHash(memoryStream_.ToArray());
+
+        // We don't need the data in the stream any more.
+        memoryStream_.Dispose();
+        memoryStream_ = null;
+
+        return result;
+      }
+    }
+
+    private SHA256 sha256_ = SHA256Managed.Create();
+    private MemoryStream memoryStream_ = new MemoryStream();
+  }
+}
+
 namespace System.Collections {
   /// <summary>
   /// This is used with SimpleDateFormat.
