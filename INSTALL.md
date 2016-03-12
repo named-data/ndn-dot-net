@@ -30,8 +30,9 @@ Java to C# Translation
 * Under "Translation Destination Directory", click Browse and browse to `ndn-dot-net/src` .
 * In the Translate Projects window, Click Finish. The output is in `ndn-dot-net/src/net` .
 * (The translator creates an Eclipse project with temporary Java files, for example `translation_ndn-dot-net_Tue_Dec_22_08_27_23_PST_2015`. Delete it.)
-* We need to globally capitalize the override methods `equals` and `toString`, 
-  rename classes Signathre and PublicKey in the System namespace which conflict,
+* We need to globally remove the conversion date so every file doesn't change,
+  globally capitalize the override methods `equals` and `toString`,
+  globally rename classes Signature and PublicKey in the System namespace which conflict,
   fix the use of DateTime.Now.Millisecond, fix .length and .parseInt in OID.cs,
   fix the erroneous translation to @"\0",
   fix the erroneous translation to MD5,
@@ -39,6 +40,7 @@ Java to C# Translation
 
 In a terminal change directory to `ndn-dot-net/src/net` and enter:
 
+    (unset LANG; find . -type f -exec sed -i '' 's/^\/\/ [0-9][0-9]*\/[0-9][0-9]*\/[0-9][0-9] [0-9][0-9]*:[0-9][0-9] [AP]M *$/\/\//g' {} +)
     (unset LANG; find . -type f -exec sed -i '' 's/public override bool equals(Object other)/public override bool Equals(Object other)/g' {} +)
     (unset LANG; find . -type f -exec sed -i '' 's/public override String toString()/public override String ToString()/g' {} +)
     (unset LANG; find . -type f -exec sed -i '' 's/System\.Signature/System.SecuritySignature/g' {} +)
