@@ -56,8 +56,7 @@ namespace TestNdnDotNet
     {
       try {
         var face = new Face
-          (new DotNetTcpTransport(), 
-           new DotNetTcpTransport.ConnectionInfo("localhost"));
+          (new TcpTransport(), new TcpTransport.ConnectionInfo("localhost"));
 
         var counter = new Counter1();
 

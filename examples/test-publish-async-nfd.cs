@@ -184,8 +184,7 @@ namespace TestNdnDotNet {
     static void Main(string[] args)
     {
       var face = new Face
-        (new DotNetTcpTransport(), 
-         new DotNetTcpTransport.ConnectionInfo("localhost"));
+        (new TcpTransport(), new TcpTransport.ConnectionInfo("localhost"));
 
       // For now, when setting face.setCommandSigningInfo, use a key chain with
       //   a default private key instead of the system default key chain. This
