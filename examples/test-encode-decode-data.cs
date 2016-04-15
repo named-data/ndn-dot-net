@@ -175,7 +175,7 @@ namespace TestNdnDotNet {
       Console.Out.WriteLine("name: " + data.getName().toUri());
       if (data.getContent().size() > 0) {
         Console.Out.Write("content (raw): ");
-        ByteBuffer buf = data.getContent().buf();
+        var buf = data.getContent().buf();
         while(buf.remaining() > 0)
           Console.Out.Write((char)buf.get());
         Console.Out.WriteLine("");
@@ -202,24 +202,28 @@ namespace TestNdnDotNet {
 
       KeyLocator keyLocator = null;
       if (data.getSignature() is Sha256WithRsaSignature) {
-        Sha256WithRsaSignature signature =
-          (Sha256WithRsaSignature)data.getSignature();
+        var signature = (Sha256WithRsaSignature)data.getSignature();
         Console.Out.WriteLine("Sha256WithRsa signature.signature: " +
           (signature.getSignature().size() > 0 ?
             signature.getSignature().toHex() : "<none>"));
         keyLocator = signature.getKeyLocator();
       }
       else if (data.getSignature() is Sha256WithEcdsaSignature) {
-        Sha256WithEcdsaSignature signature =
-          (Sha256WithEcdsaSignature)data.getSignature();
+        var signature = (Sha256WithEcdsaSignature)data.getSignature();
         Console.Out.WriteLine("Sha256WithEcdsa signature.signature: " +
           (signature.getSignature().size() > 0 ?
             signature.getSignature().toHex() : "<none>"));
         keyLocator = signature.getKeyLocator();
       }
+      else if (data.getSignature() is HmacWithSha256Signature) {
+        var signature = (HmacWithSha256Signature)data.getSignature();
+        Console.Out.WriteLine("HmacWithSha256 signature.signature: " +
+          (signature.getSignature().size() > 0 ?
+            signature.getSignature().toHex() : "<none>"));
+        keyLocator = signature.getKeyLocator();
+      }
       else if (data.getSignature() is DigestSha256Signature) {
-        DigestSha256Signature signature =
-          (DigestSha256Signature)data.getSignature();
+        var signature = (DigestSha256Signature)data.getSignature();
         Console.Out.WriteLine("DigestSha256 signature.signature: " +
           (signature.getSignature().size() > 0 ?
             signature.getSignature().toHex() : "<none>"));
