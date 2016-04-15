@@ -399,9 +399,13 @@ public class Node implements ElementListener {
       for (int i = 0; i < matchedFilters.size(); ++i) {
         InterestFilterTable.Entry entry =
           (InterestFilterTable.Entry)matchedFilters.get(i);
-        entry.getOnInterest().onInterest
-         (entry.getFilter().getPrefix(), interest, entry.getFace(),
-          entry.getInterestFilterId(), entry.getFilter());
+        try {
+          entry.getOnInterest().onInterest
+           (entry.getFilter().getPrefix(), interest, entry.getFace(),
+            entry.getInterestFilterId(), entry.getFilter());
+        } catch (Throwable ex) {
+          logger_.log(Level.SEVERE, "Error in onInterest", ex);
+        }
       }
     }
     else if (data != null) {
@@ -411,7 +415,11 @@ public class Node implements ElementListener {
       for (int i = 0; i < pitEntries.size(); ++i) {
         PendingInterestTable.Entry pendingInterest =
           (PendingInterestTable.Entry)pitEntries.get(i);
-        pendingInterest.getOnData().onData(pendingInterest.getInterest(), data);
+        try{
+          pendingInterest.getOnData().onData(pendingInterest.getInterest(), data);
+        } catch (Throwable ex) {
+          logger_.log(Level.SEVERE, "Error in onData", ex);
+        }
       }
     }
   }
@@ -552,35 +560,44 @@ public class Node implements ElementListener {
     onData(Interest interest, Data responseData)
     {
       // Decode responseData.getContent() and check for a success code.
-      // TODO: Move this into the TLV code.
-      TlvDecoder decoder = new TlvDecoder(responseData.getContent().buf());
-      long statusCode;
+      ControlResponse controlResponse = new ControlResponse();
       try {
-        decoder.readNestedTlvsStart(Tlv.NfdCommand_ControlResponse);
-        statusCode = decoder.readNonNegativeIntegerTlv
-             (Tlv.NfdCommand_StatusCode);
-      }
-      catch (EncodingException ex) {
+        controlResponse.wireDecode(responseData.getContent(), TlvWireFormat.get());
+      } catch (EncodingException ex) {
         logger_.log(Level.INFO,
           "Register prefix failed: Error decoding the NFD response: {0}", ex);
-        info_.onRegisterFailed_.onRegisterFailed(info_.prefix_);
+        try {
+          info_.onRegisterFailed_.onRegisterFailed(info_.prefix_);
+        } catch (Throwable exception) {
+          logger_.log(Level.SEVERE, "Error in onRegisterFailed", exception);
+        }
         return;
       }
 
       // Status code 200 is "OK".
-      if (statusCode != 200) {
+      if (controlResponse.getStatusCode() != 200) {
         logger_.log(Level.INFO,
-          "Register prefix failed: Expected NFD status code 200, got: {0}", statusCode);
-        info_.onRegisterFailed_.onRegisterFailed(info_.prefix_);
+          "Register prefix failed: Expected NFD status code 200, got: {0}",
+          controlResponse.getStatusCode());
+        try {
+          info_.onRegisterFailed_.onRegisterFailed(info_.prefix_);
+        } catch (Throwable ex) {
+          logger_.log(Level.SEVERE, "Error in onRegisterFailed", ex);
+        }
         return;
       }
 
       logger_.log(Level.INFO,
         "Register prefix succeeded with the NFD forwarder for prefix {0}",
         info_.prefix_.toUri());
-      if (info_.onRegisterSuccess_ != null)
-        info_.onRegisterSuccess_.onRegisterSuccess
-          (info_.prefix_, info_.registeredPrefixId_);
+      if (info_.onRegisterSuccess_ != null) {
+        try {
+          info_.onRegisterSuccess_.onRegisterSuccess
+            (info_.prefix_, info_.registeredPrefixId_);
+        } catch (Throwable ex) {
+          logger_.log(Level.SEVERE, "Error in onRegisterSuccess", ex);
+        }
+      }
     }
 
     /**
@@ -592,7 +609,11 @@ public class Node implements ElementListener {
     {
       logger_.log(Level.INFO,
         "Timeout for NFD register prefix command.");
-      info_.onRegisterFailed_.onRegisterFailed(info_.prefix_);
+      try {
+        info_.onRegisterFailed_.onRegisterFailed(info_.prefix_);
+      } catch (Throwable ex) {
+        logger_.log(Level.SEVERE, "Error in onRegisterFailed", ex);
+      }
     }
 
     public static class Info {
@@ -669,7 +690,11 @@ public class Node implements ElementListener {
     } catch (IOException ex) {
       logger_.log(Level.INFO,
         "Register prefix failed: Error attempting to determine if the face is local: {0}", ex);
-      onRegisterFailed.onRegisterFailed(prefix);
+      try {
+        onRegisterFailed.onRegisterFailed(prefix);
+      } catch (Throwable exception) {
+        logger_.log(Level.SEVERE, "Error in onRegisterFailed", exception);
+      }
       return;
     }
 
@@ -715,7 +740,11 @@ public class Node implements ElementListener {
       // Can't send the interest. Call onRegisterFailed.
       logger_.log(Level.INFO,
         "Register prefix failed: Error sending the register prefix interest to the forwarder: {0}", ex);
-      onRegisterFailed.onRegisterFailed(prefix);
+      try {
+        onRegisterFailed.onRegisterFailed(prefix);
+      } catch (Throwable exception) {
+        logger_.log(Level.SEVERE, "Error in onRegisterFailed", exception);
+      }
     }
   }
 

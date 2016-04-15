@@ -148,7 +148,7 @@ namespace net.named_data.jndn.security.identity {
 			// Read the file contents.
 			byte[] der = this.read(keyName, net.named_data.jndn.security.KeyClass.PUBLIC);
 	
-			return new PublicKey(new Blob(der));
+			return new PublicKey(new Blob(der, false));
 		}
 	
 		/// <summary>
@@ -299,7 +299,7 @@ namespace net.named_data.jndn.security.identity {
 			}
 			try {
 				signature.update(data);
-				return new Blob(signature.sign());
+				return new Blob(signature.sign(), false);
 			} catch (SignatureException exception_1) {
 				throw new SecurityException(
 						"FilePrivateKeyStorage: SignatureException: "

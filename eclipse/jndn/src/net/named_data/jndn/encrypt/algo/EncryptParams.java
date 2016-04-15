@@ -21,8 +21,8 @@
 package net.named_data.jndn.encrypt.algo;
 
 import java.nio.ByteBuffer;
-import java.security.SecureRandom;
 import net.named_data.jndn.util.Blob;
+import net.named_data.jndn.util.Common;
 
 /**
  * An EncryptParams holds an algorithm type and other parameters used to
@@ -32,7 +32,7 @@ import net.named_data.jndn.util.Blob;
 public class EncryptParams {
   /**
    * Create an EncryptParams with the given parameters.
-   * @param algorithmType The algorithm type, or NONE if not specified.
+   * @param algorithmType The algorithm type, or null if not specified.
    * @param initialVectorLength The initial vector length, or 0 if the initial
    * vector is not specified.
    */
@@ -43,7 +43,7 @@ public class EncryptParams {
 
     if (initialVectorLength > 0) {
       ByteBuffer initialVector = ByteBuffer.allocate(initialVectorLength);
-      random_.nextBytes(initialVector.array());
+      Common.getRandom().nextBytes(initialVector.array());
       initialVector_ = new Blob(initialVector, false);
     }
     else
@@ -53,7 +53,7 @@ public class EncryptParams {
   /**
    * Create an EncryptParams with the given algorithmType and an unspecified
    * initial vector.
-   * @param algorithmType The algorithm type, or NONE if not specified.
+   * @param algorithmType The algorithm type, or null if not specified.
    */
   public EncryptParams(EncryptAlgorithmType algorithmType)
   {
@@ -63,7 +63,7 @@ public class EncryptParams {
 
   /**
    * Get the algorithm type.
-   * @return The algorithm type, or NONE if not specified.
+   * @return The algorithm type, or null if not specified.
    */
   public final EncryptAlgorithmType
   getAlgorithmType() { return algorithmType_; }
@@ -77,7 +77,7 @@ public class EncryptParams {
 
   /**
    * Set the algorithm type.
-   * @param algorithmType The algorithm type. If not specified, set to NONE.
+   * @param algorithmType The algorithm type. If not specified, set to null.
    * @return This EncryptParams so that you can chain calls to update values.
    */
   public final EncryptParams
@@ -102,6 +102,4 @@ public class EncryptParams {
 
   private EncryptAlgorithmType algorithmType_;
   private Blob initialVector_;
-  // TODO: Move this to a common utility?
-  private static final SecureRandom random_ = new SecureRandom();
 }

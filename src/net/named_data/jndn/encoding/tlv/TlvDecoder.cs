@@ -53,13 +53,13 @@ namespace net.named_data.jndn.encoding.tlv {
 		}
 	
 		/// <summary>
-		/// Do the work of readVarNumber, given the firstOctet which is >= 253. Update
-		/// the input buffer position.
+		/// Do the work of readVarNumber, given the firstOctet which is greater than
+		/// or equal to 253. Update the input buffer position.
 		/// </summary>
 		///
 		/// <param name="firstOctet"></param>
 		/// <returns>The decoded VAR-NUMBER as a Java 32-bit int.</returns>
-		/// <exception cref="EncodingException">if the VAR-NUMBER is 64-bit or read past the end of the input.</exception>
+		/// <exception cref="EncodingException">if the VAR-NUMBER is 64-bit or read past the end  of the input.</exception>
 		public int readExtendedVarNumber(int firstOctet) {
 			try {
 				if (firstOctet == 253)
@@ -328,6 +328,24 @@ namespace net.named_data.jndn.encoding.tlv {
 		/// <param name="offset">The new offset.</param>
 		public void seek(int offset) {
 			input_.position(offset);
+		}
+	
+		/// <summary>
+		/// Return a ByteBuffer slice of the input for the given offset range.
+		/// </summary>
+		///
+		/// <param name="beginOffset">The offset in the input of the beginning of the slice.</param>
+		/// <param name="endOffset">The offset in the input of the end of the slice.</param>
+		/// <returns>A slice on the input buffer.  This is not a copy of the bytes in
+		/// the input buffer. If you need a copy, then you must make a copy of the
+		/// return value.</returns>
+		public ByteBuffer getSlice(int beginOffset, int endOffset) {
+			ByteBuffer result = input_.duplicate();
+			// First set position to 0 to be sure that endOffset won't be before it.
+			result.position(0);
+			result.limit(endOffset);
+			result.position(beginOffset);
+			return result;
 		}
 	
 		private readonly ByteBuffer input_;

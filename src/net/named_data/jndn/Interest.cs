@@ -444,7 +444,6 @@ namespace net.named_data.jndn {
 		/// </summary>
 		///
 		/// <returns>The incoming face ID. If not specified, return -1.</returns>
-		/// @note This is an experimental feature. This API may change in the future.
 		public long getIncomingFaceId() {
 			return localControlHeader_.getIncomingFaceId();
 		}
@@ -454,7 +453,6 @@ namespace net.named_data.jndn {
 		/// </summary>
 		///
 		/// <returns>The next hop face ID. If not specified, return -1.</returns>
-		/// @note This is an experimental feature. This API may change in the future.
 		public long getNextHopFaceId() {
 			return localControlHeader_.getNextHopFaceId();
 		}
@@ -638,6 +636,31 @@ namespace net.named_data.jndn {
 		}
 	
 		/// <summary>
+		/// Update the bytes of the nonce with new random values. This ensures that the
+		/// new nonce value is different than the current one. If the current nonce is
+		/// not specified, this does nothing.
+		/// </summary>
+		///
+		public void refreshNonce() {
+			Blob currentNonce = getNonce();
+			if (currentNonce.size() == 0)
+				return;
+	
+			ByteBuffer newNonce = ILOG.J2CsMapping.NIO.ByteBuffer.allocate(currentNonce.size());
+			while (true) {
+				random_.nextBytes(newNonce.array());
+				if (!newNonce.equals(currentNonce.buf()))
+					break;
+			}
+	
+			nonce_ = new Blob(newNonce, false);
+			// Set getNonceChangeCount_ so that the next call to getNonce() won't clear
+			// nonce_.
+			++changeCount_;
+			getNonceChangeCount_ = getChangeCount();
+		}
+	
+		/// <summary>
 		/// Check if this Interest's name matches the given name (using Name.match)
 		/// and the given name also conforms to the interest selectors.
 		/// </summary>
@@ -737,5 +760,6 @@ namespace net.named_data.jndn {
 		private WireFormat defaultWireEncodingFormat_;
 		private long getDefaultWireEncodingChangeCount_;
 		private long changeCount_;
+		private static readonly SecureRandom random_ = new SecureRandom();
 	}
 }

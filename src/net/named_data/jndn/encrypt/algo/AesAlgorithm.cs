@@ -38,7 +38,7 @@ namespace net.named_data.jndn.encrypt.algo {
 		public static DecryptKey generateKey(AesKeyParams paras) {
 			// Convert the key bit size to bytes.
 			ByteBuffer key = ILOG.J2CsMapping.NIO.ByteBuffer.allocate(paras.getKeySize() / 8);
-			random_.nextBytes(key.array());
+			net.named_data.jndn.util.Common.getRandom().nextBytes(key.array());
 	
 			DecryptKey decryptKey = new DecryptKey(new Blob(key, false));
 			return decryptKey;
@@ -68,7 +68,8 @@ namespace net.named_data.jndn.encrypt.algo {
 				Cipher cipher = javax.crypto.Cipher.getInstance("AES/ECB/PKCS5PADDING");
 				cipher.init(javax.crypto.Cipher.DECRYPT_MODE,
 						new SecretKeySpec(keyBits.getImmutableArray(), "AES"));
-				return new Blob(cipher.doFinal(encryptedData.getImmutableArray()));
+				return new Blob(cipher.doFinal(encryptedData.getImmutableArray()),
+						false);
 			} else if (paras.getAlgorithmType() == net.named_data.jndn.encrypt.algo.EncryptAlgorithmType.AesCbc) {
 				if (paras.getInitialVector().size() != BLOCK_SIZE)
 					throw new Exception("incorrect initial vector size");
@@ -78,7 +79,8 @@ namespace net.named_data.jndn.encrypt.algo {
 						new SecretKeySpec(keyBits.getImmutableArray(), "AES"),
 						new IvParameterSpec(paras.getInitialVector()
 								.getImmutableArray()));
-				return new Blob(cipher_0.doFinal(encryptedData.getImmutableArray()));
+				return new Blob(cipher_0.doFinal(encryptedData.getImmutableArray()),
+						false);
 			} else
 				throw new Exception("unsupported encryption mode");
 		}
@@ -97,7 +99,8 @@ namespace net.named_data.jndn.encrypt.algo {
 				Cipher cipher = javax.crypto.Cipher.getInstance("AES/ECB/PKCS5PADDING");
 				cipher.init(javax.crypto.Cipher.ENCRYPT_MODE,
 						new SecretKeySpec(keyBits.getImmutableArray(), "AES"));
-				return new Blob(cipher.doFinal(plainData.getImmutableArray()));
+				return new Blob(cipher.doFinal(plainData.getImmutableArray()),
+						false);
 			} else if (paras.getAlgorithmType() == net.named_data.jndn.encrypt.algo.EncryptAlgorithmType.AesCbc) {
 				if (paras.getInitialVector().size() != BLOCK_SIZE)
 					throw new Exception("incorrect initial vector size");
@@ -107,13 +110,12 @@ namespace net.named_data.jndn.encrypt.algo {
 						new SecretKeySpec(keyBits.getImmutableArray(), "AES"),
 						new IvParameterSpec(paras.getInitialVector()
 								.getImmutableArray()));
-				return new Blob(cipher_0.doFinal(plainData.getImmutableArray()));
+				return new Blob(cipher_0.doFinal(plainData.getImmutableArray()),
+						false);
 			} else
 				throw new Exception("unsupported encryption mode");
 		}
 	
 		public const int BLOCK_SIZE = 16;
-		// TODO: Move this to a common utility?
-		private static readonly SecureRandom random_ = new SecureRandom();
 	}
 }

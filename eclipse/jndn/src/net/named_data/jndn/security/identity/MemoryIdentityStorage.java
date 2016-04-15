@@ -85,21 +85,24 @@ public class MemoryIdentityStorage extends IdentityStorage {
 
   /**
    * Add a public key to the identity storage. Also call addIdentity to ensure
-   * that the identityName for the key exists.
+   * that the identityName for the key exists. However, if the key already
+   * exists, do nothing.
    * @param keyName The name of the public key to be added.
    * @param keyType Type of the public key to be added.
    * @param publicKeyDer A blob of the public key DER to be added.
-   * @throws SecurityException if a key with the keyName already exists.
    */
   public void
   addKey(Name keyName, KeyType keyType, Blob publicKeyDer) throws SecurityException
   {
+    if (keyName.size() == 0)
+      return;
+
+    if (doesKeyExist(keyName))
+      return;
+
     Name identityName = keyName.getSubName(0, keyName.size() - 1);
 
     addIdentity(identityName);
-
-    if (doesKeyExist(keyName))
-      throw new SecurityException("a key with the same name already exists!");
 
     keyStore_ .put(keyName.toUri(), new KeyRecord(keyType, publicKeyDer));
   }
@@ -107,15 +110,19 @@ public class MemoryIdentityStorage extends IdentityStorage {
   /**
    * Get the public key DER blob from the identity storage.
    * @param keyName The name of the requested public key.
-   * @return The DER Blob.  If not found, return a Blob with a null pointer.
+   * @return The DER Blob.
+   * @throws SecurityException if the key doesn't exist.
    */
   public Blob
-  getKey(Name keyName)
+  getKey(Name keyName) throws SecurityException
   {
+    if (keyName.size() == 0)
+      throw new SecurityException("MemoryIdentityStorage::getKey: Empty keyName");
+
     KeyRecord keyRecord = (KeyRecord)keyStore_.get(keyName.toUri());
     if (keyRecord == null)
-      // Not found.  Silently return a null Blob.
-      return new Blob();
+      throw new SecurityException
+        ("MemoryIdentityStorage::getKey: The key does not exist");
 
     return keyRecord.getKeyDer();
   }
@@ -156,10 +163,11 @@ public class MemoryIdentityStorage extends IdentityStorage {
   }
 
   /**
-   * Add a certificate to the identity storage.
+   * Add a certificate to the identity storage. Also call addKey to ensure that
+   * the certificate key exists. If the certificate is already installed, don't
+   * replace it.
    * @param certificate The certificate to be added.  This makes a copy of the
    * certificate.
-   * @throws SecurityException if the certificate is already installed.
    */
   public void
   addCertificate(IdentityCertificate certificate) throws SecurityException
@@ -167,20 +175,11 @@ public class MemoryIdentityStorage extends IdentityStorage {
     Name certificateName = certificate.getName();
     Name keyName = certificate.getPublicKeyName();
 
-    if (!doesKeyExist(keyName))
-      throw new SecurityException
-        ("No corresponding Key record for certificate! " + keyName.toUri() +
-         " " + certificateName.toUri());
+    addKey(keyName, certificate.getPublicKeyInfo().getKeyType(),
+           certificate.getPublicKeyInfo().getKeyDer());
 
-    // Check if certificate already exists.
     if (doesCertificateExist(certificateName))
-      throw new SecurityException("Certificate has already been installed!");
-
-    // Check if the public key of certificate is the same as the key record.
-    Blob keyBlob = getKey(keyName);
-    if (keyBlob.isNull() ||
-        !keyBlob.equals(certificate.getPublicKeyInfo().getKeyDer()))
-      throw new SecurityException("Certificate does not match the public key!");
+      return;
 
     // Insert the certificate.
     certificateStore_.put(certificateName.toUri(), certificate.wireEncode());
@@ -189,29 +188,24 @@ public class MemoryIdentityStorage extends IdentityStorage {
   /**
    * Get a certificate from the identity storage.
    * @param certificateName The name of the requested certificate.
-   * @param allowAny If false, only a valid certificate will be
-   * returned, otherwise validity is disregarded.
-   * @return The requested certificate. If not found, return null.
+   * @return The requested certificate.
+   * @throws SecurityException if the certificate doesn't exist.
    */
   public IdentityCertificate
-  getCertificate(Name certificateName, boolean allowAny)
+  getCertificate(Name certificateName) throws SecurityException
   {
-    if (!allowAny)
-      throw new UnsupportedOperationException
-        ("MemoryIdentityStorage.getCertificate for !allowAny is not implemented");
-
     Blob certificateDer = (Blob)certificateStore_.get(certificateName.toUri());
     if (certificateDer == null)
-      // Not found.  Silently return null.
-      return new IdentityCertificate();
+      throw new SecurityException
+        ("MemoryIdentityStorage::getKey: The certificate does not exist");
 
     IdentityCertificate certificate = new IdentityCertificate();
     try {
       certificate.wireDecode(certificateDer);
     }
     catch (EncodingException ex) {
-      // Don't expect this to happen. Silently return null.
-      return new IdentityCertificate();
+      throw new SecurityException
+        ("MemoryIdentityStorage::getKey: The certificate cannot be decoded");
     }
     return certificate;
   }
@@ -282,6 +276,19 @@ public class MemoryIdentityStorage extends IdentityStorage {
   }
 
   /**
+   * Append all the identity names to the nameList.
+   * @param nameList Append result names to nameList.
+   * @param isDefault If true, add only the default identity name. If false, add
+   * only the non-default identity names.
+   */
+  public void
+  getAllIdentities(ArrayList nameList, boolean isDefault)
+  {
+    throw new UnsupportedOperationException
+      ("MemoryIdentityStorage.getAllIdentities not implemented");
+  }
+
+  /**
    * Append all the key names of a particular identity to the nameList.
    * @param identityName The identity name to search for.
    * @param nameList Append result names to nameList.
@@ -294,6 +301,21 @@ public class MemoryIdentityStorage extends IdentityStorage {
   {
     throw new UnsupportedOperationException
       ("MemoryIdentityStorage.getAllKeyNamesOfIdentity not implemented");
+  }
+
+  /**
+   * Append all the certificate names of a particular key name to the nameList.
+   * @param keyName The key name to search for.
+   * @param nameList Append result names to nameList.
+   * @param isDefault If true, add only the default certificate name. If false,
+   * add only the non-default certificate names.
+   */
+  public void
+  getAllCertificateNamesOfKey
+    (Name keyName, ArrayList nameList, boolean isDefault) throws SecurityException
+  {
+    throw new UnsupportedOperationException
+      ("MemoryIdentityStorage.getAllCertificateNamesOfKey not implemented");
   }
 
   /**

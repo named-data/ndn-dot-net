@@ -90,13 +90,13 @@ namespace net.named_data.jndn.security.identity {
 	
 		/// <summary>
 		/// Add a public key to the identity storage. Also call addIdentity to ensure
-		/// that the identityName for the key exists.
+		/// that the identityName for the key exists. However, if the key already
+		/// exists, do nothing.
 		/// </summary>
 		///
 		/// <param name="keyName">The name of the public key to be added.</param>
 		/// <param name="keyType">Type of the public key to be added.</param>
 		/// <param name="publicKeyDer">A blob of the public key DER to be added.</param>
-		/// <exception cref="System.Security.SecurityException">if a key with the keyName already exists.</exception>
 		public abstract void addKey(Name keyName, KeyType keyType, Blob publicKeyDer);
 	
 		/// <summary>
@@ -104,7 +104,8 @@ namespace net.named_data.jndn.security.identity {
 		/// </summary>
 		///
 		/// <param name="keyName">The name of the requested public key.</param>
-		/// <returns>The DER Blob.  If not found, return a Blob with a null pointer.</returns>
+		/// <returns>The DER Blob.</returns>
+		/// <exception cref="System.Security.SecurityException">if the key doesn't exist.</exception>
 		public abstract Blob getKey(Name keyName);
 	
 		/// <summary>
@@ -132,11 +133,12 @@ namespace net.named_data.jndn.security.identity {
 		public abstract bool doesCertificateExist(Name certificateName);
 	
 		/// <summary>
-		/// Add a certificate to the identity storage.
+		/// Add a certificate to the identity storage. Also call addKey to ensure that
+		/// the certificate key exists. If the certificate is already installed, don't
+		/// replace it.
 		/// </summary>
 		///
 		/// <param name="certificate"></param>
-		/// <exception cref="System.Security.SecurityException">if the certificate is already installed.</exception>
 		public abstract void addCertificate(IdentityCertificate certificate);
 	
 		/// <summary>
@@ -144,21 +146,9 @@ namespace net.named_data.jndn.security.identity {
 		/// </summary>
 		///
 		/// <param name="certificateName">The name of the requested certificate.</param>
-		/// <param name="allowAny"></param>
-		/// <returns>The requested certificate. If not found, return null.</returns>
-		public abstract IdentityCertificate getCertificate(Name certificateName,
-				bool allowAny);
-	
-		/// <summary>
-		/// Get a certificate from the identity storage, requiring only a valid
-		/// certificate to be returned.
-		/// </summary>
-		///
-		/// <param name="certificateName">The name of the requested certificate.</param>
-		/// <returns>The requested certificate. If not found, return null.</returns>
-		public IdentityCertificate getCertificate(Name certificateName) {
-			return getCertificate(certificateName, false);
-		}
+		/// <returns>The requested certificate.</returns>
+		/// <exception cref="System.Security.SecurityException">if the certificate doesn't exist.</exception>
+		public abstract IdentityCertificate getCertificate(Name certificateName);
 	
 		/*****************************************
 		 *           Get/Set Default             *
@@ -203,6 +193,14 @@ namespace net.named_data.jndn.security.identity {
 		public abstract Name getDefaultCertificateNameForKey(Name keyName);
 	
 		/// <summary>
+		/// Append all the identity names to the nameList.
+		/// </summary>
+		///
+		/// <param name="nameList">Append result names to nameList.</param>
+		/// <param name="isDefault"></param>
+		public abstract void getAllIdentities(ArrayList nameList, bool isDefault);
+	
+		/// <summary>
 		/// Append all the key names of a particular identity to the nameList.
 		/// </summary>
 		///
@@ -210,6 +208,16 @@ namespace net.named_data.jndn.security.identity {
 		/// <param name="nameList">Append result names to nameList.</param>
 		/// <param name="isDefault"></param>
 		public abstract void getAllKeyNamesOfIdentity(Name identityName,
+				ArrayList nameList, bool isDefault);
+	
+		/// <summary>
+		/// Append all the certificate names of a particular key name to the nameList.
+		/// </summary>
+		///
+		/// <param name="keyName">The key name to search for.</param>
+		/// <param name="nameList">Append result names to nameList.</param>
+		/// <param name="isDefault"></param>
+		public abstract void getAllCertificateNamesOfKey(Name keyName,
 				ArrayList nameList, bool isDefault);
 	
 		/// <summary>
@@ -262,7 +270,7 @@ namespace net.named_data.jndn.security.identity {
 				return null;
 			}
 	
-			return getCertificate(certName, true);
+			return getCertificate(certName);
 		}
 	
 		/*****************************************

@@ -23,6 +23,8 @@ package net.named_data.jndn.util;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import net.named_data.jndn.Data;
 import net.named_data.jndn.Face;
 import net.named_data.jndn.Interest;
@@ -34,31 +36,31 @@ import net.named_data.jndn.encoding.EncodingException;
 /**
  * SegmentFetcher is a utility class to fetch the latest version of segmented data.
  *
- * SegmentFetcher assumes that the data is named /<prefix>/<version>/<segment>,
+ * SegmentFetcher assumes that the data is named /{prefix}/{version}/{segment},
  * where:
- * - <prefix> is the specified name prefix,
- * - <version> is an unknown version that needs to be discovered, and
- * - <segment> is a segment number. (The number of segments is unknown and is
+ * - {prefix} is the specified name prefix,
+ * - {version} is an unknown version that needs to be discovered, and
+ * - {segment} is a segment number. (The number of segments is unknown and is
  *   controlled by the `FinalBlockId` field in at least the last Data packet.
  *
  * The following logic is implemented in SegmentFetcher:
  *
  * 1. Express the first Interest to discover the version:
  *
- *    >> Interest: /<prefix>?ChildSelector=1&MustBeFresh=true
+ *    Interest: /{prefix}?ChildSelector=1&amp;MustBeFresh=true
  *
- * 2. Infer the latest version of the Data: <version> = Data.getName().get(-2)
+ * 2. Infer the latest version of the Data: {version} = Data.getName().get(-2)
  *
  * 3. If the segment number in the retrieved packet == 0, go to step 5.
  *
  * 4. Send an Interest for segment 0:
  *
- *    >> Interest: /<prefix>/<version>/<segment=0>
+ *     Interest: /{prefix}/{version}/{segment=0}
  *
  * 5. Keep sending Interests for the next segment while the retrieved Data does
  *    not have a FinalBlockId or the FinalBlockId != Data.getName().get(-1).
  *
- *    >> Interest: /<prefix>/<version>/<segment=(N+1))>
+ *    Interest: /{prefix}/{version}/{segment=(N+1))}
  *
  * 6. Call the OnComplete callback with a blob that concatenates the content
  *    from all the segmented objects.
@@ -135,11 +137,20 @@ public class SegmentFetcher implements OnData, OnTimeout {
    * verifySegment.verifySegment(data). If it returns false then abort fetching
    * and call onError.onError with ErrorCode.SEGMENT_VERIFICATION_FAILED. If
    * data validation is not required, use DontVerifySegment.
+   * NOTE: The library will log any exceptions thrown by this callback, but for
+   * better error handling the callback should catch and properly handle any
+   * exceptions.
    * @param onComplete When all segments are received, call
    * onComplete.onComplete(content) where content is the concatenation of the
    * content of all the segments.
+   * NOTE: The library will log any exceptions thrown by this callback, but for
+   * better error handling the callback should catch and properly handle any
+   * exceptions.
    * @param onError Call onError.onError(errorCode, message) for timeout or an
    * error processing segments.
+   * NOTE: The library will log any exceptions thrown by this callback, but for
+   * better error handling the callback should catch and properly handle any
+   * exceptions.
    */
   public static void
   fetch
@@ -181,8 +192,12 @@ public class SegmentFetcher implements OnData, OnTimeout {
     try {
       face_.expressInterest(interest, this, this);
     } catch (IOException ex) {
-      onError_.onError
-        (ErrorCode.IO_ERROR, "I/O error fetching the first segment " + ex);
+      try {
+        onError_.onError
+          (ErrorCode.IO_ERROR, "I/O error fetching the first segment " + ex);
+      } catch (Throwable exception) {
+        logger_.log(Level.SEVERE, "Error in onError", exception);
+      }
     }
   }
 
@@ -197,35 +212,58 @@ public class SegmentFetcher implements OnData, OnTimeout {
     try {
       face_.expressInterest(interest, this, this);
     } catch (IOException ex) {
-      onError_.onError
-        (ErrorCode.IO_ERROR, "I/O error fetching the next segment " + ex);
+      try {
+        onError_.onError
+          (ErrorCode.IO_ERROR, "I/O error fetching the next segment " + ex);
+      } catch (Throwable exception) {
+        logger_.log(Level.SEVERE, "Error in onError", exception);
+      }
     }
   }
 
   public void
   onData(Interest originalInterest, Data data)
   {
-    if (!verifySegment_.verifySegment(data)) {
-      onError_.onError
-        (ErrorCode.SEGMENT_VERIFICATION_FAILED, "Segment verification failed");
+    boolean verified = false;
+    try {
+      verified = verifySegment_.verifySegment(data);
+    } catch (Throwable ex) {
+      logger_.log(Level.SEVERE, "Error in verifySegment", ex);
+    }
+    if (!verified) {
+      try {
+        onError_.onError
+          (ErrorCode.SEGMENT_VERIFICATION_FAILED, "Segment verification failed");
+      } catch (Throwable ex) {
+        logger_.log(Level.SEVERE, "Error in onError", ex);
+      }
       return;
     }
 
-    if (!endsWithSegmentNumber(data.getName()))
+    if (!endsWithSegmentNumber(data.getName())) {
       // We don't expect a name without a segment number.  Treat it as a bad packet.
-      onError_.onError
-        (ErrorCode.DATA_HAS_NO_SEGMENT,
-         "Got an unexpected packet without a segment number: " + data.getName().toUri());
+      try {
+        onError_.onError
+          (ErrorCode.DATA_HAS_NO_SEGMENT,
+           "Got an unexpected packet without a segment number: " + data.getName().toUri());
+      } catch (Throwable ex) {
+        logger_.log(Level.SEVERE, "Error in onError", ex);
+      }
+    }
     else {
       long currentSegment;
       try {
         currentSegment = data.getName().get(-1).toSegment();
       }
       catch (EncodingException ex) {
-        onError_.onError
-          (ErrorCode.DATA_HAS_NO_SEGMENT,
-           "Error decoding the name segment number " +
-           data.getName().get(-1).toEscapedString() + ": " + ex);
+        try {
+          onError_.onError
+            (ErrorCode.DATA_HAS_NO_SEGMENT,
+             "Error decoding the name segment number " +
+             data.getName().get(-1).toEscapedString() + ": " + ex);
+        } catch (Throwable exception) {
+          logger_.log(Level.SEVERE, "Error in onError", exception);
+        }
         return;
       }
 
@@ -245,10 +283,14 @@ public class SegmentFetcher implements OnData, OnTimeout {
             finalSegmentNumber = data.getMetaInfo().getFinalBlockId().toSegment();
           }
           catch (EncodingException ex) {
-            onError_.onError
-              (ErrorCode.DATA_HAS_NO_SEGMENT,
-               "Error decoding the FinalBlockId segment number " +
-               data.getMetaInfo().getFinalBlockId().toEscapedString() + ": " + ex);
+            try {
+              onError_.onError
+                (ErrorCode.DATA_HAS_NO_SEGMENT,
+                 "Error decoding the FinalBlockId segment number " +
+                 data.getMetaInfo().getFinalBlockId().toEscapedString() + ": " + ex);
+            } catch (Throwable exception) {
+              logger_.log(Level.SEVERE, "Error in onError", exception);
+            }
             return;
           }
 
@@ -264,7 +306,11 @@ public class SegmentFetcher implements OnData, OnTimeout {
               content.put(((Blob)contentParts_.get(i)).buf());
             content.flip();
 
-            onComplete_.onComplete(new Blob(content, false));
+            try {
+              onComplete_.onComplete(new Blob(content, false));
+            } catch (Throwable ex) {
+              logger_.log(Level.SEVERE, "Error in onComplete", ex);
+            }
             return;
           }
         }
@@ -278,9 +324,13 @@ public class SegmentFetcher implements OnData, OnTimeout {
   public void
   onTimeout(Interest interest)
   {
-    onError_.onError
-      (ErrorCode.INTEREST_TIMEOUT,
-       "Time out for interest " + interest.getName().toUri());
+    try {
+      onError_.onError
+        (ErrorCode.INTEREST_TIMEOUT,
+         "Time out for interest " + interest.getName().toUri());
+    } catch (Throwable ex) {
+      logger_.log(Level.SEVERE, "Error in onError", ex);
+    }
   }
 
   /**
@@ -302,4 +352,5 @@ public class SegmentFetcher implements OnData, OnTimeout {
   private final VerifySegment verifySegment_;
   private final OnComplete onComplete_;
   private final OnError onError_;
+  private static final Logger logger_ = Logger.getLogger(SegmentFetcher.class.getName());
 }

@@ -11,6 +11,7 @@
 namespace net.named_data.jndn.encrypt {
 	
 	using ILOG.J2CsMapping.NIO;
+	using ILOG.J2CsMapping.Util.Logging;
 	using System;
 	using System.Collections;
 	using System.ComponentModel;
@@ -59,8 +60,14 @@ namespace net.named_data.jndn.encrypt {
 																}
 												
 																public void onPlainText(Blob plainText) {
-																	outer_Anonymous_C17.outer_Anonymous_C6.onConsumeComplete.onConsumeComplete(
-																			outer_Anonymous_C17.contentData, plainText);
+																	try {
+																		outer_Anonymous_C17.outer_Anonymous_C6.onConsumeComplete.onConsumeComplete(
+																				outer_Anonymous_C17.contentData, plainText);
+																	} catch (Exception ex) {
+																		net.named_data.jndn.encrypt.Consumer.logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE,
+																				"Error in onConsumeComplete",
+																				ex);
+																	}
 																}
 															}
 					
@@ -87,19 +94,24 @@ namespace net.named_data.jndn.encrypt {
 								}
 					
 								public void onVerifyFailed(Data d) {
-									outer_Anonymous_C6.onError.onError(net.named_data.jndn.encrypt.Consumer.ErrorCode.Validation,
-											"verifyData failed");
+									try {
+										outer_Anonymous_C6.onError.onError(net.named_data.jndn.encrypt.EncryptError.ErrorCode.Validation,
+												"verifyData failed");
+									} catch (Exception ex) {
+										net.named_data.jndn.encrypt.Consumer.logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in onError",
+												ex);
+									}
 								}
 							}
 		
 				internal readonly Consumer outer_Consumer;
-				internal readonly Consumer.OnError  onError;
 				internal readonly Consumer.OnConsumeComplete  onConsumeComplete;
+				internal readonly net.named_data.jndn.encrypt.EncryptError.OnError  onError;
 		
-				public Anonymous_C6(Consumer paramouter_Consumer, Consumer.OnError  onError_0,
-						Consumer.OnConsumeComplete  onConsumeComplete_1) {
-					this.onError = onError_0;
-					this.onConsumeComplete = onConsumeComplete_1;
+				public Anonymous_C6(Consumer paramouter_Consumer,
+						Consumer.OnConsumeComplete  onConsumeComplete_0, net.named_data.jndn.encrypt.EncryptError.OnError  onError_1) {
+					this.onConsumeComplete = onConsumeComplete_0;
+					this.onError = onError_1;
 					this.outer_Consumer = paramouter_Consumer;
 				}
 		
@@ -110,8 +122,12 @@ namespace net.named_data.jndn.encrypt {
 					try {
 						outer_Consumer.keyChain_.verifyData(contentData_0, new net.named_data.jndn.encrypt.Consumer.Anonymous_C6.Anonymous_C17 (this, contentData_0), new net.named_data.jndn.encrypt.Consumer.Anonymous_C6.Anonymous_C16 (this));
 					} catch (SecurityException ex) {
-						onError.onError(net.named_data.jndn.encrypt.Consumer.ErrorCode.SecurityException,
-								"verifyData error: " + ex.Message);
+						try {
+							onError.onError(net.named_data.jndn.encrypt.EncryptError.ErrorCode.SecurityException,
+									"verifyData error: " + ex.Message);
+						} catch (Exception exception) {
+							net.named_data.jndn.encrypt.Consumer.logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in onError", exception);
+						}
 					}
 				}
 			}
@@ -125,21 +141,26 @@ namespace net.named_data.jndn.encrypt {
 								}
 					
 								public void onTimeout(Interest contentInterest) {
-									outer_Anonymous_C5.onError.onError(net.named_data.jndn.encrypt.Consumer.ErrorCode.Timeout, outer_Anonymous_C5.interest
-											.getName().toUri());
+									try {
+										outer_Anonymous_C5.onError.onError(net.named_data.jndn.encrypt.EncryptError.ErrorCode.Timeout, outer_Anonymous_C5.interest
+												.getName().toUri());
+									} catch (Exception ex) {
+										net.named_data.jndn.encrypt.Consumer.logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in onError",
+												ex);
+									}
 								}
 							}
 		
 				private readonly Consumer outer_Consumer;
 				internal readonly Interest interest;
+				internal readonly net.named_data.jndn.encrypt.EncryptError.OnError  onError;
 				private readonly OnData onData;
-				internal readonly Consumer.OnError  onError;
 		
 				public Anonymous_C5(Consumer paramouter_Consumer, Interest interest_0,
-						OnData onData_1, Consumer.OnError  onError_2) {
+						net.named_data.jndn.encrypt.EncryptError.OnError  onError_1, OnData onData_2) {
 					this.interest = interest_0;
-					this.onData = onData_1;
-					this.onError = onError_2;
+					this.onError = onError_1;
+					this.onData = onData_2;
 					this.outer_Consumer = paramouter_Consumer;
 				}
 		
@@ -148,8 +169,12 @@ namespace net.named_data.jndn.encrypt {
 					try {
 						outer_Consumer.face_.expressInterest(interest, onData, new net.named_data.jndn.encrypt.Consumer.Anonymous_C5.Anonymous_C15 (this));
 					} catch (IOException ex) {
-						onError.onError(net.named_data.jndn.encrypt.Consumer.ErrorCode.IOException,
-								"expressInterest error: " + ex.Message);
+						try {
+							onError.onError(net.named_data.jndn.encrypt.EncryptError.ErrorCode.IOException,
+									"expressInterest error: " + ex.Message);
+						} catch (Exception exception) {
+							net.named_data.jndn.encrypt.Consumer.logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in onError", exception);
+						}
 					}
 				}
 			}
@@ -184,20 +209,25 @@ namespace net.named_data.jndn.encrypt {
 								}
 					
 								public void onVerifyFailed(Data d) {
-									outer_Anonymous_C4.onError.onError(net.named_data.jndn.encrypt.Consumer.ErrorCode.Validation,
-											"verifyData failed");
+									try {
+										outer_Anonymous_C4.onError.onError(net.named_data.jndn.encrypt.EncryptError.ErrorCode.Validation,
+												"verifyData failed");
+									} catch (Exception ex) {
+										net.named_data.jndn.encrypt.Consumer.logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE,
+												"Error in onError", ex);
+									}
 								}
 							}
 		
 				internal readonly Consumer outer_Consumer;
 				internal readonly EncryptedContent dataEncryptedContent;
 				internal readonly Consumer.OnPlainText  onPlainText;
-				internal readonly Consumer.OnError  onError;
+				internal readonly net.named_data.jndn.encrypt.EncryptError.OnError  onError;
 				internal readonly Name cKeyName;
 		
 				public Anonymous_C4(Consumer paramouter_Consumer,
 						EncryptedContent dataEncryptedContent_0, Consumer.OnPlainText  onPlainText_1,
-						Consumer.OnError  onError_2, Name cKeyName_3) {
+						net.named_data.jndn.encrypt.EncryptError.OnError  onError_2, Name cKeyName_3) {
 					this.dataEncryptedContent = dataEncryptedContent_0;
 					this.onPlainText = onPlainText_1;
 					this.onError = onError_2;
@@ -212,8 +242,13 @@ namespace net.named_data.jndn.encrypt {
 					try {
 						outer_Consumer.keyChain_.verifyData(cKeyData, new net.named_data.jndn.encrypt.Consumer.Anonymous_C4.Anonymous_C13 (this), new net.named_data.jndn.encrypt.Consumer.Anonymous_C4.Anonymous_C12 (this));
 					} catch (SecurityException ex) {
-						onError.onError(net.named_data.jndn.encrypt.Consumer.ErrorCode.SecurityException,
-								"verifyData error: " + ex.Message);
+						try {
+							onError.onError(net.named_data.jndn.encrypt.EncryptError.ErrorCode.SecurityException,
+									"verifyData error: " + ex.Message);
+						} catch (Exception exception) {
+							net.named_data.jndn.encrypt.Consumer.logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in onError",
+									exception);
+						}
 					}
 				}
 			}
@@ -228,21 +263,26 @@ namespace net.named_data.jndn.encrypt {
 					
 								public void onTimeout(
 										Interest contentInterest) {
-									outer_Anonymous_C3.onError.onError(net.named_data.jndn.encrypt.Consumer.ErrorCode.Timeout,
-											outer_Anonymous_C3.interest.getName().toUri());
+									try {
+										outer_Anonymous_C3.onError.onError(net.named_data.jndn.encrypt.EncryptError.ErrorCode.Timeout,
+												outer_Anonymous_C3.interest.getName().toUri());
+									} catch (Exception ex) {
+										net.named_data.jndn.encrypt.Consumer.logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE,
+												"Error in onError", ex);
+									}
 								}
 							}
 		
 				private readonly Consumer outer_Consumer;
-				internal readonly Consumer.OnError  onError;
-				internal readonly Interest interest;
 				private readonly OnData onData;
+				internal readonly net.named_data.jndn.encrypt.EncryptError.OnError  onError;
+				internal readonly Interest interest;
 		
-				public Anonymous_C3(Consumer paramouter_Consumer, Consumer.OnError  onError_0,
-						Interest interest_1, OnData onData_2) {
-					this.onError = onError_0;
-					this.interest = interest_1;
-					this.onData = onData_2;
+				public Anonymous_C3(Consumer paramouter_Consumer, OnData onData_0,
+						net.named_data.jndn.encrypt.EncryptError.OnError  onError_1, Interest interest_2) {
+					this.onData = onData_0;
+					this.onError = onError_1;
+					this.interest = interest_2;
 					this.outer_Consumer = paramouter_Consumer;
 				}
 		
@@ -252,8 +292,13 @@ namespace net.named_data.jndn.encrypt {
 						outer_Consumer.face_.expressInterest(interest, onData,
 								new net.named_data.jndn.encrypt.Consumer.Anonymous_C3.Anonymous_C11 (this));
 					} catch (IOException ex) {
-						onError.onError(net.named_data.jndn.encrypt.Consumer.ErrorCode.IOException,
-								"expressInterest error: " + ex.Message);
+						try {
+							onError.onError(net.named_data.jndn.encrypt.EncryptError.ErrorCode.IOException,
+									"expressInterest error: " + ex.Message);
+						} catch (Exception exception) {
+							net.named_data.jndn.encrypt.Consumer.logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in onError",
+									exception);
+						}
 					}
 				}
 			}
@@ -288,24 +333,29 @@ namespace net.named_data.jndn.encrypt {
 								}
 					
 								public void onVerifyFailed(Data d) {
-									outer_Anonymous_C2.onError.onError(net.named_data.jndn.encrypt.Consumer.ErrorCode.Validation,
-											"verifyData failed");
+									try {
+										outer_Anonymous_C2.onError.onError(net.named_data.jndn.encrypt.EncryptError.ErrorCode.Validation,
+												"verifyData failed");
+									} catch (Exception ex) {
+										net.named_data.jndn.encrypt.Consumer.logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE,
+												"Error in onError", ex);
+									}
 								}
 							}
 		
 				internal readonly Consumer outer_Consumer;
-				internal readonly EncryptedContent cKeyEncryptedContent;
-				internal readonly Consumer.OnError  onError;
-				internal readonly Name dKeyName;
 				internal readonly Consumer.OnPlainText  onPlainText;
+				internal readonly net.named_data.jndn.encrypt.EncryptError.OnError  onError;
+				internal readonly Name dKeyName;
+				internal readonly EncryptedContent cKeyEncryptedContent;
 		
 				public Anonymous_C2(Consumer paramouter_Consumer,
-						EncryptedContent cKeyEncryptedContent_0, Consumer.OnError  onError_1,
-						Name dKeyName_2, Consumer.OnPlainText  onPlainText_3) {
-					this.cKeyEncryptedContent = cKeyEncryptedContent_0;
+						Consumer.OnPlainText  onPlainText_0, net.named_data.jndn.encrypt.EncryptError.OnError  onError_1, Name dKeyName_2,
+						EncryptedContent cKeyEncryptedContent_3) {
+					this.onPlainText = onPlainText_0;
 					this.onError = onError_1;
 					this.dKeyName = dKeyName_2;
-					this.onPlainText = onPlainText_3;
+					this.cKeyEncryptedContent = cKeyEncryptedContent_3;
 					this.outer_Consumer = paramouter_Consumer;
 				}
 		
@@ -316,8 +366,13 @@ namespace net.named_data.jndn.encrypt {
 					try {
 						outer_Consumer.keyChain_.verifyData(dKeyData, new net.named_data.jndn.encrypt.Consumer.Anonymous_C2.Anonymous_C9 (this), new net.named_data.jndn.encrypt.Consumer.Anonymous_C2.Anonymous_C8 (this));
 					} catch (SecurityException ex) {
-						onError.onError(net.named_data.jndn.encrypt.Consumer.ErrorCode.SecurityException,
-								"verifyData error: " + ex.Message);
+						try {
+							onError.onError(net.named_data.jndn.encrypt.EncryptError.ErrorCode.SecurityException,
+									"verifyData error: " + ex.Message);
+						} catch (Exception exception) {
+							net.named_data.jndn.encrypt.Consumer.logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in onError",
+									exception);
+						}
 					}
 				}
 			}
@@ -332,21 +387,26 @@ namespace net.named_data.jndn.encrypt {
 					
 								public void onTimeout(
 										Interest contentInterest) {
-									outer_Anonymous_C1.onError.onError(net.named_data.jndn.encrypt.Consumer.ErrorCode.Timeout,
-											outer_Anonymous_C1.interest.getName().toUri());
+									try {
+										outer_Anonymous_C1.onError.onError(net.named_data.jndn.encrypt.EncryptError.ErrorCode.Timeout,
+												outer_Anonymous_C1.interest.getName().toUri());
+									} catch (Exception ex) {
+										net.named_data.jndn.encrypt.Consumer.logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE,
+												"Error in onError", ex);
+									}
 								}
 							}
 		
 				private readonly Consumer outer_Consumer;
-				private readonly OnData onData;
-				internal readonly Consumer.OnError  onError;
 				internal readonly Interest interest;
+				private readonly OnData onData;
+				internal readonly net.named_data.jndn.encrypt.EncryptError.OnError  onError;
 		
-				public Anonymous_C1(Consumer paramouter_Consumer, OnData onData_0,
-						Consumer.OnError  onError_1, Interest interest_2) {
-					this.onData = onData_0;
-					this.onError = onError_1;
-					this.interest = interest_2;
+				public Anonymous_C1(Consumer paramouter_Consumer, Interest interest_0,
+						OnData onData_1, net.named_data.jndn.encrypt.EncryptError.OnError  onError_2) {
+					this.interest = interest_0;
+					this.onData = onData_1;
+					this.onError = onError_2;
 					this.outer_Consumer = paramouter_Consumer;
 				}
 		
@@ -356,22 +416,27 @@ namespace net.named_data.jndn.encrypt {
 						outer_Consumer.face_.expressInterest(interest, onData,
 								new net.named_data.jndn.encrypt.Consumer.Anonymous_C1.Anonymous_C7 (this));
 					} catch (IOException ex) {
-						onError.onError(net.named_data.jndn.encrypt.Consumer.ErrorCode.IOException,
-								"expressInterest error: " + ex.Message);
+						try {
+							onError.onError(net.named_data.jndn.encrypt.EncryptError.ErrorCode.IOException,
+									"expressInterest error: " + ex.Message);
+						} catch (Exception exception) {
+							net.named_data.jndn.encrypt.Consumer.logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in onError",
+									exception);
+						}
 					}
 				}
 			}
 	
 		public sealed class Anonymous_C0 : Consumer.OnPlainText {
 			private readonly Consumer.OnPlainText  callerOnPlainText;
-			private readonly Consumer.OnError  onError;
 			private readonly Blob encryptedPayloadBlob;
+			private readonly net.named_data.jndn.encrypt.EncryptError.OnError  onError;
 	
-			public Anonymous_C0(Consumer.OnPlainText  callerOnPlainText_0, Consumer.OnError  onError_1,
-					Blob encryptedPayloadBlob_2) {
+			public Anonymous_C0(Consumer.OnPlainText  callerOnPlainText_0,
+					Blob encryptedPayloadBlob_1, net.named_data.jndn.encrypt.EncryptError.OnError  onError_2) {
 				this.callerOnPlainText = callerOnPlainText_0;
-				this.onError = onError_1;
-				this.encryptedPayloadBlob = encryptedPayloadBlob_2;
+				this.encryptedPayloadBlob = encryptedPayloadBlob_1;
+				this.onError = onError_2;
 			}
 	
 			public void onPlainText(Blob nonceKeyBits) {
@@ -379,15 +444,9 @@ namespace net.named_data.jndn.encrypt {
 						onError);
 			}
 		}
-		public enum ErrorCode {
-			Timeout, Validation, UnsupportedEncryptionScheme, InvalidEncryptedFormat, NoDecryptKey, SecurityException, IOException	}
 	
 		public interface OnConsumeComplete {
 			void onConsumeComplete(Data data, Blob result);
-		}
-	
-		public interface OnError {
-			void onError(Consumer.ErrorCode  errorCode, String message);
 		}
 	
 		/// <summary>
@@ -396,23 +455,27 @@ namespace net.named_data.jndn.encrypt {
 		/// </summary>
 		///
 		/// <param name="contentName">The name of the content packet.</param>
-		/// <param name="onConsumeComplete_0">contentData is the fetched Data packet and result is the decrypted plain text Blob.</param>
-		/// <param name="onError_1">This calls onError.onError(errorCode, message) for an error.</param>
+		/// <param name="onConsumeComplete_0">contentData is the fetched Data packet and result is the decrypted plain text Blob. NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
+		/// <param name="onError_1">better error handling the callback should catch and properly handle any exceptions.</param>
 		public void consume(Name contentName,
-				Consumer.OnConsumeComplete  onConsumeComplete_0, Consumer.OnError  onError_1) {
+				Consumer.OnConsumeComplete  onConsumeComplete_0, net.named_data.jndn.encrypt.EncryptError.OnError  onError_1) {
 			Interest interest_2 = new Interest(contentName);
 	
 			// Prepare the callback functions.
-			OnData onData_3 = new Consumer.Anonymous_C6 (this, onError_1, onConsumeComplete_0);
+			OnData onData_3 = new Consumer.Anonymous_C6 (this, onConsumeComplete_0, onError_1);
 	
-			OnTimeout onTimeout = new Consumer.Anonymous_C5 (this, interest_2, onData_3, onError_1);
+			OnTimeout onTimeout = new Consumer.Anonymous_C5 (this, interest_2, onError_1, onData_3);
 	
 			// Express the Interest.
 			try {
 				face_.expressInterest(interest_2, onData_3, onTimeout);
 			} catch (IOException ex) {
-				onError_1.onError(net.named_data.jndn.encrypt.Consumer.ErrorCode.IOException, "expressInterest error: "
-						+ ex.Message);
+				try {
+					onError_1.onError(net.named_data.jndn.encrypt.EncryptError.ErrorCode.IOException,
+							"expressInterest error: " + ex.Message);
+				} catch (Exception exception) {
+					logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in onError", exception);
+				}
 			}
 		}
 	
@@ -454,12 +517,17 @@ namespace net.named_data.jndn.encrypt {
 		/// <param name="onPlainText_0"></param>
 		/// <param name="onError_1">This calls onError.onError(errorCode, message) for an error.</param>
 		private static void decrypt(Blob encryptedBlob, Blob keyBits,
-				Consumer.OnPlainText  onPlainText_0, Consumer.OnError  onError_1) {
+				Consumer.OnPlainText  onPlainText_0, net.named_data.jndn.encrypt.EncryptError.OnError  onError_1) {
 			EncryptedContent encryptedContent = new EncryptedContent();
 			try {
 				encryptedContent.wireDecode(encryptedBlob);
 			} catch (EncodingException ex) {
-				onError_1.onError(net.named_data.jndn.encrypt.Consumer.ErrorCode.InvalidEncryptedFormat, ex.Message);
+				try {
+					onError_1.onError(net.named_data.jndn.encrypt.EncryptError.ErrorCode.InvalidEncryptedFormat,
+							ex.Message);
+				} catch (Exception exception) {
+					logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in onError", exception);
+				}
 				return;
 			}
 	
@@ -475,7 +543,7 @@ namespace net.named_data.jndn.encrypt {
 		/// <param name="onPlainText_0"></param>
 		/// <param name="onError_1">This calls onError.onError(errorCode, message) for an error.</param>
 		static internal void decrypt(EncryptedContent encryptedContent,
-				Blob keyBits, Consumer.OnPlainText  onPlainText_0, Consumer.OnError  onError_1) {
+				Blob keyBits, Consumer.OnPlainText  onPlainText_0, net.named_data.jndn.encrypt.EncryptError.OnError  onError_1) {
 			Blob payload = encryptedContent.getPayload();
 	
 			if (encryptedContent.getAlgorithmType() == net.named_data.jndn.encrypt.algo.EncryptAlgorithmType.AesCbc) {
@@ -489,29 +557,50 @@ namespace net.named_data.jndn.encrypt {
 				try {
 					content = net.named_data.jndn.encrypt.algo.AesAlgorithm.decrypt(keyBits, payload, decryptParams);
 				} catch (Exception ex) {
-					onError_1.onError(net.named_data.jndn.encrypt.Consumer.ErrorCode.InvalidEncryptedFormat,
-							ex.Message);
+					try {
+						onError_1.onError(net.named_data.jndn.encrypt.EncryptError.ErrorCode.InvalidEncryptedFormat,
+								ex.Message);
+					} catch (Exception exception) {
+						logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in onError", exception);
+					}
 					return;
 				}
-				onPlainText_0.onPlainText(content);
+				try {
+					onPlainText_0.onPlainText(content);
+				} catch (Exception ex_2) {
+					logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in onPlainText", ex_2);
+				}
 			} else if (encryptedContent.getAlgorithmType() == net.named_data.jndn.encrypt.algo.EncryptAlgorithmType.RsaOaep) {
 				// Prepare the parameters.
-				EncryptParams decryptParams_2 = new EncryptParams(
+				EncryptParams decryptParams_3 = new EncryptParams(
 						net.named_data.jndn.encrypt.algo.EncryptAlgorithmType.RsaOaep);
 	
 				// Decrypt the content.
-				Blob content_3;
+				Blob content_4;
 				try {
-					content_3 = net.named_data.jndn.encrypt.algo.RsaAlgorithm.decrypt(keyBits, payload, decryptParams_2);
-				} catch (Exception ex_4) {
-					onError_1.onError(net.named_data.jndn.encrypt.Consumer.ErrorCode.InvalidEncryptedFormat,
-							ex_4.Message);
+					content_4 = net.named_data.jndn.encrypt.algo.RsaAlgorithm.decrypt(keyBits, payload, decryptParams_3);
+				} catch (Exception ex_5) {
+					try {
+						onError_1.onError(net.named_data.jndn.encrypt.EncryptError.ErrorCode.InvalidEncryptedFormat,
+								ex_5.Message);
+					} catch (Exception exception_6) {
+						logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in onError", exception_6);
+					}
 					return;
 				}
-				onPlainText_0.onPlainText(content_3);
-			} else
-				onError_1.onError(net.named_data.jndn.encrypt.Consumer.ErrorCode.UnsupportedEncryptionScheme,
-						encryptedContent.getAlgorithmType().toString());
+				try {
+					onPlainText_0.onPlainText(content_4);
+				} catch (Exception ex_7) {
+					logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in onPlainText", ex_7);
+				}
+			} else {
+				try {
+					onError_1.onError(net.named_data.jndn.encrypt.EncryptError.ErrorCode.UnsupportedEncryptionScheme,
+							encryptedContent.getAlgorithmType().toString());
+				} catch (Exception ex_8) {
+					logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in onError", ex_8);
+				}
+			}
 		}
 	
 		/// <summary>
@@ -522,13 +611,18 @@ namespace net.named_data.jndn.encrypt {
 		/// <param name="onPlainText_0"></param>
 		/// <param name="onError_1">This calls onError.onError(errorCode, message) for an error.</param>
 		internal void decryptContent(Data data, Consumer.OnPlainText  onPlainText_0,
-				Consumer.OnError  onError_1) {
+				net.named_data.jndn.encrypt.EncryptError.OnError  onError_1) {
 			// Get the encrypted content.
 			EncryptedContent dataEncryptedContent_2 = new EncryptedContent();
 			try {
 				dataEncryptedContent_2.wireDecode(data.getContent());
 			} catch (EncodingException ex) {
-				onError_1.onError(net.named_data.jndn.encrypt.Consumer.ErrorCode.InvalidEncryptedFormat, ex.Message);
+				try {
+					onError_1.onError(net.named_data.jndn.encrypt.EncryptError.ErrorCode.InvalidEncryptedFormat,
+							ex.Message);
+				} catch (Exception exception) {
+					logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in onError", exception);
+				}
 				return;
 			}
 			Name cKeyName_3 = dataEncryptedContent_2.getKeyLocator().getKeyName();
@@ -548,14 +642,18 @@ namespace net.named_data.jndn.encrypt {
 				OnData onData_5 = new Consumer.Anonymous_C4 (this, dataEncryptedContent_2, onPlainText_0, onError_1,
 						cKeyName_3);
 	
-				OnTimeout onTimeout = new Consumer.Anonymous_C3 (this, onError_1, interest_4, onData_5);
+				OnTimeout onTimeout = new Consumer.Anonymous_C3 (this, onData_5, onError_1, interest_4);
 	
 				// Express the Interest.
 				try {
 					face_.expressInterest(interest_4, onData_5, onTimeout);
 				} catch (IOException ex_6) {
-					onError_1.onError(net.named_data.jndn.encrypt.Consumer.ErrorCode.IOException,
-							"expressInterest error: " + ex_6.Message);
+					try {
+						onError_1.onError(net.named_data.jndn.encrypt.EncryptError.ErrorCode.IOException,
+								"expressInterest error: " + ex_6.Message);
+					} catch (Exception exception_7) {
+						logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in onError", exception_7);
+					}
 				}
 			}
 		}
@@ -568,14 +666,19 @@ namespace net.named_data.jndn.encrypt {
 		/// <param name="onPlainText_0"></param>
 		/// <param name="onError_1">This calls onError.onError(errorCode, message) for an error.</param>
 		internal void decryptCKey(Data cKeyData, Consumer.OnPlainText  onPlainText_0,
-				Consumer.OnError  onError_1) {
+				net.named_data.jndn.encrypt.EncryptError.OnError  onError_1) {
 			// Get the encrypted content.
 			Blob cKeyContent = cKeyData.getContent();
 			EncryptedContent cKeyEncryptedContent_2 = new EncryptedContent();
 			try {
 				cKeyEncryptedContent_2.wireDecode(cKeyContent);
 			} catch (EncodingException ex) {
-				onError_1.onError(net.named_data.jndn.encrypt.Consumer.ErrorCode.InvalidEncryptedFormat, ex.Message);
+				try {
+					onError_1.onError(net.named_data.jndn.encrypt.EncryptError.ErrorCode.InvalidEncryptedFormat,
+							ex.Message);
+				} catch (Exception exception) {
+					logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in onError", exception);
+				}
 				return;
 			}
 			Name eKeyName = cKeyEncryptedContent_2.getKeyLocator().getKeyName();
@@ -595,17 +698,21 @@ namespace net.named_data.jndn.encrypt {
 				Interest interest_4 = new Interest(interestName);
 	
 				// Prepare the callback functions.
-				OnData onData_5 = new Consumer.Anonymous_C2 (this, cKeyEncryptedContent_2, onError_1, dKeyName_3,
-						onPlainText_0);
+				OnData onData_5 = new Consumer.Anonymous_C2 (this, onPlainText_0, onError_1, dKeyName_3,
+						cKeyEncryptedContent_2);
 	
-				OnTimeout onTimeout = new Consumer.Anonymous_C1 (this, onData_5, onError_1, interest_4);
+				OnTimeout onTimeout = new Consumer.Anonymous_C1 (this, interest_4, onData_5, onError_1);
 	
 				// Express the Interest.
 				try {
 					face_.expressInterest(interest_4, onData_5, onTimeout);
 				} catch (IOException ex_6) {
-					onError_1.onError(net.named_data.jndn.encrypt.Consumer.ErrorCode.IOException,
-							"expressInterest error: " + ex_6.Message);
+					try {
+						onError_1.onError(net.named_data.jndn.encrypt.EncryptError.ErrorCode.IOException,
+								"expressInterest error: " + ex_6.Message);
+					} catch (Exception exception_7) {
+						logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in onError", exception_7);
+					}
 				}
 			}
 		}
@@ -618,7 +725,7 @@ namespace net.named_data.jndn.encrypt {
 		/// <param name="onPlainText_0"></param>
 		/// <param name="onError_1">This calls onError.onError(errorCode, message) for an error.</param>
 		internal void decryptDKey(Data dKeyData, Consumer.OnPlainText  onPlainText_0,
-				Consumer.OnError  onError_1) {
+				net.named_data.jndn.encrypt.EncryptError.OnError  onError_1) {
 			// Get the encrypted content.
 			Blob dataContent = dKeyData.getContent();
 	
@@ -628,7 +735,12 @@ namespace net.named_data.jndn.encrypt {
 			try {
 				encryptedNonce.wireDecode(dataContent);
 			} catch (EncodingException ex) {
-				onError_1.onError(net.named_data.jndn.encrypt.Consumer.ErrorCode.InvalidEncryptedFormat, ex.Message);
+				try {
+					onError_1.onError(net.named_data.jndn.encrypt.EncryptError.ErrorCode.InvalidEncryptedFormat,
+							ex.Message);
+				} catch (Exception exception) {
+					logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in onError", exception);
+				}
 				return;
 			}
 			Name consumerKeyName = encryptedNonce.getKeyLocator().getKeyName();
@@ -638,13 +750,21 @@ namespace net.named_data.jndn.encrypt {
 			try {
 				consumerKeyBlob = getDecryptionKey(consumerKeyName);
 			} catch (ConsumerDb.Error ex_2) {
-				onError_1.onError(net.named_data.jndn.encrypt.Consumer.ErrorCode.NoDecryptKey,
-						"Database error: " + ex_2.Message);
+				try {
+					onError_1.onError(net.named_data.jndn.encrypt.EncryptError.ErrorCode.NoDecryptKey,
+							"Database error: " + ex_2.Message);
+				} catch (Exception exception_3) {
+					logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in onError", exception_3);
+				}
 				return;
 			}
 			if (consumerKeyBlob.size() == 0) {
-				onError_1.onError(net.named_data.jndn.encrypt.Consumer.ErrorCode.NoDecryptKey,
-						"The desired consumer decryption key in not in the database");
+				try {
+					onError_1.onError(net.named_data.jndn.encrypt.EncryptError.ErrorCode.NoDecryptKey,
+							"The desired consumer decryption key in not in the database");
+				} catch (Exception exception_4) {
+					logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in onError", exception_4);
+				}
 				return;
 			}
 	
@@ -652,15 +772,20 @@ namespace net.named_data.jndn.encrypt {
 			// Use the size of encryptedNonce to find the start of encryptedPayload.
 			ByteBuffer encryptedPayloadBuffer = dataContent.buf().duplicate();
 			encryptedPayloadBuffer.position(encryptedNonce.wireEncode().size());
-			Blob encryptedPayloadBlob_3 = new Blob(encryptedPayloadBuffer,
+			Blob encryptedPayloadBlob_5 = new Blob(encryptedPayloadBuffer,
 					false);
-			if (encryptedPayloadBlob_3.size() == 0)
-				onError_1.onError(net.named_data.jndn.encrypt.Consumer.ErrorCode.InvalidEncryptedFormat,
-						"The data packet does not satisfy the D-KEY packet format");
+			if (encryptedPayloadBlob_5.size() == 0) {
+				try {
+					onError_1.onError(net.named_data.jndn.encrypt.EncryptError.ErrorCode.InvalidEncryptedFormat,
+							"The data packet does not satisfy the D-KEY packet format");
+				} catch (Exception ex_6) {
+					logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in onError", ex_6);
+				}
+			}
 	
 			// Decrypt the D-KEY.
-			Consumer.OnPlainText  callerOnPlainText_4 = onPlainText_0;
-			decrypt(encryptedNonce, consumerKeyBlob, new Consumer.Anonymous_C0 (callerOnPlainText_4, onError_1, encryptedPayloadBlob_3), onError_1);
+			Consumer.OnPlainText  callerOnPlainText_7 = onPlainText_0;
+			decrypt(encryptedNonce, consumerKeyBlob, new Consumer.Anonymous_C0 (callerOnPlainText_7, encryptedPayloadBlob_5, onError_1), onError_1);
 		}
 	
 		/// <summary>
@@ -707,7 +832,7 @@ namespace net.named_data.jndn.encrypt {
 		///
 		public abstract class FriendAccess {
 			public abstract void decrypt(Blob encryptedBlob, Blob keyBits,
-					Consumer.OnPlainText  onPlainText_0, Consumer.OnError  onError_1);
+					Consumer.OnPlainText  onPlainText_0, net.named_data.jndn.encrypt.EncryptError.OnError  onError_1);
 		}
 	
 		/// <summary>
@@ -717,7 +842,7 @@ namespace net.named_data.jndn.encrypt {
 		///
 		private class FriendAccessImpl : Consumer.FriendAccess  {
 			public override void decrypt(Blob encryptedBlob, Blob keyBits,
-					Consumer.OnPlainText  onPlainText_0, Consumer.OnError  onError_1) {
+					Consumer.OnPlainText  onPlainText_0, net.named_data.jndn.encrypt.EncryptError.OnError  onError_1) {
 				net.named_data.jndn.encrypt.Consumer.decrypt(encryptedBlob, keyBits, onPlainText_0, onError_1);
 			}
 		}
@@ -727,7 +852,6 @@ namespace net.named_data.jndn.encrypt {
 		internal readonly Face face_;
 		private Name groupName_;
 		private readonly Name consumerName_;
-	
 		// Use HashMap without generics so it works with older Java compilers.
 		internal readonly Hashtable cKeyMap_;
 		/// <summary>
@@ -735,6 +859,10 @@ namespace net.named_data.jndn.encrypt {
 		/// </summary>
 		///
 		internal readonly Hashtable dKeyMap_;
-		/**< The map key is the D-KEY name. The value is the encoded key Blob. */
+		/// <summary>
+		/// < The map key is the D-KEY name. The value is the encoded key Blob. 
+		/// </summary>
+		///
+		static internal readonly Logger logger_ = ILOG.J2CsMapping.Util.Logging.Logger.getLogger(typeof(Consumer).FullName);
 	}
 }

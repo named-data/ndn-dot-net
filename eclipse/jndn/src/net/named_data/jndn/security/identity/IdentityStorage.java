@@ -98,11 +98,11 @@ public abstract class IdentityStorage {
 
   /**
    * Add a public key to the identity storage. Also call addIdentity to ensure
-   * that the identityName for the key exists.
+   * that the identityName for the key exists. However, if the key already
+   * exists, do nothing.
    * @param keyName The name of the public key to be added.
    * @param keyType Type of the public key to be added.
    * @param publicKeyDer A blob of the public key DER to be added.
-   * @throws SecurityException if a key with the keyName already exists.
    */
   public abstract void
   addKey(Name keyName, KeyType keyType, Blob publicKeyDer) throws SecurityException;
@@ -110,7 +110,8 @@ public abstract class IdentityStorage {
   /**
    * Get the public key DER blob from the identity storage.
    * @param keyName The name of the requested public key.
-   * @return The DER Blob.  If not found, return a Blob with a null pointer.
+   * @return The DER Blob.
+   * @throws SecurityException if the key doesn't exist.
    */
   public abstract Blob
   getKey(Name keyName) throws SecurityException;
@@ -140,10 +141,11 @@ public abstract class IdentityStorage {
   doesCertificateExist(Name certificateName) throws SecurityException;
 
   /**
-   * Add a certificate to the identity storage.
+   * Add a certificate to the identity storage. Also call addKey to ensure that
+   * the certificate key exists. If the certificate is already installed, don't
+   * replace it.
    * @param certificate The certificate to be added.  This makes a copy of the
    * certificate.
-   * @throws SecurityException if the certificate is already installed.
    */
   public abstract void
   addCertificate(IdentityCertificate certificate) throws SecurityException;
@@ -151,24 +153,11 @@ public abstract class IdentityStorage {
   /**
    * Get a certificate from the identity storage.
    * @param certificateName The name of the requested certificate.
-   * @param allowAny If false, only a valid certificate will be
-   * returned, otherwise validity is disregarded.
-   * @return The requested certificate. If not found, return null.
+   * @return The requested certificate.
+   * @throws SecurityException if the certificate doesn't exist.
    */
   public abstract IdentityCertificate
-  getCertificate(Name certificateName, boolean allowAny) throws SecurityException;
-
-  /**
-   * Get a certificate from the identity storage, requiring only a valid
-   * certificate to be returned.
-   * @param certificateName The name of the requested certificate.
-   * @return The requested certificate. If not found, return null.
-   */
-  public final IdentityCertificate
-  getCertificate(Name certificateName) throws SecurityException
-  {
-    return getCertificate(certificateName, false);
-  }
+  getCertificate(Name certificateName) throws SecurityException;
 
   /*****************************************
    *           Get/Set Default             *
@@ -216,6 +205,16 @@ public abstract class IdentityStorage {
   getDefaultCertificateNameForKey(Name keyName) throws SecurityException;
 
   /**
+   * Append all the identity names to the nameList.
+   * @param nameList Append result names to nameList.
+   * @param isDefault If true, add only the default identity name. If false, add
+   * only the non-default identity names.
+   */
+  public abstract void
+  getAllIdentities(ArrayList nameList, boolean isDefault)
+    throws SecurityException;
+
+  /**
    * Append all the key names of a particular identity to the nameList.
    * @param identityName The identity name to search for.
    * @param nameList Append result names to nameList.
@@ -226,6 +225,16 @@ public abstract class IdentityStorage {
   getAllKeyNamesOfIdentity
     (Name identityName, ArrayList nameList, boolean isDefault) throws SecurityException;
 
+  /**
+   * Append all the certificate names of a particular key name to the nameList.
+   * @param keyName The key name to search for.
+   * @param nameList Append result names to nameList.
+   * @param isDefault If true, add only the default certificate name. If false,
+   * add only the non-default certificate names.
+   */
+  public abstract void
+  getAllCertificateNamesOfKey
+    (Name keyName, ArrayList nameList, boolean isDefault) throws SecurityException;
   /**
    * Set the default identity.  If the identityName does not exist, then clear
    * the default identity so that getDefaultIdentity() throws an exception.
@@ -277,7 +286,7 @@ public abstract class IdentityStorage {
       return null;
     }
 
-    return getCertificate(certName, true);
+    return getCertificate(certName);
   }
 
   /*****************************************

@@ -23,6 +23,8 @@ package net.named_data.jndn.encrypt;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import net.named_data.jndn.Data;
 import net.named_data.jndn.Face;
 import net.named_data.jndn.Interest;
@@ -30,6 +32,8 @@ import net.named_data.jndn.Name;
 import net.named_data.jndn.OnData;
 import net.named_data.jndn.OnTimeout;
 import net.named_data.jndn.encoding.EncodingException;
+import net.named_data.jndn.encrypt.EncryptError.ErrorCode;
+import net.named_data.jndn.encrypt.EncryptError.OnError;
 import net.named_data.jndn.encrypt.algo.AesAlgorithm;
 import net.named_data.jndn.encrypt.algo.EncryptAlgorithmType;
 import net.named_data.jndn.encrypt.algo.EncryptParams;
@@ -68,32 +72,8 @@ public class Consumer {
     consumerName_ = new Name(consumerName);
   }
 
-  public enum ErrorCode {
-    Timeout(1),
-    Validation(2),
-    UnsupportedEncryptionScheme(32),
-    InvalidEncryptedFormat(33),
-    NoDecryptKey(34),
-    SecurityException(100),
-    IOException(102);
-
-    ErrorCode (int type)
-    {
-      type_ = type;
-    }
-
-    public final int
-    getNumericType() { return type_; }
-
-    private final int type_;
-  }
-
   public interface OnConsumeComplete {
     void onConsumeComplete(Data data, Blob result);
-  }
-
-  public interface OnError {
-    void onError(ErrorCode errorCode, String message);
   }
 
   /**
@@ -104,7 +84,13 @@ public class Consumer {
    * this calls onConsumeComplete.onConsumeComplete(contentData, result) where
    * contentData is the fetched Data packet and result is the decrypted plain
    * text Blob.
+   * NOTE: The library will log any exceptions thrown by this callback, but for
+   * better error handling the callback should catch and properly handle any
+   * exceptions.
    * @param onError This calls onError.onError(errorCode, message) for an error.
+   * NOTE: The library will log any exceptions thrown by this callback, but for
+   * better error handling the callback should catch and properly handle any
+   * exceptions.
    */
   public final void
   consume
@@ -129,7 +115,11 @@ public class Consumer {
                    (validData,
                     new OnPlainText() {
                       public void onPlainText(Blob plainText) {
-                        onConsumeComplete.onConsumeComplete(contentData, plainText);
+                        try {
+                          onConsumeComplete.onConsumeComplete(contentData, plainText);
+                        } catch (Exception ex) {
+                          logger_.log(Level.SEVERE, "Error in onConsumeComplete", ex);
+                        }
                       }
                     },
                     onError);
@@ -137,12 +127,20 @@ public class Consumer {
              },
              new OnVerifyFailed() {
                public void onVerifyFailed(Data d) {
-                 onError.onError(ErrorCode.Validation, "verifyData failed");
+                 try {
+                   onError.onError(ErrorCode.Validation, "verifyData failed");
+                 } catch (Exception ex) {
+                   logger_.log(Level.SEVERE, "Error in onError", ex);
+                 }
                }
              });
         } catch (SecurityException ex) {
-          onError.onError
-           (ErrorCode.SecurityException, "verifyData error: " + ex.getMessage());
+          try {
+            onError.onError
+             (ErrorCode.SecurityException, "verifyData error: " + ex.getMessage());
+          } catch (Exception exception) {
+            logger_.log(Level.SEVERE, "Error in onError", exception);
+          }
         }
       }
     };
@@ -155,12 +153,20 @@ public class Consumer {
             (interest, onData,
              new OnTimeout() {
                public void onTimeout(Interest contentInterest) {
-                 onError.onError(ErrorCode.Timeout, interest.getName().toUri());
+                 try {
+                   onError.onError(ErrorCode.Timeout, interest.getName().toUri());
+                 } catch (Exception ex) {
+                   logger_.log(Level.SEVERE, "Error in onError", ex);
+                 }
                }
              });
         } catch (IOException ex) {
-          onError.onError
-           (ErrorCode.IOException, "expressInterest error: " + ex.getMessage());
+          try {
+            onError.onError
+             (ErrorCode.IOException, "expressInterest error: " + ex.getMessage());
+          } catch (Exception exception) {
+            logger_.log(Level.SEVERE, "Error in onError", exception);
+          }
         }
       }
     };
@@ -169,8 +175,12 @@ public class Consumer {
     try {
       face_.expressInterest(interest, onData, onTimeout);
     } catch (IOException ex) {
-      onError.onError
-       (ErrorCode.IOException, "expressInterest error: " + ex.getMessage());
+      try {
+        onError.onError
+         (ErrorCode.IOException, "expressInterest error: " + ex.getMessage());
+      } catch (Exception exception) {
+        logger_.log(Level.SEVERE, "Error in onError", exception);
+      }
     }
   }
 
@@ -220,7 +230,11 @@ public class Consumer {
     try {
       encryptedContent.wireDecode(encryptedBlob);
     } catch (EncodingException ex) {
-      onError.onError(ErrorCode.InvalidEncryptedFormat, ex.getMessage());
+      try {
+        onError.onError(ErrorCode.InvalidEncryptedFormat, ex.getMessage());
+      } catch (Exception exception) {
+        logger_.log(Level.SEVERE, "Error in onError", exception);
+      }
       return;
     }
 
@@ -252,10 +266,18 @@ public class Consumer {
       try {
         content = AesAlgorithm.decrypt(keyBits, payload, decryptParams);
       } catch (Exception ex) {
-        onError.onError(ErrorCode.InvalidEncryptedFormat, ex.getMessage());
+        try {
+          onError.onError(ErrorCode.InvalidEncryptedFormat, ex.getMessage());
+        } catch (Exception exception) {
+          logger_.log(Level.SEVERE, "Error in onError", exception);
+        }
         return;
       }
-      onPlainText.onPlainText(content);
+      try {
+        onPlainText.onPlainText(content);
+      } catch (Exception ex) {
+        logger_.log(Level.SEVERE, "Error in onPlainText", ex);
+      }
     }
     else if (encryptedContent.getAlgorithmType() == EncryptAlgorithmType.RsaOaep) {
       // Prepare the parameters.
@@ -266,15 +288,28 @@ public class Consumer {
       try {
         content = RsaAlgorithm.decrypt(keyBits, payload, decryptParams);
       } catch (Exception ex) {
-        onError.onError(ErrorCode.InvalidEncryptedFormat, ex.getMessage());
+        try {
+          onError.onError(ErrorCode.InvalidEncryptedFormat, ex.getMessage());
+        } catch (Exception exception) {
+          logger_.log(Level.SEVERE, "Error in onError", exception);
+        }
         return;
       }
-      onPlainText.onPlainText(content);
+      try {
+        onPlainText.onPlainText(content);
+      } catch (Exception ex) {
+        logger_.log(Level.SEVERE, "Error in onPlainText", ex);
+      }
     }
-    else
-      onError.onError
-        (ErrorCode.UnsupportedEncryptionScheme,
-         encryptedContent.getAlgorithmType().toString());
+    else {
+      try {
+        onError.onError
+          (ErrorCode.UnsupportedEncryptionScheme,
+           encryptedContent.getAlgorithmType().toString());
+      } catch (Exception ex) {
+        logger_.log(Level.SEVERE, "Error in onError", ex);
+      }
+    }
   }
 
   /**
@@ -292,7 +327,11 @@ public class Consumer {
     try {
       dataEncryptedContent.wireDecode(data.getContent());
     } catch (EncodingException ex) {
-      onError.onError(ErrorCode.InvalidEncryptedFormat, ex.getMessage());
+      try {
+        onError.onError(ErrorCode.InvalidEncryptedFormat, ex.getMessage());
+      } catch (Exception exception) {
+        logger_.log(Level.SEVERE, "Error in onError", exception);
+      }
       return;
     }
     final Name cKeyName = dataEncryptedContent.getKeyLocator().getKeyName();
@@ -333,12 +372,20 @@ public class Consumer {
                },
                new OnVerifyFailed() {
                  public void onVerifyFailed(Data d) {
-                   onError.onError(ErrorCode.Validation, "verifyData failed");
+                   try {
+                     onError.onError(ErrorCode.Validation, "verifyData failed");
+                   } catch (Exception ex) {
+                     logger_.log(Level.SEVERE, "Error in onError", ex);
+                   }
                  }
                });
           } catch (SecurityException ex) {
-            onError.onError
-             (ErrorCode.SecurityException, "verifyData error: " + ex.getMessage());
+            try {
+              onError.onError
+               (ErrorCode.SecurityException, "verifyData error: " + ex.getMessage());
+            } catch (Exception exception) {
+              logger_.log(Level.SEVERE, "Error in onError", exception);
+            }
           }
         }
       };
@@ -351,12 +398,20 @@ public class Consumer {
               (interest, onData,
                new OnTimeout() {
                  public void onTimeout(Interest contentInterest) {
-                   onError.onError(ErrorCode.Timeout, interest.getName().toUri());
+                   try {
+                     onError.onError(ErrorCode.Timeout, interest.getName().toUri());
+                   } catch (Exception ex) {
+                     logger_.log(Level.SEVERE, "Error in onError", ex);
+                   }
                  }
                });
           } catch (IOException ex) {
-            onError.onError
-             (ErrorCode.IOException, "expressInterest error: " + ex.getMessage());
+            try {
+              onError.onError
+               (ErrorCode.IOException, "expressInterest error: " + ex.getMessage());
+            } catch (Exception exception) {
+              logger_.log(Level.SEVERE, "Error in onError", exception);
+            }
           }
         }
       };
@@ -365,8 +420,12 @@ public class Consumer {
       try {
         face_.expressInterest(interest, onData, onTimeout);
       } catch (IOException ex) {
-        onError.onError
-         (ErrorCode.IOException, "expressInterest error: " + ex.getMessage());
+        try {
+          onError.onError
+           (ErrorCode.IOException, "expressInterest error: " + ex.getMessage());
+        } catch (Exception exception) {
+          logger_.log(Level.SEVERE, "Error in onError", exception);
+        }
       }
     }
   }
@@ -387,7 +446,11 @@ public class Consumer {
     try {
       cKeyEncryptedContent.wireDecode(cKeyContent);
     } catch (EncodingException ex) {
-      onError.onError(ErrorCode.InvalidEncryptedFormat, ex.getMessage());
+      try {
+        onError.onError(ErrorCode.InvalidEncryptedFormat, ex.getMessage());
+      } catch (Exception exception) {
+        logger_.log(Level.SEVERE, "Error in onError", exception);
+      }
       return;
     }
     Name eKeyName = cKeyEncryptedContent.getKeyLocator().getKeyName();
@@ -430,12 +493,20 @@ public class Consumer {
                },
                new OnVerifyFailed() {
                  public void onVerifyFailed(Data d) {
-                   onError.onError(ErrorCode.Validation, "verifyData failed");
+                   try {
+                     onError.onError(ErrorCode.Validation, "verifyData failed");
+                   } catch (Exception ex) {
+                     logger_.log(Level.SEVERE, "Error in onError", ex);
+                   }
                  }
                });
           } catch (SecurityException ex) {
-            onError.onError
-             (ErrorCode.SecurityException, "verifyData error: " + ex.getMessage());
+            try {
+              onError.onError
+               (ErrorCode.SecurityException, "verifyData error: " + ex.getMessage());
+            } catch (Exception exception) {
+              logger_.log(Level.SEVERE, "Error in onError", exception);
+            }
           }
         }
       };
@@ -448,12 +519,20 @@ public class Consumer {
               (interest, onData,
                new OnTimeout() {
                  public void onTimeout(Interest contentInterest) {
-                   onError.onError(ErrorCode.Timeout, interest.getName().toUri());
+                   try {
+                     onError.onError(ErrorCode.Timeout, interest.getName().toUri());
+                   } catch (Exception ex) {
+                     logger_.log(Level.SEVERE, "Error in onError", ex);
+                   }
                  }
                });
           } catch (IOException ex) {
-            onError.onError
-             (ErrorCode.IOException, "expressInterest error: " + ex.getMessage());
+            try {
+              onError.onError
+               (ErrorCode.IOException, "expressInterest error: " + ex.getMessage());
+              } catch (Exception exception) {
+                logger_.log(Level.SEVERE, "Error in onError", exception);
+              }
           }
         }
       };
@@ -462,8 +541,12 @@ public class Consumer {
       try {
         face_.expressInterest(interest, onData, onTimeout);
       } catch (IOException ex) {
-        onError.onError
-         (ErrorCode.IOException, "expressInterest error: " + ex.getMessage());
+        try {
+          onError.onError
+           (ErrorCode.IOException, "expressInterest error: " + ex.getMessage());
+        } catch (Exception exception) {
+          logger_.log(Level.SEVERE, "Error in onError", exception);
+        }
       }
     }
   }
@@ -487,7 +570,11 @@ public class Consumer {
     try {
       encryptedNonce.wireDecode(dataContent);
     } catch (EncodingException ex) {
-      onError.onError(ErrorCode.InvalidEncryptedFormat, ex.getMessage());
+      try {
+        onError.onError(ErrorCode.InvalidEncryptedFormat, ex.getMessage());
+      } catch (Exception exception) {
+        logger_.log(Level.SEVERE, "Error in onError", exception);
+      }
       return;
     }
     Name consumerKeyName = encryptedNonce.getKeyLocator().getKeyName();
@@ -497,12 +584,20 @@ public class Consumer {
     try {
       consumerKeyBlob = getDecryptionKey(consumerKeyName);
     } catch (ConsumerDb.Error ex) {
-      onError.onError(ErrorCode.NoDecryptKey, "Database error: " + ex.getMessage());
+      try {
+        onError.onError(ErrorCode.NoDecryptKey, "Database error: " + ex.getMessage());
+      } catch (Exception exception) {
+        logger_.log(Level.SEVERE, "Error in onError", exception);
+      }
       return;
     }
     if (consumerKeyBlob.size() == 0) {
-      onError.onError(ErrorCode.NoDecryptKey,
-        "The desired consumer decryption key in not in the database");
+      try {
+        onError.onError(ErrorCode.NoDecryptKey,
+          "The desired consumer decryption key in not in the database");
+      } catch (Exception exception) {
+        logger_.log(Level.SEVERE, "Error in onError", exception);
+      }
       return;
     }
 
@@ -511,9 +606,14 @@ public class Consumer {
     ByteBuffer encryptedPayloadBuffer = dataContent.buf().duplicate();
     encryptedPayloadBuffer.position(encryptedNonce.wireEncode().size());
     final Blob encryptedPayloadBlob = new Blob(encryptedPayloadBuffer, false);
-    if (encryptedPayloadBlob.size() == 0)
-      onError.onError(ErrorCode.InvalidEncryptedFormat,
-        "The data packet does not satisfy the D-KEY packet format");
+    if (encryptedPayloadBlob.size() == 0) {
+      try {
+        onError.onError(ErrorCode.InvalidEncryptedFormat,
+          "The data packet does not satisfy the D-KEY packet format");
+      } catch (Exception ex) {
+        logger_.log(Level.SEVERE, "Error in onError", ex);
+      }
+    }
 
     // Decrypt the D-KEY.
     final OnPlainText callerOnPlainText = onPlainText;
@@ -596,10 +696,10 @@ public class Consumer {
   private final Face face_;
   private Name groupName_;
   private final Name consumerName_;
-
   // Use HashMap without generics so it works with older Java compilers.
   private final HashMap cKeyMap_ =
     new HashMap(); /**< The map key is the C-KEY name. The value is the encoded key Blob. */
   private final HashMap dKeyMap_ =
     new HashMap(); /**< The map key is the D-KEY name. The value is the encoded key Blob. */
+  private static final Logger logger_ = Logger.getLogger(Consumer.class.getName());
 }

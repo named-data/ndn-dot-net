@@ -86,6 +86,17 @@ namespace net.named_data.jndn.encrypt {
 		}
 	
 		/// <summary>
+		/// Set this interval to have the same values as the other interval.
+		/// </summary>
+		///
+		/// <param name="interval">The other Interval with values to copy.</param>
+		public void set(Interval interval) {
+			startTime_ = interval.startTime_;
+			endTime_ = interval.endTime_;
+			isValid_ = interval.isValid_;
+		}
+	
+		/// <summary>
 		/// Check if the time point is in this interval.
 		/// </summary>
 		///
@@ -232,6 +243,6 @@ namespace net.named_data.jndn.encrypt {
 	
 		private double startTime_; // MillisecondsSince1970 UTC
 		private double endTime_; // MillisecondsSince1970 UTC
-		private readonly bool isValid_;
+		private bool isValid_;
 	}
 }

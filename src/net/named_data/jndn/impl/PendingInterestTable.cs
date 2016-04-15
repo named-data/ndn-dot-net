@@ -93,16 +93,16 @@ namespace net.named_data.jndn.impl {
 			}
 	
 			/// <summary>
-			/// Call onTimeout_ (if defined). This ignores exceptions from the
+			/// Call onTimeout_ (if defined). This ignores exceptions from the call to
 			/// onTimeout_.
 			/// </summary>
 			///
 			public void callTimeout() {
 				if (onTimeout_ != null) {
-					// Ignore all exceptions.
 					try {
 						onTimeout_.onTimeout(interest_);
-					} catch (Exception e) {
+					} catch (Exception ex) {
+						net.named_data.jndn.impl.PendingInterestTable.logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in onTimeout", ex);
 					}
 				}
 			}

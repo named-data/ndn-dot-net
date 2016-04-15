@@ -44,7 +44,8 @@ import net.named_data.jndn.Name;
 import net.named_data.jndn.OnData;
 import net.named_data.jndn.OnTimeout;
 import net.named_data.jndn.encoding.EncodingException;
-import net.named_data.jndn.encoding.der.DerDecodingException;
+import net.named_data.jndn.encrypt.EncryptError.ErrorCode;
+import net.named_data.jndn.encrypt.EncryptError.OnError;
 import net.named_data.jndn.encrypt.algo.AesAlgorithm;
 import net.named_data.jndn.encrypt.algo.EncryptAlgorithmType;
 import net.named_data.jndn.encrypt.algo.EncryptParams;
@@ -69,7 +70,7 @@ public class Producer {
    * Create a Producer to use the given ProducerDb, Face and other values.
    *
    * A producer can produce data with a naming convention:
-   *   /&lt;prefix>/SAMPLE/&lt;dataType>/[timestamp]
+   *   /{prefix}/SAMPLE/{dataType}/[timestamp]
    *
    * The produced data packet is encrypted with a content key,
    * which is stored in the ProducerDb database.
@@ -101,7 +102,7 @@ public class Producer {
    * Create a Producer to use the given ProducerDb, Face and other values.
    *
    * A producer can produce data with a naming convention:
-   *   /&lt;prefix>/SAMPLE/&lt;dataType>/[timestamp]
+   *   /{prefix}/SAMPLE/{dataType}/[timestamp]
    *
    * The produced data packet is encrypted with a content key,
    * which is stored in the ProducerDb database.
@@ -152,19 +153,28 @@ public class Producer {
   }
 
   /**
-   * Create the content key. This first checks if the content key exists. For an
-   * existing content key, this returns the content key name directly. If the
-   * key does not exist, this creates one and encrypts it using the
-   * corresponding E-KEYs. The encrypted content keys are passed to the
-   * onEncryptedKeys callback.
+   * Create the content key corresponding to the timeSlot. This first checks if
+   * the content key exists. For an existing content key, this returns the
+   * content key name directly. If the key does not exist, this creates one and
+   * encrypts it using the corresponding E-KEYs. The encrypted content keys are
+   * passed to the onEncryptedKeys callback.
    * @param timeSlot The time slot as milliseconds since Jan 1, 1970 UTC.
    * @param onEncryptedKeys If this creates a content key, then this calls
    * onEncryptedKeys.onEncryptedKeys(keys) where keys is a list of encrypted
    * content key Data packets. If onEncryptedKeys is null, this does not use it.
+   * NOTE: The library will log any exceptions thrown by this callback, but for
+   * better error handling the callback should catch and properly handle any
+   * exceptions.
+   * @param onError This calls onError.onError(errorCode, message) for an error.
+   * NOTE: The library will log any exceptions thrown by this callback, but for
+   * better error handling the callback should catch and properly handle any
+   * exceptions.
    * @return The content key name.
    */
   public final Name
-  createContentKey(double timeSlot, OnEncryptedKeys onEncryptedKeys)
+  createContentKey
+    (double timeSlot, OnEncryptedKeys onEncryptedKeys,
+     OnError onError)
     throws ProducerDb.Error, IOException, SecurityException
   {
     double hourSlot = getRoundedTimeSlot(timeSlot);
@@ -175,41 +185,59 @@ public class Producer {
     contentKeyName.append(Schedule.toIsoString(hourSlot));
 
     Blob contentKeyBits;
-    if (database_.hasContentKey(timeSlot)) {
-      contentKeyBits = database_.getContentKey(timeSlot);
-      return contentKeyName;
-    }
 
+    // Check if we have created the content key before.
+    if (database_.hasContentKey(timeSlot))
+      // We have created the content key. Return its name directly.
+      return contentKeyName;
+
+    // We haven't created the content key. Create one and add it into the database.
     AesKeyParams aesParams = new AesKeyParams(128);
     contentKeyBits = AesAlgorithm.generateKey(aesParams).getKeyBits();
     database_.addContentKey(timeSlot, contentKeyBits);
 
-    double timeCount = timeSlot;
+    // Now we need to retrieve the E-KEYs for content key encryption.
+    double timeCount = Math.round(timeSlot);
     keyRequests_.put(timeCount, new KeyRequest(eKeyInfo_.size()));
     KeyRequest keyRequest = (KeyRequest)keyRequests_.get(timeCount);
 
+    // Check if the current E-KEYs can cover the content key.
     Exclude timeRange = new Exclude();
     excludeAfter(timeRange, new Name.Component(Schedule.toIsoString(timeSlot)));
-    // Send interests for all nodes in the tree.
     eKeyInfo_.entrySet().iterator();
     for (Iterator i = eKeyInfo_.entrySet().iterator(); i.hasNext(); ) {
+      // For each current E-KEY.
       Map.Entry entry = (Map.Entry)i.next();
       KeyInfo keyInfo = (KeyInfo)entry.getValue();
-      keyRequest.repeatAttempts.put(entry.getKey(), 0);
       if (timeSlot < keyInfo.beginTimeSlot || timeSlot >= keyInfo.endTimeSlot) {
+        // The current E-KEY cannot cover the content key, so retrieve one.
+        keyRequest.repeatAttempts.put(entry.getKey(), 0);
         sendKeyInterest
-          ((Name)entry.getKey(), timeSlot, keyRequest, onEncryptedKeys, timeRange);
+          (new Interest((Name)entry.getKey()).setExclude(timeRange).setChildSelector(1),
+           timeSlot, onEncryptedKeys, onError);
       }
       else {
+        // The current E-KEY can cover the content key.
+        // Encrypt the content key directly.
         Name eKeyName = new Name((Name)entry.getKey());
         eKeyName.append(Schedule.toIsoString(keyInfo.beginTimeSlot));
         eKeyName.append(Schedule.toIsoString(keyInfo.endTimeSlot));
         encryptContentKey
-          (keyRequest, keyInfo.keyBits, eKeyName, timeSlot, onEncryptedKeys);
+          (keyInfo.keyBits, eKeyName, timeSlot, onEncryptedKeys, onError);
       }
     }
 
     return contentKeyName;
+  }
+
+  /**
+   * Call the main createContentKey method where onError is defaultOnError.
+   */
+  public final Name
+  createContentKey(double timeSlot, OnEncryptedKeys onEncryptedKeys)
+    throws ProducerDb.Error, IOException, SecurityException
+  {
+    return createContentKey(timeSlot, onEncryptedKeys, defaultOnError);
   }
 
   /**
@@ -219,6 +247,34 @@ public class Producer {
    * @param data An empty Data object which is updated.
    * @param timeSlot The time slot as milliseconds since Jan 1, 1970 UTC.
    * @param content The content to encrypt.
+   * @param onError This calls onError.onError(errorCode, message) for an error.
+   * NOTE: The library will log any exceptions thrown by this callback, but for
+   * better error handling the callback should catch and properly handle any
+   * exceptions.
+   */
+  public final void
+  produce(Data data, double timeSlot, Blob content, OnError onError)
+    throws ProducerDb.Error, IOException, SecurityException,
+      NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException,
+      IllegalBlockSizeException, BadPaddingException,
+      InvalidAlgorithmParameterException, InvalidKeySpecException
+  {
+    // Get a content key.
+    Name contentKeyName = new Name(createContentKey(timeSlot, null, onError));
+    Blob contentKey = database_.getContentKey(timeSlot);
+
+    // Produce data.
+    Name dataName = new Name(namespace_);
+    dataName.append(Schedule.toIsoString(timeSlot));
+
+    data.setName(dataName);
+    EncryptParams params = new EncryptParams(EncryptAlgorithmType.AesCbc, 16);
+    Encryptor.encryptData(data, content, contentKeyName, contentKey, params);
+    keyChain_.sign(data);
+  }
+
+  /**
+   * Call the main produce method where onError is defaultOnError.
    */
   public final void
   produce(Data data, double timeSlot, Blob content)
@@ -227,17 +283,18 @@ public class Producer {
       IllegalBlockSizeException, BadPaddingException,
       InvalidAlgorithmParameterException, InvalidKeySpecException
   {
-    Name contentKeyName = new Name(createContentKey(timeSlot, null));
-    Blob contentKey = database_.getContentKey(timeSlot);
-
-    Name dataName = new Name(namespace_);
-    dataName.append(Schedule.toIsoString(getRoundedTimeSlot(timeSlot)));
-
-    data.setName(dataName);
-    EncryptParams params = new EncryptParams(EncryptAlgorithmType.AesCbc, 16);
-    Encryptor.encryptData(data, content, contentKeyName, contentKey, params);
-    keyChain_.sign(data);
+    produce(data, timeSlot, content, defaultOnError);
   }
+
+  /**
+   * The default OnError callback which does nothing.
+   */
+  public static final OnError
+  defaultOnError = new OnError() {
+    public void onError(ErrorCode errorCode, String message) {
+      // Do nothing.
+    }
+  };
 
   private static class KeyInfo {
     public double beginTimeSlot;
@@ -273,26 +330,24 @@ public class Producer {
   /**
    * Send an interest with the given name through the face with callbacks to
    * handleCoveringKey and handleTimeout.
-   * @param name The name of the interest to send.
+   * @param interest The interest to send.
    * @param timeSlot The time slot, passed to handleCoveringKey and
-   * handleTimeout.
-   * @param keyRequest The KeyRequest, passed to handleCoveringKey and
    * handleTimeout.
    * @param onEncryptedKeys The OnEncryptedKeys callback, passed to
    * handleCoveringKey and handleTimeout.
-   * @param timeRange The Exclude for the interest.
    */
   private void
   sendKeyInterest
-    (Name name, final double timeSlot, final KeyRequest keyRequest,
-     final OnEncryptedKeys onEncryptedKeys, Exclude timeRange) throws IOException
+    (Interest interest, final double timeSlot,
+     final OnEncryptedKeys onEncryptedKeys, final OnError onError)
+    throws IOException
   {
     OnData onKey = new OnData() {
       public void onData(Interest interest, final Data data) {
         try {
-          handleCoveringKey(interest, data, timeSlot, keyRequest, onEncryptedKeys);
+          handleCoveringKey(interest, data, timeSlot, onEncryptedKeys, onError);
         } catch (Exception ex) {
-          Logger.getLogger(Producer.class.getName()).log(Level.SEVERE, null, ex);
+          logger_.log(Level.SEVERE, null, ex);
         }
       }
     };
@@ -300,26 +355,22 @@ public class Producer {
     OnTimeout onTimeout = new OnTimeout() {
       public void onTimeout(Interest interest) {
         try {
-          handleTimeout(interest, timeSlot, keyRequest, onEncryptedKeys);
+          handleTimeout(interest, timeSlot, onEncryptedKeys, onError);
         } catch (IOException ex) {
-          Logger.getLogger(Producer.class.getName()).log(Level.SEVERE, null, ex);
+          logger_.log(Level.SEVERE, null, ex);
         }
       }
     };
 
-    Interest keyInterest = new Interest(name);
-    keyInterest.setExclude(timeRange);
-    keyInterest.setChildSelector(1);
-
-    face_.expressInterest(keyInterest, onKey, onTimeout);
+    face_.expressInterest(interest, onKey, onTimeout);
   }
 
   /**
    * This is called from an expressInterest timeout to update the state of
-   * keyRequest.
+   * keyRequest. Re-express the interest if the number of retrials is less than
+   * the max limit.
    * @param interest The timed-out interest.
    * @param timeSlot The time slot as milliseconds since Jan 1, 1970 UTC.
-   * @param keyRequest The KeyRequest which is updated.
    * @param onEncryptedKeys When there are no more interests to process, this
    * calls onEncryptedKeys.onEncryptedKeys(keys) where keys is a list of
    * encrypted content key Data packets. If onEncryptedKeys is null, this does
@@ -327,23 +378,47 @@ public class Producer {
    */
   private void
   handleTimeout
-    (Interest interest, double timeSlot, KeyRequest keyRequest,
-     OnEncryptedKeys onEncryptedKeys) throws IOException
+    (Interest interest, double timeSlot, OnEncryptedKeys onEncryptedKeys,
+     OnError onError)
+     throws IOException
   {
-    Name interestName = interest.getName();
+    double timeCount = Math.round(timeSlot);
+    KeyRequest keyRequest = (KeyRequest)keyRequests_.get(timeCount);
 
+    Name interestName = interest.getName();
     if ((int)(Integer)keyRequest.repeatAttempts.get(interestName) < maxRepeatAttempts_) {
+      // Increase the retrial count.
       keyRequest.repeatAttempts.put
         (interestName, (int)(Integer)keyRequest.repeatAttempts.get(interestName) + 1);
-      sendKeyInterest
-        (interestName, timeSlot, keyRequest, onEncryptedKeys, interest.getExclude());
+      sendKeyInterest(interest, timeSlot, onEncryptedKeys, onError);
     }
     else
-      --keyRequest.interestCount;
+      // No more retrials.
+      updateKeyRequest(keyRequest, timeCount, onEncryptedKeys);
+  }
 
+  /**
+   * Decrease the count of outstanding E-KEY interests for the C-KEY for
+   * timeCount. If the count decreases to 0, invoke onEncryptedKeys.
+   * @param keyRequest The KeyRequest with the interestCount to update.
+   * @param timeCount The time count for indexing keyRequests_.
+   * @param onEncryptedKeys When there are no more interests to process, this
+   * calls onEncryptedKeys.onEncryptedKeys(keys) where keys is a list of
+   * encrypted content key Data packets. If onEncryptedKeys is null, this does
+   * not use it.
+   */
+  private void
+  updateKeyRequest
+    (KeyRequest keyRequest, double timeCount, OnEncryptedKeys onEncryptedKeys)
+  {
+    --keyRequest.interestCount;
     if (keyRequest.interestCount == 0 && onEncryptedKeys != null) {
-      onEncryptedKeys.onEncryptedKeys(keyRequest.encryptedKeys);
-      keyRequests_.remove(timeSlot);
+      try {
+        onEncryptedKeys.onEncryptedKeys(keyRequest.encryptedKeys);
+      } catch (Throwable exception) {
+        logger_.log(Level.SEVERE, "Error in onEncryptedKeys", exception);
+      }
+      keyRequests_.remove(timeCount);
     }
   }
 
@@ -354,7 +429,6 @@ public class Producer {
    * @param interest The interest given to expressInterest.
    * @param data The fetched Data packet.
    * @param timeSlot The time slot as milliseconds since Jan 1, 1970 UTC.
-   * @param keyRequest The KeyRequest which is updated.
    * @param onEncryptedKeys When there are no more interests to process, this
    * calls onEncryptedKeys.onEncryptedKeys(keys) where keys is a list of
    * encrypted content key Data packets. If onEncryptedKeys is null, this does
@@ -362,41 +436,49 @@ public class Producer {
    */
   private void
   handleCoveringKey
-    (Interest interest, Data data, double timeSlot, KeyRequest keyRequest,
-     OnEncryptedKeys onEncryptedKeys)
+    (Interest interest, Data data, double timeSlot,
+     OnEncryptedKeys onEncryptedKeys, OnError onError)
     throws EncodingException, ProducerDb.Error, SecurityException, IOException
   {
+    double timeCount = Math.round(timeSlot);
+    KeyRequest keyRequest = (KeyRequest)keyRequests_.get(timeCount);
+
     Name interestName = interest.getName();
     Name keyName = data.getName();
 
     double begin = Schedule.fromIsoString
-      (keyName.get(iStartTimeStamp).getValue().toString());
+      (keyName.get(START_TIME_STAMP_INDEX).getValue().toString());
     double end = Schedule.fromIsoString
-      (keyName.get(iEndTimeStamp).getValue().toString());
+      (keyName.get(END_TIME_STAMP_INDEX).getValue().toString());
 
     if (timeSlot >= end) {
+      // If the received E-KEY covers some earlier period, try to retrieve an
+      // E-KEY covering a later one.
       Exclude timeRange = new Exclude(interest.getExclude());
-      excludeBefore(timeRange, keyName.get(iStartTimeStamp));
+      excludeBefore(timeRange, keyName.get(START_TIME_STAMP_INDEX));
       keyRequest.repeatAttempts.put(interestName, 0);
+
       sendKeyInterest
-        (interestName, timeSlot, keyRequest, onEncryptedKeys, timeRange);
-      return;
+        (new Interest(interestName).setExclude(timeRange).setChildSelector(1),
+         timeSlot, onEncryptedKeys, onError);
     }
-
-    Blob encryptionKey = data.getContent();
-    KeyInfo keyInfo = (KeyInfo)eKeyInfo_.get(interestName);
-    keyInfo.beginTimeSlot = begin;
-    keyInfo.endTimeSlot = end;
-    keyInfo.keyBits = encryptionKey;
-
-    encryptContentKey
-      (keyRequest, encryptionKey, keyName, timeSlot, onEncryptedKeys);
+    else {
+      // If the received E-KEY covers the content key, encrypt the content.
+      Blob encryptionKey = data.getContent();
+      // If everything is correct, save the E-KEY as the current key.
+      if (encryptContentKey
+          (encryptionKey, keyName, timeSlot, onEncryptedKeys, onError)) {
+        KeyInfo keyInfo = (KeyInfo)eKeyInfo_.get(interestName);
+        keyInfo.beginTimeSlot = begin;
+        keyInfo.endTimeSlot = end;
+        keyInfo.keyBits = encryptionKey;
+      }
+    }
   }
 
   /**
    * Get the content key from the database_ and encrypt it for the timeSlot
    * using encryptionKey.
-   * @param keyRequest The KeyRequest which is updated.
    * @param encryptionKey The encryption key value.
    * @param eKeyName The key name for the EncryptedContent.
    * @param timeSlot The time slot as milliseconds since Jan 1, 1970 UTC.
@@ -404,13 +486,17 @@ public class Producer {
    * calls onEncryptedKeys.onEncryptedKeys(keys) where keys is a list of
    * encrypted content key Data packets. If onEncryptedKeys is null, this does
    * not use it.
+   * @return True if encryption succeeds, otherwise false.
    */
-  private void
+  private boolean
   encryptContentKey
-    (KeyRequest keyRequest, Blob encryptionKey, Name eKeyName,
-     double timeSlot, OnEncryptedKeys onEncryptedKeys)
+    (Blob encryptionKey, Name eKeyName, double timeSlot,
+     OnEncryptedKeys onEncryptedKeys, OnError onError)
     throws ProducerDb.Error, SecurityException
   {
+    double timeCount = Math.round(timeSlot);
+    KeyRequest keyRequest = (KeyRequest)keyRequests_.get(timeCount);
+
     Name keyName = new Name(namespace_);
     keyName.append(Encryptor.NAME_COMPONENT_C_KEY);
     keyName.append(Schedule.toIsoString(getRoundedTimeSlot(timeSlot)));
@@ -424,19 +510,18 @@ public class Producer {
       Encryptor.encryptData
         (cKeyData, contentKey, eKeyName, encryptionKey, params);
     } catch (Exception ex) {
-      // Consolidate errors such as InvalidKeyException.
-      throw new SecurityException
-        ("encryptContentKey: Error in encryptData: " + ex.getMessage());
+      try {
+        onError.onError(ErrorCode.EncryptionFailure, ex.getMessage());
+      } catch (Exception exception) {
+        logger_.log(Level.SEVERE, "Error in onError", exception);
+      }
+      return false;
     }
 
     keyChain_.sign(cKeyData);
     keyRequest.encryptedKeys.add(cKeyData);
-
-    --keyRequest.interestCount;
-    if (keyRequest.interestCount == 0 && onEncryptedKeys != null) {
-      onEncryptedKeys.onEncryptedKeys(keyRequest.encryptedKeys);
-      keyRequests_.remove(timeSlot);
-    }
+    updateKeyRequest(keyRequest, timeCount, onEncryptedKeys);
+    return true;
   }
 
   // TODO: Move this to be the main representation inside the Exclude object.
@@ -666,7 +751,8 @@ public class Producer {
     new HashMap(); /**< The map key is the double time stamp. The value is a KeyRequest. */
   private final ProducerDb database_;
   private final int maxRepeatAttempts_;
+  private static final Logger logger_ = Logger.getLogger(Producer.class.getName());
 
-  private static final int iStartTimeStamp = -2;
-  private static final int iEndTimeStamp = -1;
+  private static final int START_TIME_STAMP_INDEX = -2;
+  private static final int END_TIME_STAMP_INDEX = -1;
 }

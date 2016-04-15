@@ -87,17 +87,18 @@ namespace net.named_data.jndn.impl {
 		}
 	
 		/// <summary>
-		/// An Entry holds a registeredPrefixId and information necessary to remove the
-		/// registration later. It optionally holds a related interestFilterId if the
-		/// InterestFilter was set in the same registerPrefix operation.
+		/// A RegisteredPrefixTable.Entry holds a registeredPrefixId and information
+		/// necessary to remove the registration later. It optionally holds a related
+		/// interestFilterId if the InterestFilter was set in the same registerPrefix
+		/// operation.
 		/// </summary>
 		///
 		private class Entry {
 			/// <summary>
-			/// Create a RegisteredPrefix with the given values.
+			/// Create a RegisteredPrefixTable.Entry with the given values.
 			/// </summary>
 			///
-			/// <param name="registeredPrefixId">The ID from getNextEntryId().</param>
+			/// <param name="registeredPrefixId">The ID from Node.getNextEntryId().</param>
 			/// <param name="prefix">The name prefix.</param>
 			/// <param name="relatedInterestFilterId">to 0.</param>
 			public Entry(long registeredPrefixId, Name prefix,

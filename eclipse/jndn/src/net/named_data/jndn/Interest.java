@@ -20,6 +20,8 @@
 package net.named_data.jndn;
 
 import java.nio.ByteBuffer;
+import java.util.Random;
+
 import net.named_data.jndn.encoding.EncodingException;
 import net.named_data.jndn.encoding.WireFormat;
 import net.named_data.jndn.util.Blob;
@@ -378,7 +380,7 @@ public class Interest implements ChangeCountable {
   /**
    * Get the incoming face ID of the local control header.
    * @return The incoming face ID. If not specified, return -1.
-   * @note This is an experimental feature. This API may change in the future.
+   * @deprecated This will be replaced by the equivalent NDNLPv2 functionality.
    */
   public final long
   getIncomingFaceId()
@@ -389,7 +391,7 @@ public class Interest implements ChangeCountable {
   /**
    * Get the next hop face ID.
    * @return The next hop face ID. If not specified, return -1.
-   * @note This is an experimental feature. This API may change in the future.
+   * @deprecated This will be replaced by the equivalent NDNLPv2 functionality.
    */
   public final long
   getNextHopFaceId()
@@ -605,6 +607,32 @@ public class Interest implements ChangeCountable {
   }
 
   /**
+   * Update the bytes of the nonce with new random values. This ensures that the
+   * new nonce value is different than the current one. If the current nonce is
+   * not specified, this does nothing.
+   */
+  public final void
+  refreshNonce()
+  {
+    Blob currentNonce = getNonce();
+    if (currentNonce.size() == 0)
+      return;
+
+    ByteBuffer newNonce = ByteBuffer.allocate(currentNonce.size());
+    while (true) {
+      random_.nextBytes(newNonce.array());
+      if (!newNonce.equals(currentNonce.buf()))
+        break;
+    }
+
+    nonce_ = new Blob(newNonce, false);
+    // Set getNonceChangeCount_ so that the next call to getNonce() won't clear
+    // nonce_.
+    ++changeCount_;
+    getNonceChangeCount_ = getChangeCount();
+  }
+
+  /**
    * Check if this Interest's name matches the given name (using Name.match)
    * and the given name also conforms to the interest selectors.
    * @param name The name to check.
@@ -707,4 +735,5 @@ public class Interest implements ChangeCountable {
   private WireFormat defaultWireEncodingFormat_;
   private long getDefaultWireEncodingChangeCount_ = 0;
   private long changeCount_ = 0;
+  private static final Random random_ = new Random();
 }

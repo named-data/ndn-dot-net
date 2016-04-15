@@ -21,6 +21,7 @@ package net.named_data.jndn.encoding;
 
 import java.nio.ByteBuffer;
 import net.named_data.jndn.ControlParameters;
+import net.named_data.jndn.ControlResponse;
 import net.named_data.jndn.Data;
 import net.named_data.jndn.DelegationSet;
 import net.named_data.jndn.Interest;
@@ -68,13 +69,13 @@ public class WireFormat {
    * name component and ends just before the final name component (which is
    * assumed to be a signature for a signed interest).
    * If you are not encoding in order to sign, you can call
-   * encodeInterest(const Interest& interest) to ignore this returned value.
+   * encodeInterest(Interest interest) to ignore this returned value.
    * @param signedPortionEndOffset Return the offset in the encoding of the end
    * of the signed portion. The signed portion starts from the first
    * name component and ends just before the final name component (which is
    * assumed to be a signature for a signed interest).
    * If you are not encoding in order to sign, you can call
-   * encodeInterest(const Interest& interest) to ignore this returned value.
+   * encodeInterest(Interest interest) to ignore this returned value.
    * @return A Blob containing the encoding.
    * @throws UnsupportedOperationException for unimplemented if the derived
    * class does not override.
@@ -258,6 +259,40 @@ public class WireFormat {
   {
     throw new UnsupportedOperationException
       ("decodeControlParameters is not implemented");
+  }
+
+  /**
+   * Encode controlResponse and return the encoding.
+   * Your derived class should override.
+   * @param controlResponse The ControlResponse object to encode.
+   * @return A Blob containing the encoding.
+   * @throws UnsupportedOperationException for unimplemented if the derived
+   * class does not override.
+   */
+  public Blob
+  encodeControlResponse(ControlResponse controlResponse)
+  {
+    throw new UnsupportedOperationException
+      ("encodeControlResponse is not implemented");
+  }
+
+  /**
+   * Decode input as a control parameters and set the fields of the
+   * controlResponse object.  Your derived class should override.
+   * @param controlResponse The ControlResponse object whose fields are
+   * updated.
+   * @param input The input buffer to decode.  This reads from position() to
+   * limit(), but does not change the position.
+   * @throws UnsupportedOperationException for unimplemented if the derived
+   * class does not override.
+   * @throws EncodingException For invalid encoding.
+   */
+  public void
+  decodeControlResponse
+    (ControlResponse controlResponse, ByteBuffer input) throws EncodingException
+  {
+    throw new UnsupportedOperationException
+      ("decodeControlResponse is not implemented");
   }
 
   /**

@@ -64,6 +64,7 @@ namespace net.named_data.jndn.encoding.tlv {
 		public const int SignatureType_DigestSha256 = 0;
 		public const int SignatureType_SignatureSha256WithRsa = 1;
 		public const int SignatureType_SignatureSha256WithEcdsa = 3;
+		public const int SignatureType_SignatureHmacWithSha256 = 4;
 	
 		public const int ContentType_Default = 0;
 		public const int ContentType_Link = 1;

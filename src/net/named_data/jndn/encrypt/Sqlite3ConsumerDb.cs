@@ -84,7 +84,7 @@ namespace net.named_data.jndn.encrypt {
 					SqlDataReader result = statement.executeQuery();
 	
 					if (result.NextResult())
-						key = new Blob(result.getBytes(1));
+						key = new Blob(result.getBytes(1), false);
 				} finally {
 					statement.close();
 				}

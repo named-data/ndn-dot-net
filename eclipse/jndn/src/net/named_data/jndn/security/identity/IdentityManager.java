@@ -492,7 +492,7 @@ public class IdentityManager {
   /**
    * Use the keyName to get the public key from the identity storage and
    * prepare an unsigned identity certificate.
-   * @param keyName The key name, e.g., `/<identity_name>/ksk-123456`.
+   * @param keyName The key name, e.g., `/{identity_name}/ksk-123456`.
    * @param signingIdentity The signing identity.
    * @param notBefore See IdentityCertificate.
    * @param notAfter See IdentityCertificate.
@@ -534,7 +534,7 @@ public class IdentityManager {
    * identity. If the signingIdentity is a prefix of the subject identity, `KEY`
    * will be inserted after the signingIdentity, otherwise `KEY` is inserted
    * after subject identity (i.e., before `ksk-...`).
-   * @param keyName The key name, e.g., `/<identity_name>/ksk-123456`.
+   * @param keyName The key name, e.g., `/{identity_name}/ksk-123456`.
    * @param signingIdentity The signing identity.
    * @param notBefore See IdentityCertificate.
    * @param notAfter See IdentityCertificate.
@@ -556,7 +556,7 @@ public class IdentityManager {
 
   /**
    * Prepare an unsigned identity certificate.
-   * @param keyName The key name, e.g., `/<identity_name>/ksk-123456`.
+   * @param keyName The key name, e.g., `/{identity_name}/ksk-123456`.
    * @param publicKey The public key to sign.
    * @param signingIdentity The signing identity.
    * @param notBefore See IdentityCertificate.
@@ -649,7 +649,7 @@ public class IdentityManager {
    * identity. If the signingIdentity is a prefix of the subject identity, `KEY`
    * will be inserted after the signingIdentity, otherwise `KEY` is inserted
    * after subject identity (i.e., before `ksk-...`).
-   * @param keyName The key name, e.g., `/<identity_name>/ksk-123456`.
+   * @param keyName The key name, e.g., `/{identity_name}/ksk-123456`.
    * @param publicKey The public key to sign.
    * @param signingIdentity The signing identity.
    * @param notBefore See IdentityCertificate.
@@ -796,23 +796,12 @@ public class IdentityManager {
   /**
    * Get a certificate with the specified name.
    * @param certificateName The name of the requested certificate.
-   * @return the requested certificate which is valid.
+   * @return the requested certificate.
    */
   public final IdentityCertificate
   getCertificate(Name certificateName) throws SecurityException, DerDecodingException
   {
-    return identityStorage_.getCertificate(certificateName, false);
-  }
-
-  /**
-   * Get a certificate even if the certificate is not valid anymore.
-   * @param certificateName The name of the requested certificate.
-   * @return the requested certificate.
-   */
-  public final IdentityCertificate
-  getAnyCertificate(Name certificateName) throws SecurityException, DerDecodingException
-  {
-    return identityStorage_.getCertificate(certificateName, true);
+    return identityStorage_.getCertificate(certificateName);
   }
 
   /**
@@ -842,6 +831,48 @@ public class IdentityManager {
   {
     return identityStorage_.getDefaultCertificateNameForIdentity
       (getDefaultIdentity());
+  }
+
+  /**
+   * Append all the identity names to the nameList.
+   * @param nameList Append result names to nameList.
+   * @param isDefault If true, add only the default identity name. If false, add
+   * only the non-default identity names.
+   */
+  public void
+  getAllIdentities(ArrayList nameList, boolean isDefault)
+    throws SecurityException
+  {
+    identityStorage_.getAllIdentities(nameList, isDefault);
+  }
+
+  /**
+   * Append all the key names of a particular identity to the nameList.
+   * @param identityName The identity name to search for.
+   * @param nameList Append result names to nameList.
+   * @param isDefault If true, add only the default key name. If false, add only
+   * the non-default key names.
+   */
+  public final void
+  getAllKeyNamesOfIdentity
+    (Name identityName, ArrayList nameList, boolean isDefault)
+    throws SecurityException
+  {
+    identityStorage_.getAllKeyNamesOfIdentity(identityName, nameList, isDefault);
+  }
+
+  /**
+   * Append all the certificate names of a particular key name to the nameList.
+   * @param keyName The key name to search for.
+   * @param nameList Append result names to nameList.
+   * @param isDefault If true, add only the default certificate name. If false,
+   * add only the non-default certificate names.
+   */
+  public void
+  getAllCertificateNamesOfKey
+    (Name keyName, ArrayList nameList, boolean isDefault) throws SecurityException
+  {
+    identityStorage_.getAllCertificateNamesOfKey(keyName, nameList, isDefault);
   }
 
   /**
@@ -955,7 +986,7 @@ public class IdentityManager {
 
     // Digest and set the signature.
     byte[] signedPortionDigest = Common.digestSha256(encoding.signedBuf());
-    data.getSignature().setSignature(new Blob(signedPortionDigest));
+    data.getSignature().setSignature(new Blob(signedPortionDigest, false));
 
     // Encode again to include the signature.
     data.wireEncode(wireFormat);
@@ -983,7 +1014,7 @@ public class IdentityManager {
 
     // Digest and set the signature.
     byte[] signedPortionDigest = Common.digestSha256(encoding.signedBuf());
-    signature.setSignature(new Blob(signedPortionDigest));
+    signature.setSignature(new Blob(signedPortionDigest, false));
 
     // Remove the empty signature and append the real one.
     interest.setName(interest.getName().getPrefix(-1).append

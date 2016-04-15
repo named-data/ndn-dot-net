@@ -88,18 +88,18 @@ public class PendingInterestTable {
     getIsRemoved() { return isRemoved_; }
 
     /**
-     * Call onTimeout_ (if defined). This ignores exceptions from the
+     * Call onTimeout_ (if defined). This ignores exceptions from the call to
      * onTimeout_.
      */
     public final void
     callTimeout()
     {
       if (onTimeout_ != null) {
-        // Ignore all exceptions.
         try {
           onTimeout_.onTimeout(interest_);
+        } catch (Throwable ex) {
+          logger_.log(Level.SEVERE, "Error in onTimeout", ex);
         }
-        catch (Throwable e) { }
       }
     }
 
@@ -114,8 +114,8 @@ public class PendingInterestTable {
    * Add a new entry to the pending interest table.
    * @param pendingInterestId The getNextEntryId() for the pending interest ID
    * which Face got so it could return it to the caller.
-   * @param interestCopy The Interest to send, which has already been copied by
-   * expressInterest.
+   * @param interestCopy The Interest which was sent, which has already been
+   * copied by expressInterest.
    * @param onData  This calls onData.onData when a matching data packet is
    * received.
    * @param onTimeout This calls onTimeout.onTimeout if the interest times out.

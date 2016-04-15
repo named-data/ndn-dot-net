@@ -115,7 +115,7 @@ namespace net.named_data.jndn.encrypt {
 					SqlDataReader result = statement.executeQuery();
 	
 					if (result.NextResult())
-						return new Blob(result.getBytes(1));
+						return new Blob(result.getBytes(1), false);
 					else
 						throw new ProducerDb.Error(
 								"Sqlite3ProducerDb.getContentKey: Cannot get the key from the database");

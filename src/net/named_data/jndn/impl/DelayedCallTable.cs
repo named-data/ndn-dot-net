@@ -38,19 +38,18 @@ namespace net.named_data.jndn.impl {
 		[MethodImpl(MethodImplOptions.Synchronized)]
 		public void callLater(double delayMilliseconds,
 				IRunnable callback) {
-			DelayedCallTable.Entry  delayedCall = new DelayedCallTable.Entry (delayMilliseconds, callback);
-			// Insert into delayedCallTable_, sorted on delayedCall.getCallTime().
+			DelayedCallTable.Entry  entry = new DelayedCallTable.Entry (delayMilliseconds, callback);
+			// Insert into table_, sorted on getCallTime().
 			// Search from the back since we expect it to go there.
 			int i = table_.Count - 1;
 			while (i >= 0) {
-				if (((DelayedCallTable.Entry ) table_[i]).getCallTime() <= delayedCall
-						.getCallTime())
+				if (((DelayedCallTable.Entry ) table_[i]).getCallTime() <= entry.getCallTime())
 					break;
 				--i;
 			}
 			// Element i is the greatest less than or equal to
-			// delayedCall.getCallTime(), so insert after it.
-			table_.Insert(i + 1, delayedCall);
+			// entry.getCallTime(), so insert after it.
+			table_.Insert(i + 1, entry);
 		}
 	
 		/// <summary>
@@ -62,22 +61,22 @@ namespace net.named_data.jndn.impl {
 		///
 		public void callTimedOut() {
 			double now = net.named_data.jndn.util.Common.getNowMilliseconds();
-			// delayedCallTable_ is sorted on _callTime, so we only need to process
-			// the timed-out entries at the front, then quit.
+			// table_ is sorted on _callTime, so we only need to process the timed-out
+			// entries at the front, then quit.
 			while (true) {
-				DelayedCallTable.Entry  delayedCall;
+				DelayedCallTable.Entry  entry;
 				 lock (this) {
 								if ((table_.Count==0))
 									break;
-								delayedCall = (DelayedCallTable.Entry ) table_[0];
-								if (delayedCall.getCallTime() > now)
+								entry = (DelayedCallTable.Entry ) table_[0];
+								if (entry.getCallTime() > now)
 									// It is not time to call the entry at the front of the list, so finish.
 									break;
 								ILOG.J2CsMapping.Collections.Collections.RemoveAt(table_,0);
 							}
 	
-				// The lock on delayedCallTable_ is removed, so call the callback.
-				delayedCall.callCallback();
+				// The lock on table_ is removed, so call the callback.
+				entry.callCallback();
 			}
 		}
 	

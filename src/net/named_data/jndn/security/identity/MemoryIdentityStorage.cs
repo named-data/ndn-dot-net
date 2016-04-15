@@ -82,21 +82,23 @@ namespace net.named_data.jndn.security.identity {
 	
 		/// <summary>
 		/// Add a public key to the identity storage. Also call addIdentity to ensure
-		/// that the identityName for the key exists.
+		/// that the identityName for the key exists. However, if the key already
+		/// exists, do nothing.
 		/// </summary>
 		///
 		/// <param name="keyName">The name of the public key to be added.</param>
 		/// <param name="keyType">Type of the public key to be added.</param>
 		/// <param name="publicKeyDer">A blob of the public key DER to be added.</param>
-		/// <exception cref="System.Security.SecurityException">if a key with the keyName already exists.</exception>
 		public override void addKey(Name keyName, KeyType keyType, Blob publicKeyDer) {
+			if (keyName.size() == 0)
+				return;
+	
+			if (doesKeyExist(keyName))
+				return;
+	
 			Name identityName = keyName.getSubName(0, keyName.size() - 1);
 	
 			addIdentity(identityName);
-	
-			if (doesKeyExist(keyName))
-				throw new SecurityException(
-						"a key with the same name already exists!");
 	
 			ILOG.J2CsMapping.Collections.Collections.Put(keyStore_,keyName.toUri(),new MemoryIdentityStorage.KeyRecord (keyType, publicKeyDer));
 		}
@@ -106,12 +108,17 @@ namespace net.named_data.jndn.security.identity {
 		/// </summary>
 		///
 		/// <param name="keyName">The name of the requested public key.</param>
-		/// <returns>The DER Blob.  If not found, return a Blob with a null pointer.</returns>
+		/// <returns>The DER Blob.</returns>
+		/// <exception cref="System.Security.SecurityException">if the key doesn't exist.</exception>
 		public override Blob getKey(Name keyName) {
+			if (keyName.size() == 0)
+				throw new SecurityException(
+						"MemoryIdentityStorage::getKey: Empty keyName");
+	
 			MemoryIdentityStorage.KeyRecord  keyRecord = (MemoryIdentityStorage.KeyRecord ) ILOG.J2CsMapping.Collections.Collections.Get(keyStore_,keyName.toUri());
 			if (keyRecord == null)
-				// Not found.  Silently return a null Blob.
-				return new Blob();
+				throw new SecurityException(
+						"MemoryIdentityStorage::getKey: The key does not exist");
 	
 			return keyRecord.getKeyDer();
 		}
@@ -149,31 +156,21 @@ namespace net.named_data.jndn.security.identity {
 		}
 	
 		/// <summary>
-		/// Add a certificate to the identity storage.
+		/// Add a certificate to the identity storage. Also call addKey to ensure that
+		/// the certificate key exists. If the certificate is already installed, don't
+		/// replace it.
 		/// </summary>
 		///
 		/// <param name="certificate"></param>
-		/// <exception cref="System.Security.SecurityException">if the certificate is already installed.</exception>
 		public override void addCertificate(IdentityCertificate certificate) {
 			Name certificateName = certificate.getName();
 			Name keyName = certificate.getPublicKeyName();
 	
-			if (!doesKeyExist(keyName))
-				throw new SecurityException(
-						"No corresponding Key record for certificate! "
-								+ keyName.toUri() + " " + certificateName.toUri());
+			addKey(keyName, certificate.getPublicKeyInfo().getKeyType(),
+					certificate.getPublicKeyInfo().getKeyDer());
 	
-			// Check if certificate already exists.
 			if (doesCertificateExist(certificateName))
-				throw new SecurityException(
-						"Certificate has already been installed!");
-	
-			// Check if the public key of certificate is the same as the key record.
-			Blob keyBlob = getKey(keyName);
-			if (keyBlob.isNull()
-					|| !keyBlob.equals(certificate.getPublicKeyInfo().getKeyDer()))
-				throw new SecurityException(
-						"Certificate does not match the public key!");
+				return;
 	
 			// Insert the certificate.
 			ILOG.J2CsMapping.Collections.Collections.Put(certificateStore_,certificateName.toUri(),certificate.wireEncode());
@@ -184,26 +181,21 @@ namespace net.named_data.jndn.security.identity {
 		/// </summary>
 		///
 		/// <param name="certificateName">The name of the requested certificate.</param>
-		/// <param name="allowAny"></param>
-		/// <returns>The requested certificate. If not found, return null.</returns>
-		public override IdentityCertificate getCertificate(Name certificateName,
-				bool allowAny) {
-			if (!allowAny)
-				throw new NotSupportedException(
-						"MemoryIdentityStorage.getCertificate for !allowAny is not implemented");
-	
+		/// <returns>The requested certificate.</returns>
+		/// <exception cref="System.Security.SecurityException">if the certificate doesn't exist.</exception>
+		public override IdentityCertificate getCertificate(Name certificateName) {
 			Blob certificateDer = (Blob) ILOG.J2CsMapping.Collections.Collections.Get(certificateStore_,certificateName
 							.toUri());
 			if (certificateDer == null)
-				// Not found.  Silently return null.
-				return new IdentityCertificate();
+				throw new SecurityException(
+						"MemoryIdentityStorage::getKey: The certificate does not exist");
 	
 			IdentityCertificate certificate = new IdentityCertificate();
 			try {
 				certificate.wireDecode(certificateDer);
 			} catch (EncodingException ex) {
-				// Don't expect this to happen. Silently return null.
-				return new IdentityCertificate();
+				throw new SecurityException(
+						"MemoryIdentityStorage::getKey: The certificate cannot be decoded");
 			}
 			return certificate;
 		}
@@ -268,6 +260,17 @@ namespace net.named_data.jndn.security.identity {
 		}
 	
 		/// <summary>
+		/// Append all the identity names to the nameList.
+		/// </summary>
+		///
+		/// <param name="nameList">Append result names to nameList.</param>
+		/// <param name="isDefault"></param>
+		public override void getAllIdentities(ArrayList nameList, bool isDefault) {
+			throw new NotSupportedException(
+					"MemoryIdentityStorage.getAllIdentities not implemented");
+		}
+	
+		/// <summary>
 		/// Append all the key names of a particular identity to the nameList.
 		/// </summary>
 		///
@@ -278,6 +281,19 @@ namespace net.named_data.jndn.security.identity {
 				bool isDefault) {
 			throw new NotSupportedException(
 					"MemoryIdentityStorage.getAllKeyNamesOfIdentity not implemented");
+		}
+	
+		/// <summary>
+		/// Append all the certificate names of a particular key name to the nameList.
+		/// </summary>
+		///
+		/// <param name="keyName">The key name to search for.</param>
+		/// <param name="nameList">Append result names to nameList.</param>
+		/// <param name="isDefault"></param>
+		public override void getAllCertificateNamesOfKey(Name keyName, ArrayList nameList,
+				bool isDefault) {
+			throw new NotSupportedException(
+					"MemoryIdentityStorage.getAllCertificateNamesOfKey not implemented");
 		}
 	
 		/// <summary>

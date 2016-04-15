@@ -99,18 +99,18 @@ public class Schedule {
   }
 
   /**
-   * Get the interval that covers the time point. This iterates over the two
+   * Get the interval that covers the time stamp. This iterates over the two
    * repetitive interval sets and find the shortest interval that allows a group
-   * member to access the data. If there is no interval covering the time point,
+   * member to access the data. If there is no interval covering the time stamp,
    * this returns false for isPositive and returns a negative interval.
-   * @param timePoint The time point as milliseconds since Jan 1, 1970 UTC.
+   * @param timeStamp The time stamp as milliseconds since Jan 1, 1970 UTC.
    * @return An object with fields (isPositive, interval) where isPositive is
    * true if the returned interval is positive or false if negative, and
-   * interval is the Interval covering the time point, or a negative interval if
+   * interval is the Interval covering the time stamp, or a negative interval if
    * not found.
    */
   public final Result
-  getCoveringInterval(double timePoint)
+  getCoveringInterval(double timeStamp)
   {
     Interval blackPositiveResult = new Interval(true);
     Interval whitePositiveResult = new Interval(true);
@@ -119,81 +119,39 @@ public class Schedule {
     Interval whiteNegativeResult = new Interval();
 
     // Get the black result.
-    for (Iterator i = blackIntervalList_.iterator(); i.hasNext(); ) {
-      RepetitiveInterval element = (RepetitiveInterval)i.next();
+    calculateIntervalResult
+      (blackIntervalList_, timeStamp, blackPositiveResult, blackNegativeResult);
 
-      RepetitiveInterval.Result result = element.getInterval(timePoint);
-      Interval tempInterval = result.interval;
-      if (result.isPositive == true) {
-        // tempInterval covers the time point, so union the black negative
-        // result with it.
-        // Get the union interval of all the black intervals covering the
-        // time point.
-        // Return false for isPositive and the union interval.
-        try {
-          blackPositiveResult.unionWith(tempInterval);
-        } catch (Interval.Error ex) {
-          // We don't expect to get this error.
-          throw new Error("Error in Interval.unionWith: " + ex.getMessage());
-        }
-      }
-      else {
-        // tempInterval does not cover the time point, so intersect the black
-        // negative result with it.
-        // Get the intersection interval of all the black intervals not covering
-        // the time point.
-        // Return true for isPositive if the white positive result is not empty,
-        // false if it is empty.
-        if (!blackNegativeResult.isValid())
-          blackNegativeResult = tempInterval;
-        else
-          blackNegativeResult.intersectWith(tempInterval);
-      }
-    }
-
-    // If the black positive result is not full, then isPositive must be false.
+    // If the black positive result is not empty, then isPositive must be false.
     if (!blackPositiveResult.isEmpty())
       return new Result(false, blackPositiveResult);
 
     // Get the whiteResult.
-    for (Iterator i = whiteIntervalList_.iterator(); i.hasNext(); ) {
-      RepetitiveInterval element = (RepetitiveInterval)i.next();
+    calculateIntervalResult
+      (whiteIntervalList_, timeStamp, whitePositiveResult, whiteNegativeResult);
 
-      RepetitiveInterval.Result result = element.getInterval(timePoint);
-      Interval tempInterval = result.interval;
-      if (result.isPositive == true) {
-        // tempInterval covers the time point, so union the white positive
-        // result with it.
-        // Get the union interval of all the white intervals covering the time
-        // point.
-        // Return true for isPositive.
-        try {
-          whitePositiveResult.unionWith(tempInterval);
-        } catch (Interval.Error ex) {
-          // We don't expect to get this error.
-          throw new Error("Error in Interval.unionWith: " + ex.getMessage());
-        }
-      }
-      else {
-        // tempInterval does not cover the time point, so intersect the white
-        // negative result with it.
-        // Get the intersection of all the white intervals not covering the time
-        // point.
-        // Return false for isPositive if the positive result is empty, or
-        // true if it is not empty.
-        if (!whiteNegativeResult.isValid())
-          whiteNegativeResult = tempInterval;
-        else
-          whiteNegativeResult.intersectWith(tempInterval);
-      }
+    if (whitePositiveResult.isEmpty() && !whiteNegativeResult.isValid()) {
+      // There is no white interval covering the time stamp.
+      // Return false and a 24-hour interval.
+      double timeStampDateOnly =
+        RepetitiveInterval.toDateOnlyMilliseconds(timeStamp);
+      return new Result
+        (false, new Interval
+         (timeStampDateOnly, timeStampDateOnly + MILLISECONDS_IN_DAY));
     }
 
-    // If the positive result is empty then return false for isPositive. If it
-    // is not empty then return true for isPositive.
-    if (!whitePositiveResult.isEmpty())
-      return new Result
-        (true, whitePositiveResult.intersectWith(blackNegativeResult));
+    if (!whitePositiveResult.isEmpty()) {
+      // There is white interval covering the time stamp.
+      // Return true and calculate the intersection.
+      if (blackNegativeResult.isValid())
+        return new Result
+          (true, whitePositiveResult.intersectWith(blackNegativeResult));
+      else
+        return new Result(true, whitePositiveResult);
+    }
     else
+      // There is no white interval covering the time stamp.
+      // Return false.
       return new Result(false, whiteNegativeResult);
   }
 
@@ -349,6 +307,42 @@ public class Schedule {
       (startDate, endDate, startHour, endHour, nRepeats, repeatUnit);
   }
 
+  /**
+   * A helper function to calculate black interval results or white interval
+   * results.
+   * @param list The set of RepetitiveInterval, which can be the white list or
+   * the black list.
+   * @param timeStamp The time stamp as milliseconds since Jan 1, 1970 UTC.
+   * @param positiveResult The positive result which is updated.
+   * @param negativeResult The negative result which is updated.
+   */
+  private static void
+  calculateIntervalResult
+    (TreeSet list, double timeStamp, Interval positiveResult,
+     Interval negativeResult)
+  {
+    for (Iterator i = list.iterator(); i.hasNext(); ) {
+      RepetitiveInterval element = (RepetitiveInterval)i.next();
+
+      RepetitiveInterval.Result result = element.getInterval(timeStamp);
+      Interval tempInterval = result.interval;
+      if (result.isPositive == true) {
+        try {
+          positiveResult.unionWith(tempInterval);
+        } catch (Interval.Error ex) {
+          // We don't expect to get this error.
+          throw new Error("Error in Interval.unionWith: " + ex.getMessage());
+        }
+      }
+      else {
+        if (!negativeResult.isValid())
+          negativeResult.set(tempInterval);
+        else
+          negativeResult.intersectWith(tempInterval);
+      }
+    }
+  }
+
   public static double
   fromIsoString(String dateString) throws EncodingException
   {
@@ -377,4 +371,5 @@ public class Schedule {
   private final TreeSet whiteIntervalList_ = new TreeSet(); // of RepetitiveInterval
   private final TreeSet blackIntervalList_ = new TreeSet(); // of RepetitiveInterval
   private static final SimpleDateFormat dateFormat = getDateFormat();
+  private static final long MILLISECONDS_IN_DAY = 24 * 3600 * 1000;
 }

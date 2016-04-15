@@ -159,11 +159,10 @@ namespace net.named_data.jndn.encoding {
 				int linkBeginOffset = decoder.getOffset();
 				int linkEndOffset = decoder.readNestedTlvsStart(net.named_data.jndn.encoding.tlv.Tlv.Data);
 				decoder.seek(linkEndOffset);
-				ByteBuffer linkEncoding = input.duplicate();
-				linkEncoding.limit(linkEndOffset);
-				linkEncoding.position(linkBeginOffset);
 	
-				interest.setLinkWireEncoding(new Blob(linkEncoding, true), this);
+				interest.setLinkWireEncoding(
+						new Blob(decoder.getSlice(linkBeginOffset, linkEndOffset),
+								true), this);
 			} else
 				interest.unsetLink();
 			interest.setSelectedDelegationIndex((int) decoder
@@ -249,56 +248,7 @@ namespace net.named_data.jndn.encoding {
 		/// <returns>A Blob containing the encoding.</returns>
 		public override Blob encodeControlParameters(ControlParameters controlParameters) {
 			TlvEncoder encoder = new TlvEncoder(256);
-			int saveLength = encoder.getLength();
-	
-			// Encode backwards.
-			encoder.writeOptionalNonNegativeIntegerTlvFromDouble(
-					net.named_data.jndn.encoding.tlv.Tlv.ControlParameters_ExpirationPeriod,
-					controlParameters.getExpirationPeriod());
-	
-			// Encode strategy
-			if (controlParameters.getStrategy().size() != 0) {
-				int strategySaveLength = encoder.getLength();
-				encodeName(controlParameters.getStrategy(), new int[1], new int[1],
-						encoder);
-				encoder.writeTypeAndLength(net.named_data.jndn.encoding.tlv.Tlv.ControlParameters_Strategy,
-						encoder.getLength() - strategySaveLength);
-			}
-	
-			// Encode ForwardingFlags
-			int flags = controlParameters.getForwardingFlags()
-					.getNfdForwardingFlags();
-			if (flags != new ForwardingFlags().getNfdForwardingFlags())
-				// The flags are not the default value.
-				encoder.writeNonNegativeIntegerTlv(net.named_data.jndn.encoding.tlv.Tlv.ControlParameters_Flags,
-						flags);
-	
-			encoder.writeOptionalNonNegativeIntegerTlv(net.named_data.jndn.encoding.tlv.Tlv.ControlParameters_Cost,
-					controlParameters.getCost());
-			encoder.writeOptionalNonNegativeIntegerTlv(
-					net.named_data.jndn.encoding.tlv.Tlv.ControlParameters_Origin, controlParameters.getOrigin());
-			encoder.writeOptionalNonNegativeIntegerTlv(
-					net.named_data.jndn.encoding.tlv.Tlv.ControlParameters_LocalControlFeature,
-					controlParameters.getLocalControlFeature());
-	
-			// Encode URI
-			if (controlParameters.getUri().Length != 0) {
-				encoder.writeBlobTlv(net.named_data.jndn.encoding.tlv.Tlv.ControlParameters_Uri, new Blob(
-						controlParameters.getUri()).buf());
-			}
-	
-			encoder.writeOptionalNonNegativeIntegerTlv(
-					net.named_data.jndn.encoding.tlv.Tlv.ControlParameters_FaceId, controlParameters.getFaceId());
-	
-			// Encode name
-			if (controlParameters.getName() != null) {
-				encodeName(controlParameters.getName(), new int[1], new int[1],
-						encoder);
-			}
-	
-			encoder.writeTypeAndLength(net.named_data.jndn.encoding.tlv.Tlv.ControlParameters_ControlParameters,
-					encoder.getLength() - saveLength);
-	
+			encodeControlParameters(controlParameters, encoder);
 			return new Blob(encoder.getOutput(), false);
 		}
 	
@@ -312,63 +262,67 @@ namespace net.named_data.jndn.encoding {
 		/// <exception cref="EncodingException">For invalid encoding</exception>
 		public override void decodeControlParameters(ControlParameters controlParameters,
 				ByteBuffer input) {
-			controlParameters.clear();
+			TlvDecoder decoder = new TlvDecoder(input);
+			decodeControlParameters(controlParameters, decoder);
+		}
 	
+		/// <summary>
+		/// Encode controlResponse in NDN-TLV and return the encoding.
+		/// </summary>
+		///
+		/// <param name="controlResponse">The ControlResponse object to encode.</param>
+		/// <returns>A Blob containing the encoding.</returns>
+		public override Blob encodeControlResponse(ControlResponse controlResponse) {
+			TlvEncoder encoder = new TlvEncoder(256);
+			int saveLength = encoder.getLength();
+	
+			// Encode backwards.
+	
+			// Encode the body.
+			if (controlResponse.getBodyAsControlParameters() != null)
+				encodeControlParameters(
+						controlResponse.getBodyAsControlParameters(), encoder);
+	
+			encoder.writeBlobTlv(net.named_data.jndn.encoding.tlv.Tlv.NfdCommand_StatusText, new Blob(
+					controlResponse.getStatusText()).buf());
+			encoder.writeNonNegativeIntegerTlv(net.named_data.jndn.encoding.tlv.Tlv.NfdCommand_StatusCode,
+					controlResponse.getStatusCode());
+	
+			encoder.writeTypeAndLength(net.named_data.jndn.encoding.tlv.Tlv.NfdCommand_ControlResponse,
+					encoder.getLength() - saveLength);
+	
+			return new Blob(encoder.getOutput(), false);
+		}
+	
+		/// <summary>
+		/// Decode input as a control parameters in NDN-TLV and set the fields of the
+		/// controlResponse object.
+		/// </summary>
+		///
+		/// <param name="controlResponse"></param>
+		/// <param name="input"></param>
+		/// <exception cref="EncodingException">For invalid encoding</exception>
+		public override void decodeControlResponse(ControlResponse controlResponse,
+				ByteBuffer input) {
 			TlvDecoder decoder = new TlvDecoder(input);
 			int endOffset = decoder
-					.readNestedTlvsStart(net.named_data.jndn.encoding.tlv.Tlv.ControlParameters_ControlParameters);
+					.readNestedTlvsStart(net.named_data.jndn.encoding.tlv.Tlv.NfdCommand_ControlResponse);
 	
-			// decode name
-			if (decoder.peekType(net.named_data.jndn.encoding.tlv.Tlv.Name, endOffset)) {
-				Name name = new Name();
-				decodeName(name, new int[1], new int[1], decoder);
-				controlParameters.setName(name);
-			}
+			controlResponse.setStatusCode((int) decoder
+					.readNonNegativeIntegerTlv(net.named_data.jndn.encoding.tlv.Tlv.NfdCommand_StatusCode));
+			Blob statusText = new Blob(
+					decoder.readBlobTlv(net.named_data.jndn.encoding.tlv.Tlv.NfdCommand_StatusText), true);
+			controlResponse.setStatusText(statusText.ToString());
 	
-			// decode face ID
-			controlParameters.setFaceId((int) decoder
-					.readOptionalNonNegativeIntegerTlv(
-							net.named_data.jndn.encoding.tlv.Tlv.ControlParameters_FaceId, endOffset));
-	
-			// decode URI
-			if (decoder.peekType(net.named_data.jndn.encoding.tlv.Tlv.ControlParameters_Uri, endOffset)) {
-				Blob uri = new Blob(decoder.readOptionalBlobTlv(
-						net.named_data.jndn.encoding.tlv.Tlv.ControlParameters_Uri, endOffset), true);
-				controlParameters.setUri("" + uri);
-			}
-	
-			// decode integers
-			controlParameters.setLocalControlFeature((int) decoder
-					.readOptionalNonNegativeIntegerTlv(
-							net.named_data.jndn.encoding.tlv.Tlv.ControlParameters_LocalControlFeature, endOffset));
-			controlParameters.setOrigin((int) decoder
-					.readOptionalNonNegativeIntegerTlv(
-							net.named_data.jndn.encoding.tlv.Tlv.ControlParameters_Origin, endOffset));
-			controlParameters.setCost((int) decoder
-					.readOptionalNonNegativeIntegerTlv(net.named_data.jndn.encoding.tlv.Tlv.ControlParameters_Cost,
-							endOffset));
-	
-			// set forwarding flags
-			if (decoder.peekType(net.named_data.jndn.encoding.tlv.Tlv.ControlParameters_Flags, endOffset)) {
-				ForwardingFlags flags = new ForwardingFlags();
-				flags.setNfdForwardingFlags((int) decoder
-						.readNonNegativeIntegerTlv(net.named_data.jndn.encoding.tlv.Tlv.ControlParameters_Flags));
-				controlParameters.setForwardingFlags(flags);
-			}
-	
-			// decode strategy
-			if (decoder.peekType(net.named_data.jndn.encoding.tlv.Tlv.ControlParameters_Strategy, endOffset)) {
-				int strategyEndOffset = decoder
-						.readNestedTlvsStart(net.named_data.jndn.encoding.tlv.Tlv.ControlParameters_Strategy);
-				decodeName(controlParameters.getStrategy(), new int[1], new int[1],
-						decoder);
-				decoder.finishNestedTlvs(strategyEndOffset);
-			}
-	
-			// decode expiration period
-			controlParameters.setExpirationPeriod(decoder
-					.readOptionalNonNegativeIntegerTlv(
-							net.named_data.jndn.encoding.tlv.Tlv.ControlParameters_ExpirationPeriod, endOffset));
+			// Decode the body.
+			if (decoder
+					.peekType(net.named_data.jndn.encoding.tlv.Tlv.ControlParameters_ControlParameters, endOffset)) {
+				controlResponse.setBodyAsControlParameters(new ControlParameters());
+				// Decode into the existing ControlParameters to avoid copying.
+				decodeControlParameters(
+						controlResponse.getBodyAsControlParameters(), decoder);
+			} else
+				controlResponse.setBodyAsControlParameters(null);
 	
 			decoder.finishNestedTlvs(endOffset);
 		}
@@ -852,6 +806,27 @@ namespace net.named_data.jndn.encoding {
 		/// <param name="signature">An object of a subclass of Signature to encode.</param>
 		/// <param name="encoder">The TlvEncoder to receive the encoding.</param>
 		private void encodeSignatureInfo(Signature signature, TlvEncoder encoder) {
+			if (signature  is  GenericSignature) {
+				// Handle GenericSignature separately since it has the entire encoding.
+				Blob encoding = ((GenericSignature) signature)
+						.getSignatureInfoEncoding();
+	
+				// Do a test decoding to sanity check that it is valid TLV.
+				try {
+					TlvDecoder decoder = new TlvDecoder(encoding.buf());
+					int endOffset = decoder.readNestedTlvsStart(net.named_data.jndn.encoding.tlv.Tlv.SignatureInfo);
+					decoder.readNonNegativeIntegerTlv(net.named_data.jndn.encoding.tlv.Tlv.SignatureType);
+					decoder.finishNestedTlvs(endOffset);
+				} catch (EncodingException ex) {
+					throw new Exception(
+							"The GenericSignature encoding is not a valid NDN-TLV SignatureInfo: "
+									+ ex.Message);
+				}
+	
+				encoder.writeBuffer(encoding.buf());
+				return;
+			}
+	
 			int saveLength = encoder.getLength();
 	
 			// Encode backwards.
@@ -867,6 +842,12 @@ namespace net.named_data.jndn.encoding {
 						encoder);
 				encoder.writeNonNegativeIntegerTlv(net.named_data.jndn.encoding.tlv.Tlv.SignatureType,
 						net.named_data.jndn.encoding.tlv.Tlv.SignatureType_SignatureSha256WithEcdsa);
+			} else if (signature  is  HmacWithSha256Signature) {
+				encodeKeyLocator(net.named_data.jndn.encoding.tlv.Tlv.KeyLocator,
+						((HmacWithSha256Signature) signature).getKeyLocator(),
+						encoder);
+				encoder.writeNonNegativeIntegerTlv(net.named_data.jndn.encoding.tlv.Tlv.SignatureType,
+						net.named_data.jndn.encoding.tlv.Tlv.SignatureType_SignatureHmacWithSha256);
 			} else if (signature  is  DigestSha256Signature)
 				encoder.writeNonNegativeIntegerTlv(net.named_data.jndn.encoding.tlv.Tlv.SignatureType,
 						net.named_data.jndn.encoding.tlv.Tlv.SignatureType_DigestSha256);
@@ -880,14 +861,15 @@ namespace net.named_data.jndn.encoding {
 	
 		private static void decodeSignatureInfo(SignatureHolder signatureHolder,
 				TlvDecoder decoder) {
+			int beginOffset = decoder.getOffset();
 			int endOffset = decoder.readNestedTlvsStart(net.named_data.jndn.encoding.tlv.Tlv.SignatureInfo);
 	
 			int signatureType = (int) decoder
 					.readNonNegativeIntegerTlv(net.named_data.jndn.encoding.tlv.Tlv.SignatureType);
 			if (signatureType == net.named_data.jndn.encoding.tlv.Tlv.SignatureType_SignatureSha256WithRsa) {
 				signatureHolder.setSignature(new Sha256WithRsaSignature());
-				// Modify data's signature object because if we create an object
-				//   and set it, then data will have to copy all the fields.
+				// Modify the holder's signature object because if we create an object
+				//   and set it, then the holder will have to copy all the fields.
 				Sha256WithRsaSignature signatureInfo = (Sha256WithRsaSignature) signatureHolder
 						.getSignature();
 				decodeKeyLocator(net.named_data.jndn.encoding.tlv.Tlv.KeyLocator, signatureInfo.getKeyLocator(),
@@ -898,12 +880,24 @@ namespace net.named_data.jndn.encoding {
 						.getSignature();
 				decodeKeyLocator(net.named_data.jndn.encoding.tlv.Tlv.KeyLocator, signatureInfo_0.getKeyLocator(),
 						decoder);
+			} else if (signatureType == net.named_data.jndn.encoding.tlv.Tlv.SignatureType_SignatureHmacWithSha256) {
+				signatureHolder.setSignature(new HmacWithSha256Signature());
+				HmacWithSha256Signature signatureInfo_1 = (HmacWithSha256Signature) signatureHolder
+						.getSignature();
+				decodeKeyLocator(net.named_data.jndn.encoding.tlv.Tlv.KeyLocator, signatureInfo_1.getKeyLocator(),
+						decoder);
 			} else if (signatureType == net.named_data.jndn.encoding.tlv.Tlv.SignatureType_DigestSha256)
 				signatureHolder.setSignature(new DigestSha256Signature());
-			else
-				throw new EncodingException(
-						"decodeSignatureInfo: unrecognized SignatureInfo type"
-								+ signatureType);
+			else {
+				signatureHolder.setSignature(new GenericSignature());
+				GenericSignature signatureInfo_2 = (GenericSignature) signatureHolder
+						.getSignature();
+	
+				// Get the bytes of the SignatureInfo TLV.
+				signatureInfo_2.setSignatureInfoEncoding(
+						new Blob(decoder.getSlice(beginOffset, endOffset), true),
+						signatureType);
+			}
 	
 			decoder.finishNestedTlvs(endOffset);
 		}
@@ -969,6 +963,121 @@ namespace net.named_data.jndn.encoding {
 				decoder.finishNestedTlvs(finalBlockIdEndOffset);
 			} else
 				metaInfo.setFinalBlockId(null);
+	
+			decoder.finishNestedTlvs(endOffset);
+		}
+	
+		private static void encodeControlParameters(
+				ControlParameters controlParameters, TlvEncoder encoder) {
+			int saveLength = encoder.getLength();
+	
+			// Encode backwards.
+			encoder.writeOptionalNonNegativeIntegerTlvFromDouble(
+					net.named_data.jndn.encoding.tlv.Tlv.ControlParameters_ExpirationPeriod,
+					controlParameters.getExpirationPeriod());
+	
+			// Encode strategy
+			if (controlParameters.getStrategy().size() != 0) {
+				int strategySaveLength = encoder.getLength();
+				encodeName(controlParameters.getStrategy(), new int[1], new int[1],
+						encoder);
+				encoder.writeTypeAndLength(net.named_data.jndn.encoding.tlv.Tlv.ControlParameters_Strategy,
+						encoder.getLength() - strategySaveLength);
+			}
+	
+			// Encode ForwardingFlags
+			int flags = controlParameters.getForwardingFlags()
+					.getNfdForwardingFlags();
+			if (flags != new ForwardingFlags().getNfdForwardingFlags())
+				// The flags are not the default value.
+				encoder.writeNonNegativeIntegerTlv(net.named_data.jndn.encoding.tlv.Tlv.ControlParameters_Flags,
+						flags);
+	
+			encoder.writeOptionalNonNegativeIntegerTlv(net.named_data.jndn.encoding.tlv.Tlv.ControlParameters_Cost,
+					controlParameters.getCost());
+			encoder.writeOptionalNonNegativeIntegerTlv(
+					net.named_data.jndn.encoding.tlv.Tlv.ControlParameters_Origin, controlParameters.getOrigin());
+			encoder.writeOptionalNonNegativeIntegerTlv(
+					net.named_data.jndn.encoding.tlv.Tlv.ControlParameters_LocalControlFeature,
+					controlParameters.getLocalControlFeature());
+	
+			// Encode URI
+			if (controlParameters.getUri().Length != 0) {
+				encoder.writeBlobTlv(net.named_data.jndn.encoding.tlv.Tlv.ControlParameters_Uri, new Blob(
+						controlParameters.getUri()).buf());
+			}
+	
+			encoder.writeOptionalNonNegativeIntegerTlv(
+					net.named_data.jndn.encoding.tlv.Tlv.ControlParameters_FaceId, controlParameters.getFaceId());
+	
+			// Encode name
+			if (controlParameters.getName() != null) {
+				encodeName(controlParameters.getName(), new int[1], new int[1],
+						encoder);
+			}
+	
+			encoder.writeTypeAndLength(net.named_data.jndn.encoding.tlv.Tlv.ControlParameters_ControlParameters,
+					encoder.getLength() - saveLength);
+		}
+	
+		private static void decodeControlParameters(
+				ControlParameters controlParameters, TlvDecoder decoder) {
+			controlParameters.clear();
+	
+			int endOffset = decoder
+					.readNestedTlvsStart(net.named_data.jndn.encoding.tlv.Tlv.ControlParameters_ControlParameters);
+	
+			// decode name
+			if (decoder.peekType(net.named_data.jndn.encoding.tlv.Tlv.Name, endOffset)) {
+				Name name = new Name();
+				decodeName(name, new int[1], new int[1], decoder);
+				controlParameters.setName(name);
+			}
+	
+			// decode face ID
+			controlParameters.setFaceId((int) decoder
+					.readOptionalNonNegativeIntegerTlv(
+							net.named_data.jndn.encoding.tlv.Tlv.ControlParameters_FaceId, endOffset));
+	
+			// decode URI
+			if (decoder.peekType(net.named_data.jndn.encoding.tlv.Tlv.ControlParameters_Uri, endOffset)) {
+				Blob uri = new Blob(decoder.readOptionalBlobTlv(
+						net.named_data.jndn.encoding.tlv.Tlv.ControlParameters_Uri, endOffset), true);
+				controlParameters.setUri("" + uri);
+			}
+	
+			// decode integers
+			controlParameters.setLocalControlFeature((int) decoder
+					.readOptionalNonNegativeIntegerTlv(
+							net.named_data.jndn.encoding.tlv.Tlv.ControlParameters_LocalControlFeature, endOffset));
+			controlParameters.setOrigin((int) decoder
+					.readOptionalNonNegativeIntegerTlv(
+							net.named_data.jndn.encoding.tlv.Tlv.ControlParameters_Origin, endOffset));
+			controlParameters.setCost((int) decoder
+					.readOptionalNonNegativeIntegerTlv(net.named_data.jndn.encoding.tlv.Tlv.ControlParameters_Cost,
+							endOffset));
+	
+			// set forwarding flags
+			if (decoder.peekType(net.named_data.jndn.encoding.tlv.Tlv.ControlParameters_Flags, endOffset)) {
+				ForwardingFlags flags = new ForwardingFlags();
+				flags.setNfdForwardingFlags((int) decoder
+						.readNonNegativeIntegerTlv(net.named_data.jndn.encoding.tlv.Tlv.ControlParameters_Flags));
+				controlParameters.setForwardingFlags(flags);
+			}
+	
+			// decode strategy
+			if (decoder.peekType(net.named_data.jndn.encoding.tlv.Tlv.ControlParameters_Strategy, endOffset)) {
+				int strategyEndOffset = decoder
+						.readNestedTlvsStart(net.named_data.jndn.encoding.tlv.Tlv.ControlParameters_Strategy);
+				decodeName(controlParameters.getStrategy(), new int[1], new int[1],
+						decoder);
+				decoder.finishNestedTlvs(strategyEndOffset);
+			}
+	
+			// decode expiration period
+			controlParameters.setExpirationPeriod(decoder
+					.readOptionalNonNegativeIntegerTlv(
+							net.named_data.jndn.encoding.tlv.Tlv.ControlParameters_ExpirationPeriod, endOffset));
 	
 			decoder.finishNestedTlvs(endOffset);
 		}

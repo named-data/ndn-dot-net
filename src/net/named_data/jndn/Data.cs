@@ -210,7 +210,6 @@ namespace net.named_data.jndn {
 		/// </summary>
 		///
 		/// <returns>The incoming face ID. If not specified, return -1.</returns>
-		/// @note This is an experimental feature. This API may change in the future.
 		public long getIncomingFaceId() {
 			return localControlHeader_.getIncomingFaceId();
 		}

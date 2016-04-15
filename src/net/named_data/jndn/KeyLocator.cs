@@ -96,7 +96,8 @@ namespace net.named_data.jndn {
 		/// false.</returns>
 		public static bool canGetFromSignature(Signature signature) {
 			return signature  is  Sha256WithRsaSignature
-					|| signature  is  Sha256WithEcdsaSignature;
+					|| signature  is  Sha256WithEcdsaSignature
+					|| signature  is  HmacWithSha256Signature;
 		}
 	
 		/// <summary>
@@ -112,6 +113,8 @@ namespace net.named_data.jndn {
 				return ((Sha256WithRsaSignature) signature).getKeyLocator();
 			else if (signature  is  Sha256WithEcdsaSignature)
 				return ((Sha256WithEcdsaSignature) signature).getKeyLocator();
+			else if (signature  is  HmacWithSha256Signature)
+				return ((HmacWithSha256Signature) signature).getKeyLocator();
 			else
 				throw new Exception(
 						"KeyLocator.getFromSignature: Signature type does not have a KeyLocator");

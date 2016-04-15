@@ -351,7 +351,7 @@ namespace net.named_data.jndn.encrypt {
 		///
 		/// <param name="timePoint">The time point as milliseconds since Jan 1, 1970 UTC.</param>
 		/// <returns>A time point as milliseconds since Jan 1, 1970 UTC.</returns>
-		private double toDateOnlyMilliseconds(double timePoint) {
+		public static double toDateOnlyMilliseconds(double timePoint) {
 			long result = (long) Math.Round(timePoint,MidpointRounding.AwayFromZero);
 			result -= result % MILLISECONDS_IN_DAY;
 			return result;
@@ -363,7 +363,7 @@ namespace net.named_data.jndn.encrypt {
 		///
 		/// <param name="timePoint">The time point as milliseconds since Jan 1, 1970 UTC.</param>
 		/// <returns>The Calendar.</returns>
-		private Calendar toCalendar(double timePoint) {
+		private static Calendar toCalendar(double timePoint) {
 			Calendar result = ILOG.J2CsMapping.Util.Calendar.getInstance(System.Collections.TimeZone.getTimeZone("UTC"));
 			result.setTimeInMillis((long) timePoint);
 			return result;

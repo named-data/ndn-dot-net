@@ -33,7 +33,7 @@ namespace net.named_data.jndn.encrypt {
 	public class GroupManager {
 		/// <summary>
 		/// Create a group manager with the given values. The group manager namespace
-		/// is /&lt;prefix>/read/&lt;dataType> .
+		/// is /{prefix}/read/{dataType} .
 		/// </summary>
 		///
 		/// <param name="prefix">The prefix for the group manager namespace.</param>

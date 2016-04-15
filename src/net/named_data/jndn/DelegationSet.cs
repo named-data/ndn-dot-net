@@ -145,7 +145,7 @@ namespace net.named_data.jndn {
 		/// Remove every DelegationSet.Delegation with the given name.
 		/// </summary>
 		///
-		/// <param name="name">Then name to match the name of the delegation(s) to be removed.</param>
+		/// <param name="name">The name to match the name of the delegation(s) to be removed.</param>
 		/// <returns>True if a DelegationSet.Delegation was removed, otherwise false.</returns>
 		public bool remove(Name name) {
 			bool wasRemoved = false;

@@ -71,8 +71,8 @@ namespace net.named_data.jndn.security.policy {
 		///
 		/// <param name="data">The Data object with the signature to check.</param>
 		/// <param name="stepCount"></param>
-		/// <param name="onVerified"></param>
-		/// <param name="onVerifyFailed"></param>
+		/// <param name="onVerified">NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
+		/// <param name="onVerifyFailed">NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
 		/// <returns>the indication of next verification step, null if there is no
 		/// further step.</returns>
 		public abstract ValidationRequest checkVerificationPolicy(Data data,
@@ -85,8 +85,8 @@ namespace net.named_data.jndn.security.policy {
 		///
 		/// <param name="interest">The interest with the signature to check.</param>
 		/// <param name="stepCount"></param>
-		/// <param name="onVerified"></param>
-		/// <param name="onVerifyFailed"></param>
+		/// <param name="onVerified">NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
+		/// <param name="onVerifyFailed">NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
 		/// <returns>the indication of next verification step, null if there is no
 		/// further step.</returns>
 		public abstract ValidationRequest checkVerificationPolicy(

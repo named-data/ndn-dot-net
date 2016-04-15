@@ -38,7 +38,6 @@ import net.named_data.jndn.OnTimeout;
 import net.named_data.jndn.security.KeyChain;
 import net.named_data.jndn.security.SecurityException;
 import net.named_data.jndn.util.Blob;
-import net.named_data.jndn.util.Common;
 import net.named_data.jndn.util.MemoryContentCache;
 
 /**
@@ -76,9 +75,15 @@ public class ChronoSync2013 implements OnInterestCallback, OnData, OnTimeout {
    * isRecovery is true, a chat application would not want to re-display all
    * the associated chat messages.) The callback should send interests to fetch
    * the application data for the sequence numbers in the sync state.
+   * NOTE: The library will log any exceptions thrown by this callback, but for
+   * better error handling the callback should catch and properly handle any
+   * exceptions.
    * @param onInitialized This calls onInitialized.onInitialized() when the
    * first sync data is received (or the interest times out because there are no
    * other publishers yet).
+   * NOTE: The library will log any exceptions thrown by this callback, but for
+   * better error handling the callback should catch and properly handle any
+   * exceptions.
    * @param applicationDataPrefix The prefix used by this application instance
    * for application data. For example, "/my/local/prefix/ndnchat4/0K4wChff2v".
    * This is used when sending a sync message for a new sequence number.
@@ -99,6 +104,9 @@ public class ChronoSync2013 implements OnInterestCallback, OnData, OnTimeout {
    * @param onRegisterFailed If failed to register the prefix to receive
    * interests for the applicationBroadcastPrefix, this calls
    * onRegisterFailed.onRegisterFailed(applicationBroadcastPrefix).
+   * NOTE: The library will log any exceptions thrown by this callback, but for
+   * better error handling the callback should catch and properly handle any
+   * exceptions.
    */
   public ChronoSync2013
     (OnReceivedSyncState onReceivedSyncState, OnInitialized onInitialized,
@@ -130,10 +138,8 @@ public class ChronoSync2013 implements OnInterestCallback, OnData, OnTimeout {
     interest.getName().append("00");
     interest.setInterestLifetimeMilliseconds(1000);
     face.expressInterest(interest, this, this.new InitialTimeout());
-    Logger.getLogger(ChronoSync2013.class.getName()).log(Level.FINE,
-      "initial sync expressed");
-    Logger.getLogger(ChronoSync2013.class.getName()).log(Level.FINE,
-      interest.getName().toUri());
+    logger_.log(Level.FINE, "initial sync expressed");
+    logger_.log(Level.FINE, interest.getName().toUri());
   }
 
   /**
@@ -301,7 +307,7 @@ public class ChronoSync2013 implements OnInterestCallback, OnData, OnTimeout {
   {
     Data data = new Data(applicationBroadcastPrefix_);
     data.getName().append(digest);
-    data.setContent(new Blob(syncMessage.toByteArray()));
+    data.setContent(new Blob(syncMessage.toByteArray(), false));
     keyChain_.sign(data, certificateName_);
     contentCache_.add(data);
   }
@@ -367,10 +373,8 @@ public class ChronoSync2013 implements OnInterestCallback, OnData, OnTimeout {
       return;
 
     // Search if the digest already exists in the digest log.
-    Logger.getLogger(ChronoSync2013.class.getName()).log(Level.FINE,
-      "Sync Interest received in callback.");
-    Logger.getLogger(ChronoSync2013.class.getName()).log(Level.FINE,
-      interest.getName().toUri());
+    logger_.log(Level.FINE, "Sync Interest received in callback.");
+    logger_.log(Level.FINE, interest.getName().toUri());
 
     String syncDigest = interest.getName().get
       (applicationBroadcastPrefix_.size()).toEscapedString();
@@ -378,8 +382,7 @@ public class ChronoSync2013 implements OnInterestCallback, OnData, OnTimeout {
       // Assume this is a recovery interest.
       syncDigest = interest.getName().get
         (applicationBroadcastPrefix_.size() + 1).toEscapedString();
-    Logger.getLogger(ChronoSync2013.class.getName()).log(Level.FINE,
-      "syncDigest: {0}", syncDigest);
+    logger_.log(Level.FINE, "syncDigest: {0}", syncDigest);
     if (interest.getName().size() == applicationBroadcastPrefix_.size() + 2 ||
         syncDigest.equals("00"))
       // Recovery interest or newcomer interest.
@@ -400,18 +403,17 @@ public class ChronoSync2013 implements OnInterestCallback, OnData, OnTimeout {
               (timeout, DummyOnData.onData_,
                this.new JudgeRecovery(syncDigest, face));
           } catch (IOException ex) {
-            Logger.getLogger(ChronoSync2013.class.getName()).log(Level.SEVERE, null, ex);
+            logger_.log(Level.SEVERE, null, ex);
             return;
           }
-          Logger.getLogger(ChronoSync2013.class.getName()).log(Level.FINE,
-            "set timer recover");
+          logger_.log(Level.FINE, "set timer recover");
         }
         else {
           try {
             // common interest processing
             processSyncInterest(index, syncDigest, face);
           } catch (SecurityException ex) {
-            Logger.getLogger(ChronoSync2013.class.getName()).log(Level.SEVERE, null, ex);
+            logger_.log(Level.SEVERE, null, ex);
           }
         }
       }
@@ -427,15 +429,13 @@ public class ChronoSync2013 implements OnInterestCallback, OnData, OnTimeout {
       // Ignore callbacks after the application calls shutdown().
       return;
 
-    Logger.getLogger(ChronoSync2013.class.getName()).log(Level.FINE,
-      "Sync ContentObject received in callback");
-    Logger.getLogger(ChronoSync2013.class.getName()).log(Level.FINE,
-      "name: {0}", data.getName().toUri());
+    logger_.log(Level.FINE, "Sync ContentObject received in callback");
+    logger_.log(Level.FINE, "name: {0}", data.getName().toUri());
     SyncStateProto.SyncStateMsg tempContent;
     try {
       tempContent = SyncStateProto.SyncStateMsg.parseFrom(data.getContent().getImmutableArray());
     } catch (InvalidProtocolBufferException ex) {
-      Logger.getLogger(ChronoSync2013.class.getName()).log(Level.SEVERE, null, ex);
+      logger_.log(Level.SEVERE, null, ex);
       return;
     }
     List content = tempContent.getSsList();
@@ -446,7 +446,7 @@ public class ChronoSync2013 implements OnInterestCallback, OnData, OnTimeout {
         //processing initial sync data
         initialOndata(content);
       } catch (SecurityException ex) {
-        Logger.getLogger(ChronoSync2013.class.getName()).log(Level.SEVERE, null, ex);
+        logger_.log(Level.SEVERE, null, ex);
         return;
       }
     }
@@ -471,7 +471,11 @@ public class ChronoSync2013 implements OnInterestCallback, OnData, OnTimeout {
           (syncState.getName(), syncState.getSeqno().getSession(),
            syncState.getSeqno().getSeq()));
     }
-    onReceivedSyncState_.onReceivedSyncState(syncStates, isRecovery);
+    try {
+      onReceivedSyncState_.onReceivedSyncState(syncStates, isRecovery);
+    } catch (Throwable ex) {
+      logger_.log(Level.SEVERE, "Error in onReceivedSyncState", ex);
+    }
 
     Name name = new Name(applicationBroadcastPrefix_);
     name.append(digestTree_.getRoot());
@@ -480,13 +484,11 @@ public class ChronoSync2013 implements OnInterestCallback, OnData, OnTimeout {
     try {
       face_.expressInterest(syncInterest, this, this);
     } catch (IOException ex) {
-      Logger.getLogger(ChronoSync2013.class.getName()).log(Level.SEVERE, null, ex);
+      logger_.log(Level.SEVERE, null, ex);
       return;
     }
-    Logger.getLogger(ChronoSync2013.class.getName()).log(Level.FINE,
-      "Syncinterest expressed:");
-    Logger.getLogger(ChronoSync2013.class.getName()).log(Level.FINE,
-      name.toUri());
+    logger_.log(Level.FINE, "Syncinterest expressed:");
+    logger_.log(Level.FINE, name.toUri());
   }
 
   // Initial sync interest timeout, which means there are no other publishers yet.
@@ -499,10 +501,8 @@ public class ChronoSync2013 implements OnInterestCallback, OnData, OnTimeout {
         // Ignore callbacks after the application calls shutdown().
         return;
 
-      Logger.getLogger(ChronoSync2013.class.getName()).log(Level.FINE,
-        "initial sync timeout");
-      Logger.getLogger(ChronoSync2013.class.getName()).log(Level.FINE,
-        "no other people");
+      logger_.log(Level.FINE, "initial sync timeout");
+      logger_.log(Level.FINE, "no other people");
       ++sequenceNo_;
       if (sequenceNo_ != 0)
         // Since there were no other users, we expect sequence no 0.
@@ -519,7 +519,11 @@ public class ChronoSync2013 implements OnInterestCallback, OnData, OnTimeout {
       SyncStateProto.SyncStateMsg tempContent = builder.build();
       update(tempContent.getSsList());
 
-      onInitialized_.onInitialized();
+      try {
+        onInitialized_.onInitialized();
+      } catch (Throwable ex) {
+        logger_.log(Level.SEVERE, null, ex);
+      }
 
       Name name = new Name(applicationBroadcastPrefix_);
       name.append(digestTree_.getRoot());
@@ -528,21 +532,18 @@ public class ChronoSync2013 implements OnInterestCallback, OnData, OnTimeout {
       try {
         face_.expressInterest(retryInterest, ChronoSync2013.this, ChronoSync2013.this);
       } catch (IOException ex) {
-        Logger.getLogger(ChronoSync2013.class.getName()).log(Level.SEVERE, null, ex);
+        logger_.log(Level.SEVERE, null, ex);
         return;
       }
-      Logger.getLogger(ChronoSync2013.class.getName()).log(Level.FINE,
-        "Syncinterest expressed:");
-      Logger.getLogger(ChronoSync2013.class.getName()).log(Level.FINE,
-        name.toUri());
+      logger_.log(Level.FINE, "Syncinterest expressed:");
+      logger_.log(Level.FINE, name.toUri());
     }
   }
 
   private void
   processRecoveryInterest(Interest interest, String syncDigest, Face face)
   {
-    Logger.getLogger(ChronoSync2013.class.getName()).log(Level.FINE,
-      "processRecoveryInterest");
+    logger_.log(Level.FINE, "processRecoveryInterest");
     if (logFind(syncDigest) != -1) {
       SyncStateProto.SyncStateMsg.Builder builder =
         SyncStateProto.SyncStateMsg.newBuilder();
@@ -558,7 +559,7 @@ public class ChronoSync2013 implements OnInterestCallback, OnData, OnTimeout {
       if (tempContent.getSsCount() != 0) {
         byte[] array = tempContent.toByteArray();
         Data data = new Data(interest.getName());
-        data.setContent(new Blob(array));
+        data.setContent(new Blob(array, false));
         if (interest.getName().get(-1).toEscapedString().equals("00"))
           // Limit the lifetime of replies to interest for "00" since they can be different.
           data.getMetaInfo().setFreshnessPeriod(1000);
@@ -566,20 +567,17 @@ public class ChronoSync2013 implements OnInterestCallback, OnData, OnTimeout {
         try {
           keyChain_.sign(data, certificateName_);
         } catch (SecurityException ex) {
-          Logger.getLogger(ChronoSync2013.class.getName()).log(Level.SEVERE, null, ex);
+          logger_.log(Level.SEVERE, null, ex);
           return;
         }
         try {
           face.putData(data);
         } catch (IOException ex) {
-          Logger.getLogger(ChronoSync2013.class.getName()).log(Level.SEVERE,
-            ex.getMessage());
+          logger_.log(Level.SEVERE, ex.getMessage());
           return;
         }
-        Logger.getLogger(ChronoSync2013.class.getName()).log(Level.FINE,
-          "send recovery data back");
-        Logger.getLogger(ChronoSync2013.class.getName()).log(Level.FINE,
-          interest.getName().toUri());
+        logger_.log(Level.FINE, "send recovery data back");
+        logger_.log(Level.FINE, interest.getName().toUri());
       }
     }
   }
@@ -642,22 +640,19 @@ public class ChronoSync2013 implements OnInterestCallback, OnData, OnTimeout {
       name.append(syncDigest);
       byte[] array = tempContent.toByteArray();
       Data data = new Data(name);
-      data.setContent(new Blob(array));
+      data.setContent(new Blob(array, false));
       keyChain_.sign(data, certificateName_);
 
       try {
         face.putData(data);
       } catch (IOException ex) {
-        Logger.getLogger(ChronoSync2013.class.getName()).log(Level.SEVERE,
-          ex.getMessage());
+        logger_.log(Level.SEVERE, ex.getMessage());
         return false;
       }
 
       sent = true;
-      Logger.getLogger(ChronoSync2013.class.getName()).log(Level.FINE,
-        "Sync Data send");
-      Logger.getLogger(ChronoSync2013.class.getName()).log(Level.FINE,
-        name.toUri());
+      logger_.log(Level.FINE, "Sync Data send");
+      logger_.log(Level.FINE, name.toUri());
     }
 
     return sent;
@@ -667,17 +662,14 @@ public class ChronoSync2013 implements OnInterestCallback, OnData, OnTimeout {
   private void
   sendRecovery(String syncDigest) throws IOException
   {
-    Logger.getLogger(ChronoSync2013.class.getName()).log(Level.FINE,
-      "unknown digest: ");
+    logger_.log(Level.FINE, "unknown digest: ");
     Name name = new Name(applicationBroadcastPrefix_);
     name.append("recovery").append(syncDigest);
     Interest interest = new Interest(name);
     interest.setInterestLifetimeMilliseconds(syncLifetime_);
     face_.expressInterest(interest, this, this);
-    Logger.getLogger(ChronoSync2013.class.getName()).log(Level.FINE,
-      "Recovery Syncinterest expressed:");
-    Logger.getLogger(ChronoSync2013.class.getName()).log(Level.FINE,
-      name.toUri());
+    logger_.log(Level.FINE, "Recovery Syncinterest expressed:");
+    logger_.log(Level.FINE, name.toUri());
   }
 
   // This is called by onInterest after a timeout to check if a recovery is needed.
@@ -702,7 +694,7 @@ public class ChronoSync2013 implements OnInterestCallback, OnData, OnTimeout {
           try {
             processSyncInterest(index2, syncDigest_, face_);
           } catch (SecurityException ex) {
-            Logger.getLogger(ChronoSync2013.class.getName()).log(Level.SEVERE, null, ex);
+            logger_.log(Level.SEVERE, null, ex);
             return;
           }
         }
@@ -711,7 +703,7 @@ public class ChronoSync2013 implements OnInterestCallback, OnData, OnTimeout {
         try {
           sendRecovery(syncDigest_);
         } catch (IOException ex) {
-          Logger.getLogger(ChronoSync2013.class.getName()).log(Level.SEVERE, null, ex);
+          logger_.log(Level.SEVERE, null, ex);
           return;
         }
       }
@@ -732,10 +724,8 @@ public class ChronoSync2013 implements OnInterestCallback, OnData, OnTimeout {
       // Ignore callbacks after the application calls shutdown().
       return;
 
-    Logger.getLogger(ChronoSync2013.class.getName()).log(Level.FINE,
-      "Sync Interest time out.");
-    Logger.getLogger(ChronoSync2013.class.getName()).log(Level.FINE,
-      "Sync Interest name: {0}", interest.getName().toUri());
+    logger_.log(Level.FINE, "Sync Interest time out.");
+    logger_.log(Level.FINE, "Sync Interest name: {0}", interest.getName().toUri());
     String component = interest.getName().get(4).toEscapedString();
     if (component.equals(digestTree_.getRoot())) {
       Name name = new Name(interest.getName());
@@ -744,13 +734,11 @@ public class ChronoSync2013 implements OnInterestCallback, OnData, OnTimeout {
       try {
         face_.expressInterest(retryInterest, this, this);
       } catch (IOException ex) {
-        Logger.getLogger(ChronoSync2013.class.getName()).log(Level.SEVERE, null, ex);
+        logger_.log(Level.SEVERE, null, ex);
         return;
       }
-      Logger.getLogger(ChronoSync2013.class.getName()).log(Level.FINE,
-        "Syncinterest expressed:");
-      Logger.getLogger(ChronoSync2013.class.getName()).log(Level.FINE,
-       name.toUri());
+      logger_.log(Level.FINE, "Syncinterest expressed:");
+      logger_.log(Level.FINE, name.toUri());
     }
   }
 
@@ -778,8 +766,13 @@ public class ChronoSync2013 implements OnInterestCallback, OnData, OnTimeout {
                             .setSession(sessionNo_);
         SyncStateProto.SyncStateMsg tempContent = builder.build();
 
-        if (update(tempContent.getSsList()))
-          onInitialized_.onInitialized();
+        if (update(tempContent.getSsList())) {
+          try {
+            onInitialized_.onInitialized();
+          } catch (Throwable ex) {
+            logger_.log(Level.SEVERE, null, ex);
+          }
+        }
       }
     }
 
@@ -810,8 +803,7 @@ public class ChronoSync2013 implements OnInterestCallback, OnData, OnTimeout {
 
     if (digestTree_.find(applicationDataPrefixUri_, sessionNo_) == -1) {
       // the user hasn't put himself in the digest tree.
-      Logger.getLogger(ChronoSync2013.class.getName()).log(Level.FINE,
-        "initial state");
+      logger_.log(Level.FINE, "initial state");
       ++sequenceNo_;
       SyncStateProto.SyncStateMsg.Builder builder =
         SyncStateProto.SyncStateMsg.newBuilder();
@@ -822,8 +814,13 @@ public class ChronoSync2013 implements OnInterestCallback, OnData, OnTimeout {
                           .setSession(sessionNo_);
       SyncStateProto.SyncStateMsg tempContent = builder.build();
 
-      if (update(tempContent.getSsList()))
-        onInitialized_.onInitialized();
+      if (update(tempContent.getSsList())) {
+        try {
+          onInitialized_.onInitialized();
+        } catch (Throwable ex) {
+          logger_.log(Level.SEVERE, null, ex);
+        }
+      }
     }
   }
 
@@ -851,4 +848,5 @@ public class ChronoSync2013 implements OnInterestCallback, OnData, OnTimeout {
   long sequenceNo_ = -1;
   MemoryContentCache contentCache_;
   boolean enabled_ = true;
+  private static final Logger logger_ = Logger.getLogger(ChronoSync2013.class.getName());
 }

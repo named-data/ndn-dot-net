@@ -75,7 +75,7 @@ public class Name implements ChangeCountable, Comparable {
     public
     Component(byte[] value)
     {
-      value_ = new Blob(value);
+      value_ = new Blob(value, true);
     }
 
     /**
@@ -117,6 +117,65 @@ public class Name implements ChangeCountable, Comparable {
     toEscapedString()
     {
       return Name.toEscapedString(value_.buf());
+    }
+
+    /**
+     * Check if this component is a segment number according to NDN naming
+     * conventions for "Segment number" (marker 0x00).
+     * http://named-data.net/doc/tech-memos/naming-conventions.pdf
+     * @return True if this is a segment number.
+     */
+    public final boolean
+    isSegment()
+    {
+      return value_.size() >= 1 && value_.buf().get(0) == (byte)0x00;
+    }
+
+    /**
+     * Check if this component is a segment byte offset according to NDN
+     * naming conventions for segment "Byte offset" (marker 0xFB).
+     * http://named-data.net/doc/tech-memos/naming-conventions.pdf
+     * @return True if this is a segment byte offset.
+     */
+    public final boolean
+    isSegmentOffset()
+    {
+      return value_.size() >= 1 && value_.buf().get(0) == (byte)0xFB;
+    }
+
+    /**
+     * Check if this component is a version number according to NDN naming
+     * conventions for "Versioning" (marker 0xFD).
+     * @return True if this is a version number.
+     */
+    public final boolean
+    isVersion()
+    {
+      return value_.size() >= 1 && value_.buf().get(0) == (byte)0xFD;
+    }
+
+    /**
+     * Check if this component is a timestamp according to NDN naming
+     * conventions for "Timestamp" (marker 0xFC).
+     * http://named-data.net/doc/tech-memos/naming-conventions.pdf
+     * @return True if this is a timestamp.
+     */
+    public final boolean
+    isTimestamp()
+    {
+      return value_.size() >= 1 && value_.buf().get(0) == (byte)0xFC;
+    }
+
+    /**
+     * Check if this component is a sequence number according to NDN naming
+     * conventions for "Sequencing" (marker 0xFE).
+     * http://named-data.net/doc/tech-memos/naming-conventions.pdf
+     * @return True if this is a sequence number.
+     */
+    public final boolean
+    isSequenceNumber()
+    {
+      return value_.size() >= 1 && value_.buf().get(0) == (byte)0xFE;
     }
 
     /**
@@ -272,6 +331,109 @@ public class Name implements ChangeCountable, Comparable {
       encoder.writeNonNegativeInteger(number);
       encoder.writeNonNegativeInteger((long)marker);
       return new Component(new Blob(encoder.getOutput(), false));
+    }
+
+    /**
+     * Create a component with the encoded segment number according to NDN
+     * naming conventions for "Segment number" (marker 0x00).
+     * http://named-data.net/doc/tech-memos/naming-conventions.pdf
+     * @param segment The segment number.
+     * @return The new Component.
+     */
+    public static Component
+    fromSegment(long segment)
+    {
+      return fromNumberWithMarker(segment, 0x00);
+    }
+
+    /**
+     * Create a component with the encoded segment byte offset according to NDN
+     * naming conventions for segment "Byte offset" (marker 0xFB).
+     * http://named-data.net/doc/tech-memos/naming-conventions.pdf
+     * @param segmentOffset The segment byte offset.
+     * @return The new Component.
+     */
+    public static Component
+    fromSegmentOffset(long segmentOffset)
+    {
+      return fromNumberWithMarker(segmentOffset, 0xFB);
+    }
+
+    /**
+     * Create a component with the encoded version number according to NDN
+     * naming conventions for "Versioning" (marker 0xFD).
+     * http://named-data.net/doc/tech-memos/naming-conventions.pdf
+     * Note that this encodes the exact value of version without converting from a
+     * time representation.
+     * @param version The version number.
+     * @return The new Component.
+     */
+    public static Component
+    fromVersion(long version)
+    {
+      return fromNumberWithMarker(version, 0xFD);
+    }
+
+    /**
+     * Create a component with the encoded timestamp according to NDN naming
+     * conventions for "Timestamp" (marker 0xFC).
+     * http://named-data.net/doc/tech-memos/naming-conventions.pdf
+     * @param timestamp The number of microseconds since the UNIX epoch (Thursday,
+     * 1 January 1970) not counting leap seconds.
+     * @return The new Component.
+     */
+    public static Component
+    fromTimestamp(long timestamp)
+    {
+      return fromNumberWithMarker(timestamp, 0xFC);
+    }
+
+    /**
+     * Create a component with the encoded sequence number according to NDN naming
+     * conventions for "Sequencing" (marker 0xFE).
+     * http://named-data.net/doc/tech-memos/naming-conventions.pdf
+     * @param sequenceNumber The sequence number.
+     * @return The new Component.
+     */
+    public static Component
+    fromSequenceNumber(long sequenceNumber)
+    {
+      return fromNumberWithMarker(sequenceNumber, 0xFE);
+    }
+
+    /**
+     * Get the successor of this component, as described in Name.getSuccessor.
+     * @return A new Name.Component which is the successor of this.
+     */
+    public final Component
+    getSuccessor()
+    {
+      // Allocate an extra byte in case the result is larger.
+      ByteBuffer result = ByteBuffer.allocate(value_.size() + 1);
+
+      boolean carry = true;
+      for (int i = value_.size() - 1; i >= 0; --i) {
+        if (carry) {
+          // b & 0xff makes the byte unsigned and returns an int.
+          int x = value_.buf().get(value_.buf().position() + i) & 0xff;
+          x = (x + 1) & 0xff;
+          result.put(i, (byte)x);
+          carry = (x == 0);
+        }
+        else
+          result.put(i, value_.buf().get(value_.buf().position() + i));
+      }
+
+      if (carry)
+        // Assume all the bytes were set to zero (or the component was empty).
+        // In NDN ordering, carry does not mean to prepend a 1, but to make a
+        // component one byte longer of all zeros.
+        result.put(result.limit() - 1, (byte)0);
+      else
+        // We didn't need the extra byte.
+        result.limit(value_.size());
+
+      return new Component(new Blob(result, false));
     }
 
     /**
@@ -553,6 +715,7 @@ public class Name implements ChangeCountable, Comparable {
    * iStartComponent is -N then return return components starting from
    * name.size() - N.
    * @param nComponents The number of components starting at iStartComponent.
+   * If greater than the size of this name, get until the end of the name.
    * @return A new name.
    */
   public final Name
@@ -581,15 +744,7 @@ public class Name implements ChangeCountable, Comparable {
   public final Name
   getSubName(int iStartComponent)
   {
-    if (iStartComponent < 0)
-      iStartComponent = components_.size() - (-iStartComponent);
-
-    Name result = new Name();
-
-    for (int i = iStartComponent; i < components_.size(); ++i)
-      result.components_.add(components_.get(i));
-
-    return result;
+    return getSubName(iStartComponent, components_.size());
   }
 
   /**
@@ -656,7 +811,7 @@ public class Name implements ChangeCountable, Comparable {
   public final Name
   appendSegment(long segment)
   {
-    return append(Component.fromNumberWithMarker(segment, 0x00));
+    return append(Component.fromSegment(segment));
   }
 
   /**
@@ -669,7 +824,7 @@ public class Name implements ChangeCountable, Comparable {
   public final Name
   appendSegmentOffset(long segmentOffset)
   {
-    return append(Component.fromNumberWithMarker(segmentOffset, 0xFB));
+    return append(Component.fromSegmentOffset(segmentOffset));
   }
 
   /**
@@ -684,7 +839,7 @@ public class Name implements ChangeCountable, Comparable {
   public final Name
   appendVersion(long version)
   {
-    return append(Component.fromNumberWithMarker(version, 0xFD));
+    return append(Component.fromVersion(version));
   }
 
   /**
@@ -698,7 +853,7 @@ public class Name implements ChangeCountable, Comparable {
   public final Name
   appendTimestamp(long timestamp)
   {
-    return append(Component.fromNumberWithMarker(timestamp, 0xFC));
+    return append(Component.fromTimestamp(timestamp));
   }
 
   /**
@@ -711,7 +866,7 @@ public class Name implements ChangeCountable, Comparable {
   public final Name
   appendSequenceNumber(long sequenceNumber)
   {
-    return append(Component.fromNumberWithMarker(sequenceNumber, 0xFE));
+    return append(Component.fromSequenceNumber(sequenceNumber));
   }
 
   /**
@@ -766,6 +921,38 @@ public class Name implements ChangeCountable, Comparable {
   }
 
   /**
+   * Get the successor of this name which is defined as follows.
+   *
+   *     N represents the set of NDN Names, and X,Y ∈ N.
+   *     Operator &lt; is defined by the NDN canonical order on N.
+   *     Y is the successor of X, if (a) X &lt; Y, and (b) ∄ Z ∈ N s.t. X &lt; Z &lt; Y.
+   *
+   * In plain words, the successor of a name is the same name, but with its last
+   * component advanced to a next possible value.
+   *
+   * Examples:
+   *
+   * - The successor of / is /%00
+   * - The successor of /%00%01/%01%02 is /%00%01/%01%03
+   * - The successor of /%00%01/%01%FF is /%00%01/%02%00
+   * - The successor of /%00%01/%FF%FF is /%00%01/%00%00%00
+   *
+   * @return A new name which is the successor of this.
+   */
+  public final Name
+  getSuccessor()
+  {
+    if (size() == 0) {
+      // Return "/%00".
+      Name result = new Name();
+      result.append(new byte[1]);
+      return result;
+    }
+    else
+      return getPrefix(-1).append(get(-1).getSuccessor());
+  }
+
+  /**
    * Check if the N components of this name are the same as the first N
    * components of the given name.
    * @param name The Name to check.
@@ -788,6 +975,16 @@ public class Name implements ChangeCountable, Comparable {
 
     return true;
   }
+
+  /**
+   * Check if the N components of this name are the same as the first N
+   * components of the given name.
+   * @param name The Name to check.
+   * @return true if this matches the given name, otherwise false.  This always
+   * returns true if this name is empty.
+   */
+  public final boolean
+  isPrefixOf(Name name) { return match(name); }
 
   /**
    * Encode this Name for a particular wire format.
@@ -883,9 +1080,45 @@ public class Name implements ChangeCountable, Comparable {
   public final int
   compare(Name other)
   {
-    for (int i = 0; i < size() && i < other.size(); ++i) {
-      int comparison = ((Component)components_.get(i)).compare
-        ((Component)other.components_.get(i));
+    return compare(0, components_.size(), other);
+  }
+
+  /**
+   * Compare a subset of this name to a subset of the other name, equivalent to
+   * this.getSubName(iStartComponent, nComponents).compare
+   * (other.getSubName(iOtherStartComponent, nOtherComponents)).
+   * @param iStartComponent The index if the first component of this name to
+   * compare. If iStartComponent is -N then compare components starting from
+   * name.size() - N.
+   * @param nComponents The number of components starting at iStartComponent.
+   * If greater than the size of this name, compare until the end of the name.
+   * @param other The other Name to compare with.
+   * @param iOtherStartComponent The index if the first component of the other
+   * name to compare. If iOtherStartComponent is -N then compare components
+   * starting from other.size() - N.
+   * @param nOtherComponents The number of components starting at
+   * iOtherStartComponent. If greater than the size of the other name, compare
+   * until the end of the name.
+   * @return 0 If the sub names compare equal, -1 if this sub name comes before
+   * the other sub name in the canonical ordering, or 1 if after.
+   */
+  public final int
+  compare
+    (int iStartComponent, int nComponents, Name other,
+     int iOtherStartComponent, int nOtherComponents)
+  {
+    if (iStartComponent < 0)
+      iStartComponent = size() - (-iStartComponent);
+    if (iOtherStartComponent < 0)
+      iOtherStartComponent = other.size() - (-iOtherStartComponent);
+
+    nComponents = Math.min(nComponents, size() - iStartComponent);
+    nOtherComponents = Math.min(nOtherComponents, other.size() - iOtherStartComponent);
+
+    int count = Math.min(nComponents, nOtherComponents);
+    for (int i = 0; i < count; ++i) {
+      int comparison = ((Component)components_.get(iStartComponent + i)).compare
+        ((Component)other.components_.get(iOtherStartComponent + i));
       if (comparison == 0)
         // The components at this index are equal, so check the next components.
         continue;
@@ -896,12 +1129,59 @@ public class Name implements ChangeCountable, Comparable {
 
     // The components up to min(this.size(), other.size()) are equal, so the
     //   shorter name is less.
-    if (size() < other.size())
+    if (nComponents < nOtherComponents)
       return -1;
-    else if (size() > other.size())
+    else if (nComponents > nOtherComponents)
       return 1;
     else
       return 0;
+  }
+
+  /**
+   * Compare a subset of this name to a subset of the other name, equivalent to
+   * this.getSubName(iStartComponent, nComponents).compare
+   * (other.getSubName(iOtherStartComponent)), getting all components of other
+   * from iOtherStartComponent to the end of the name.
+   * @param iStartComponent The index if the first component of this name to
+   * compare. If iStartComponent is -N then compare components starting from
+   * name.size() - N.
+   * @param nComponents The number of components starting at iStartComponent.
+   * If greater than the size of this name, compare until the end of the name.
+   * @param other The other Name to compare with.
+   * @param iOtherStartComponent The index if the first component of the other
+   * name to compare. If iOtherStartComponent is -N then compare components
+   * starting from other.size() - N.
+   * @return 0 If the sub names compare equal, -1 if this sub name comes before
+   * the other sub name in the canonical ordering, or 1 if after.
+   */
+  public final int
+  compare
+    (int iStartComponent, int nComponents, Name other,
+     int iOtherStartComponent)
+  {
+    return compare
+      (iStartComponent, nComponents, other, iOtherStartComponent,
+       other.components_.size());
+  }
+
+  /**
+   * Compare a subset of this name to all of the other name, equivalent to
+   * this.getSubName(iStartComponent, nComponents).compare(other).
+   * @param iStartComponent The index if the first component of this name to
+   * compare. If iStartComponent is -N then compare components starting from
+   * name.size() - N.
+   * @param nComponents The number of components starting at iStartComponent.
+   * If greater than the size of this name, compare until the end of the name.
+   * @param other The other Name to compare with.
+   * @return 0 If the sub names compare equal, -1 if this sub name comes before
+   * the other name in the canonical ordering, or 1 if after.
+   */
+  public final int
+  compare
+    (int iStartComponent, int nComponents, Name other)
+  {
+    return compare
+      (iStartComponent, nComponents, other, 0, other.components_.size());
   }
 
   public final int

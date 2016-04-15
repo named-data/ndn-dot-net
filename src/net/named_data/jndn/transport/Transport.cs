@@ -64,7 +64,7 @@ namespace net.named_data.jndn.transport {
 		}
 	
 		/// <summary>
-		/// Set data to the host
+		/// Send data to the host
 		/// </summary>
 		///
 		/// <param name="data"></param>

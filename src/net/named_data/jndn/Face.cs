@@ -98,8 +98,8 @@ namespace net.named_data.jndn {
 		/// </summary>
 		///
 		/// <param name="interest">The Interest to send.  This copies the Interest.</param>
-		/// <param name="onData">expressInterest and data is the received Data object. NOTE: You must not change the interest object - if you need to change it then make a copy.</param>
-		/// <param name="onTimeout">interest given to expressInterest. If onTimeout is null, this does not use it.</param>
+		/// <param name="onData">expressInterest and data is the received Data object. NOTE: You must not change the interest object - if you need to change it then make a copy. NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
+		/// <param name="onTimeout">interest given to expressInterest. If onTimeout is null, this does not use it. NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
 		/// <param name="wireFormat">A WireFormat object used to encode the message.</param>
 		/// <returns>The pending interest ID which can be used with
 		/// removePendingInterest.</returns>
@@ -122,8 +122,8 @@ namespace net.named_data.jndn {
 		/// </summary>
 		///
 		/// <param name="interest">The Interest to send.  This copies the Interest.</param>
-		/// <param name="onData">expressInterest and data is the received Data object. NOTE: You must not change the interest object - if you need to change it then make a copy.</param>
-		/// <param name="onTimeout">interest given to expressInterest. If onTimeout is null, this does not use it.</param>
+		/// <param name="onData">expressInterest and data is the received Data object. NOTE: You must not change the interest object - if you need to change it then make a copy. NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
+		/// <param name="onTimeout">interest given to expressInterest. If onTimeout is null, this does not use it. NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
 		/// <returns>The pending interest ID which can be used with
 		/// removePendingInterest.</returns>
 		/// <exception cref="IOException">For I/O error in sending the interest.</exception>
@@ -140,7 +140,7 @@ namespace net.named_data.jndn {
 		/// </summary>
 		///
 		/// <param name="interest">The Interest to send.  This copies the Interest.</param>
-		/// <param name="onData">expressInterest and data is the received Data object. NOTE: You must not change the interest object - if you need to change it then make a copy.</param>
+		/// <param name="onData">expressInterest and data is the received Data object. NOTE: You must not change the interest object - if you need to change it then make a copy. NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
 		/// <param name="wireFormat">A WireFormat object used to encode the message.</param>
 		/// <returns>The pending interest ID which can be used with
 		/// removePendingInterest.</returns>
@@ -158,7 +158,7 @@ namespace net.named_data.jndn {
 		/// </summary>
 		///
 		/// <param name="interest">The Interest to send.  This copies the Interest.</param>
-		/// <param name="onData">expressInterest and data is the received Data object. NOTE: You must not change the interest object - if you need to change it then make a copy.</param>
+		/// <param name="onData">expressInterest and data is the received Data object. NOTE: You must not change the interest object - if you need to change it then make a copy. NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
 		/// <returns>The pending interest ID which can be used with
 		/// removePendingInterest.</returns>
 		/// <exception cref="IOException">For I/O error in sending the interest.</exception>
@@ -176,8 +176,8 @@ namespace net.named_data.jndn {
 		///
 		/// <param name="name">A Name for the interest. This copies the Name.</param>
 		/// <param name="interestTemplate"></param>
-		/// <param name="onData">expressInterest and data is the received Data object. NOTE: You must not change the interest object - if you need to change it then make a copy.</param>
-		/// <param name="onTimeout">interest given to expressInterest. If onTimeout is null, this does not use it.</param>
+		/// <param name="onData">expressInterest and data is the received Data object. NOTE: You must not change the interest object - if you need to change it then make a copy. NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
+		/// <param name="onTimeout">interest given to expressInterest. If onTimeout is null, this does not use it. NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
 		/// <param name="wireFormat">A WireFormat object used to encode the message.</param>
 		/// <returns>The pending interest ID which can be used with
 		/// removePendingInterest.</returns>
@@ -206,8 +206,8 @@ namespace net.named_data.jndn {
 		/// </summary>
 		///
 		/// <param name="name">A Name for the interest. This copies the Name.</param>
-		/// <param name="onData">expressInterest and data is the received Data object. NOTE: You must not change the interest object - if you need to change it then make a copy.</param>
-		/// <param name="onTimeout">interest given to expressInterest. If onTimeout is null, this does not use it.</param>
+		/// <param name="onData">expressInterest and data is the received Data object. NOTE: You must not change the interest object - if you need to change it then make a copy. NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
+		/// <param name="onTimeout">interest given to expressInterest. If onTimeout is null, this does not use it. NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
 		/// <param name="wireFormat">A WireFormat object used to encode the message.</param>
 		/// <returns>The pending interest ID which can be used with
 		/// removePendingInterest.</returns>
@@ -227,7 +227,7 @@ namespace net.named_data.jndn {
 		///
 		/// <param name="name">A Name for the interest. This copies the Name.</param>
 		/// <param name="interestTemplate"></param>
-		/// <param name="onData">expressInterest and data is the received Data object. NOTE: You must not change the interest object - if you need to change it then make a copy.</param>
+		/// <param name="onData">expressInterest and data is the received Data object. NOTE: You must not change the interest object - if you need to change it then make a copy. NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
 		/// <param name="wireFormat">A WireFormat object used to encode the message.</param>
 		/// <returns>The pending interest ID which can be used with
 		/// removePendingInterest.</returns>
@@ -247,8 +247,8 @@ namespace net.named_data.jndn {
 		///
 		/// <param name="name">A Name for the interest. This copies the Name.</param>
 		/// <param name="interestTemplate"></param>
-		/// <param name="onData">expressInterest and data is the received Data object. NOTE: You must not change the interest object - if you need to change it then make a copy.</param>
-		/// <param name="onTimeout">interest given to expressInterest. If onTimeout is null, this does not use it.</param>
+		/// <param name="onData">expressInterest and data is the received Data object. NOTE: You must not change the interest object - if you need to change it then make a copy. NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
+		/// <param name="onTimeout">interest given to expressInterest. If onTimeout is null, this does not use it. NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
 		/// <returns>The pending interest ID which can be used with
 		/// removePendingInterest.</returns>
 		/// <exception cref="IOException">For I/O error in sending the interest.</exception>
@@ -269,7 +269,7 @@ namespace net.named_data.jndn {
 		///
 		/// <param name="name">A Name for the interest. This copies the Name.</param>
 		/// <param name="interestTemplate"></param>
-		/// <param name="onData">expressInterest and data is the received Data object. NOTE: You must not change the interest object - if you need to change it then make a copy.</param>
+		/// <param name="onData">expressInterest and data is the received Data object. NOTE: You must not change the interest object - if you need to change it then make a copy. NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
 		/// <returns>The pending interest ID which can be used with
 		/// removePendingInterest.</returns>
 		/// <exception cref="IOException">For I/O error in sending the interest.</exception>
@@ -289,8 +289,8 @@ namespace net.named_data.jndn {
 		/// </summary>
 		///
 		/// <param name="name">A Name for the interest. This copies the Name.</param>
-		/// <param name="onData">expressInterest and data is the received Data object. NOTE: You must not change the interest object - if you need to change it then make a copy.</param>
-		/// <param name="onTimeout">interest given to expressInterest. If onTimeout is null, this does not use it.</param>
+		/// <param name="onData">expressInterest and data is the received Data object. NOTE: You must not change the interest object - if you need to change it then make a copy. NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
+		/// <param name="onTimeout">interest given to expressInterest. If onTimeout is null, this does not use it. NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
 		/// <returns>The pending interest ID which can be used with
 		/// removePendingInterest.</returns>
 		/// <exception cref="IOException">For I/O error in sending the interest.</exception>
@@ -309,7 +309,7 @@ namespace net.named_data.jndn {
 		/// </summary>
 		///
 		/// <param name="name">A Name for the interest. This copies the Name.</param>
-		/// <param name="onData">expressInterest and data is the received Data object. NOTE: You must not change the interest object - if you need to change it then make a copy.</param>
+		/// <param name="onData">expressInterest and data is the received Data object. NOTE: You must not change the interest object - if you need to change it then make a copy. NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
 		/// <param name="wireFormat">A WireFormat object used to encode the message.</param>
 		/// <returns>The pending interest ID which can be used with
 		/// removePendingInterest.</returns>
@@ -329,7 +329,7 @@ namespace net.named_data.jndn {
 		/// </summary>
 		///
 		/// <param name="name">A Name for the interest. This copies the Name.</param>
-		/// <param name="onData">expressInterest and data is the received Data object. NOTE: You must not change the interest object - if you need to change it then make a copy.</param>
+		/// <param name="onData">expressInterest and data is the received Data object. NOTE: You must not change the interest object - if you need to change it then make a copy. NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
 		/// <returns>The pending interest ID which can be used with
 		/// removePendingInterest.</returns>
 		/// <exception cref="IOException">For I/O error in sending the interest.</exception>
@@ -412,9 +412,9 @@ namespace net.named_data.jndn {
 		/// </summary>
 		///
 		/// <param name="prefix">A Name for the prefix to register. This copies the Name.</param>
-		/// <param name="onInterest">onInterest.onInterest(prefix, interest, face, interestFilterId, filter). The onInterest callback should supply the Data with face.putData(). NOTE: You must not change the prefix or filter objects - if you need to change them then make a copy. If onInterest is null, it is ignored and you must call setInterestFilter.</param>
-		/// <param name="onRegisterFailed"></param>
-		/// <param name="onRegisterSuccess">receives a success message from the forwarder. If onRegisterSuccess is null, this does not use it. (The onRegisterSuccess parameter comes after onRegisterFailed because it can be null or omitted, unlike onRegisterFailed.)</param>
+		/// <param name="onInterest">onInterest.onInterest(prefix, interest, face, interestFilterId, filter). The onInterest callback should supply the Data with face.putData(). NOTE: You must not change the prefix or filter objects - if you need to change them then make a copy. If onInterest is null, it is ignored and you must call setInterestFilter. NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
+		/// <param name="onRegisterFailed">NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
+		/// <param name="onRegisterSuccess">receives a success message from the forwarder. If onRegisterSuccess is null, this does not use it. (The onRegisterSuccess parameter comes after onRegisterFailed because it can be null or omitted, unlike onRegisterFailed.) NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
 		/// <param name="flags"></param>
 		/// <param name="wireFormat">A WireFormat object used to encode the message.</param>
 		/// <returns>The registered prefix ID which can be used with
@@ -450,9 +450,9 @@ namespace net.named_data.jndn {
 		/// </summary>
 		///
 		/// <param name="prefix">A Name for the prefix to register. This copies the Name.</param>
-		/// <param name="onInterest">onInterest.onInterest(prefix, interest, face, interestFilterId, filter). The onInterest callback should supply the Data with face.putData(). NOTE: You must not change the prefix or filter objects - if you need to change them then make a copy. If onInterest is null, it is ignored and you must call setInterestFilter.</param>
-		/// <param name="onRegisterFailed"></param>
-		/// <param name="onRegisterSuccess">receives a success message from the forwarder. If onRegisterSuccess is null, this does not use it. (The onRegisterSuccess parameter comes after onRegisterFailed because it can be null or omitted, unlike onRegisterFailed.)</param>
+		/// <param name="onInterest">onInterest.onInterest(prefix, interest, face, interestFilterId, filter). The onInterest callback should supply the Data with face.putData(). NOTE: You must not change the prefix or filter objects - if you need to change them then make a copy. If onInterest is null, it is ignored and you must call setInterestFilter. NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
+		/// <param name="onRegisterFailed">NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
+		/// <param name="onRegisterSuccess">receives a success message from the forwarder. If onRegisterSuccess is null, this does not use it. (The onRegisterSuccess parameter comes after onRegisterFailed because it can be null or omitted, unlike onRegisterFailed.) NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
 		/// <param name="flags"></param>
 		/// <returns>The registered prefix ID which can be used with
 		/// removeRegisteredPrefix.</returns>
@@ -478,9 +478,9 @@ namespace net.named_data.jndn {
 		/// </summary>
 		///
 		/// <param name="prefix">A Name for the prefix to register. This copies the Name.</param>
-		/// <param name="onInterest">onInterest.onInterest(prefix, interest, face, interestFilterId, filter). The onInterest callback should supply the Data with face.putData(). NOTE: You must not change the prefix or filter objects - if you need to change them then make a copy. If onInterest is null, it is ignored and you must call setInterestFilter.</param>
-		/// <param name="onRegisterFailed"></param>
-		/// <param name="onRegisterSuccess">receives a success message from the forwarder. If onRegisterSuccess is null, this does not use it. (The onRegisterSuccess parameter comes after onRegisterFailed because it can be null or omitted, unlike onRegisterFailed.)</param>
+		/// <param name="onInterest">onInterest.onInterest(prefix, interest, face, interestFilterId, filter). The onInterest callback should supply the Data with face.putData(). NOTE: You must not change the prefix or filter objects - if you need to change them then make a copy. If onInterest is null, it is ignored and you must call setInterestFilter. NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
+		/// <param name="onRegisterFailed">NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
+		/// <param name="onRegisterSuccess">receives a success message from the forwarder. If onRegisterSuccess is null, this does not use it. (The onRegisterSuccess parameter comes after onRegisterFailed because it can be null or omitted, unlike onRegisterFailed.) NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
 		/// <param name="wireFormat">A WireFormat object used to encode the message.</param>
 		/// <returns>The registered prefix ID which can be used with
 		/// removeRegisteredPrefix.</returns>
@@ -508,9 +508,9 @@ namespace net.named_data.jndn {
 		/// </summary>
 		///
 		/// <param name="prefix">A Name for the prefix to register. This copies the Name.</param>
-		/// <param name="onInterest">onInterest.onInterest(prefix, interest, face, interestFilterId, filter). The onInterest callback should supply the Data with face.putData(). NOTE: You must not change the prefix or filter objects - if you need to change them then make a copy. If onInterest is null, it is ignored and you must call setInterestFilter.</param>
-		/// <param name="onRegisterFailed"></param>
-		/// <param name="onRegisterSuccess">receives a success message from the forwarder. If onRegisterSuccess is null, this does not use it. (The onRegisterSuccess parameter comes after onRegisterFailed because it can be null or omitted, unlike onRegisterFailed.)</param>
+		/// <param name="onInterest">onInterest.onInterest(prefix, interest, face, interestFilterId, filter). The onInterest callback should supply the Data with face.putData(). NOTE: You must not change the prefix or filter objects - if you need to change them then make a copy. If onInterest is null, it is ignored and you must call setInterestFilter. NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
+		/// <param name="onRegisterFailed">NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
+		/// <param name="onRegisterSuccess">receives a success message from the forwarder. If onRegisterSuccess is null, this does not use it. (The onRegisterSuccess parameter comes after onRegisterFailed because it can be null or omitted, unlike onRegisterFailed.) NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
 		/// <returns>The registered prefix ID which can be used with
 		/// removeRegisteredPrefix.</returns>
 		/// <exception cref="IOException">For I/O error in sending the registration request.</exception>
@@ -538,8 +538,8 @@ namespace net.named_data.jndn {
 		/// </summary>
 		///
 		/// <param name="prefix">A Name for the prefix to register. This copies the Name.</param>
-		/// <param name="onInterest">onInterest.onInterest(prefix, interest, face, interestFilterId, filter). The onInterest callback should supply the Data with face.putData(). NOTE: You must not change the prefix or filter objects - if you need to change them then make a copy. If onInterest is null, it is ignored and you must call setInterestFilter.</param>
-		/// <param name="onRegisterFailed"></param>
+		/// <param name="onInterest">onInterest.onInterest(prefix, interest, face, interestFilterId, filter). The onInterest callback should supply the Data with face.putData(). NOTE: You must not change the prefix or filter objects - if you need to change them then make a copy. If onInterest is null, it is ignored and you must call setInterestFilter. NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
+		/// <param name="onRegisterFailed">NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
 		/// <param name="flags"></param>
 		/// <param name="wireFormat">A WireFormat object used to encode the message.</param>
 		/// <returns>The registered prefix ID which can be used with
@@ -561,8 +561,8 @@ namespace net.named_data.jndn {
 		/// </summary>
 		///
 		/// <param name="prefix">A Name for the prefix to register. This copies the Name.</param>
-		/// <param name="onInterest">onInterest.onInterest(prefix, interest, face, interestFilterId, filter). The onInterest callback should supply the Data with face.putData(). NOTE: You must not change the prefix or filter objects - if you need to change them then make a copy. If onInterest is null, it is ignored and you must call setInterestFilter.</param>
-		/// <param name="onRegisterFailed"></param>
+		/// <param name="onInterest">onInterest.onInterest(prefix, interest, face, interestFilterId, filter). The onInterest callback should supply the Data with face.putData(). NOTE: You must not change the prefix or filter objects - if you need to change them then make a copy. If onInterest is null, it is ignored and you must call setInterestFilter. NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
+		/// <param name="onRegisterFailed">NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
 		/// <param name="flags"></param>
 		/// <returns>The registered prefix ID which can be used with
 		/// removeRegisteredPrefix.</returns>
@@ -581,8 +581,8 @@ namespace net.named_data.jndn {
 		/// </summary>
 		///
 		/// <param name="prefix">A Name for the prefix to register. This copies the Name.</param>
-		/// <param name="onInterest">onInterest.onInterest(prefix, interest, face, interestFilterId, filter). The onInterest callback should supply the Data with face.putData(). NOTE: You must not change the prefix or filter objects - if you need to change them then make a copy. If onInterest is null, it is ignored and you must call setInterestFilter.</param>
-		/// <param name="onRegisterFailed"></param>
+		/// <param name="onInterest">onInterest.onInterest(prefix, interest, face, interestFilterId, filter). The onInterest callback should supply the Data with face.putData(). NOTE: You must not change the prefix or filter objects - if you need to change them then make a copy. If onInterest is null, it is ignored and you must call setInterestFilter. NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
+		/// <param name="onRegisterFailed">NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
 		/// <param name="wireFormat">A WireFormat object used to encode the message.</param>
 		/// <returns>The registered prefix ID which can be used with
 		/// removeRegisteredPrefix.</returns>
@@ -603,8 +603,8 @@ namespace net.named_data.jndn {
 		/// </summary>
 		///
 		/// <param name="prefix">A Name for the prefix to register. This copies the Name.</param>
-		/// <param name="onInterest">onInterest.onInterest(prefix, interest, face, interestFilterId, filter). The onInterest callback should supply the Data with face.putData(). NOTE: You must not change the prefix or filter objects - if you need to change them then make a copy. If onInterest is null, it is ignored and you must call setInterestFilter.</param>
-		/// <param name="onRegisterFailed"></param>
+		/// <param name="onInterest">onInterest.onInterest(prefix, interest, face, interestFilterId, filter). The onInterest callback should supply the Data with face.putData(). NOTE: You must not change the prefix or filter objects - if you need to change them then make a copy. If onInterest is null, it is ignored and you must call setInterestFilter. NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
+		/// <param name="onRegisterFailed">NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
 		/// <returns>The registered prefix ID which can be used with
 		/// removeRegisteredPrefix.</returns>
 		/// <exception cref="IOException">For I/O error in sending the registration request.</exception>
@@ -668,7 +668,7 @@ namespace net.named_data.jndn {
 		/// </summary>
 		///
 		/// <param name="filter"></param>
-		/// <param name="onInterest">onInterest.onInterest(prefix, interest, face, interestFilterId, filter).</param>
+		/// <param name="onInterest">onInterest.onInterest(prefix, interest, face, interestFilterId, filter). NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
 		/// <returns>The interest filter ID which can be used with unsetInterestFilter.</returns>
 		public long setInterestFilter(InterestFilter filter,
 				OnInterestCallback onInterest) {
@@ -688,7 +688,7 @@ namespace net.named_data.jndn {
 		/// </summary>
 		///
 		/// <param name="prefix"></param>
-		/// <param name="onInterest">onInterest.onInterest(prefix, interest, face, interestFilterId, filter).</param>
+		/// <param name="onInterest">onInterest.onInterest(prefix, interest, face, interestFilterId, filter). NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
 		/// <returns>The interest filter ID which can be used with unsetInterestFilter.</returns>
 		public long setInterestFilter(Name prefix, OnInterestCallback onInterest) {
 			return setInterestFilter(new InterestFilter(prefix), onInterest);

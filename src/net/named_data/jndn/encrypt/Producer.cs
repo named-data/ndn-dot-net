@@ -32,53 +32,57 @@ namespace net.named_data.jndn.encrypt {
 	///
 	/// @note This class is an experimental feature. The API may change.
 	public class Producer {
+		public sealed class Anonymous_C2 : net.named_data.jndn.encrypt.EncryptError.OnError  {
+			public void onError(net.named_data.jndn.encrypt.EncryptError.ErrorCode  errorCode, String message) {
+				// Do nothing.
+			}
+		}
+	
 		public sealed class Anonymous_C1 : OnData {
 				private readonly Producer outer_Producer;
 				private readonly Producer.OnEncryptedKeys  onEncryptedKeys;
-				private readonly Producer.KeyRequest  keyRequest;
+				private readonly net.named_data.jndn.encrypt.EncryptError.OnError  onError;
 				private readonly double timeSlot;
 		
 				public Anonymous_C1(Producer paramouter_Producer,
-						Producer.OnEncryptedKeys  onEncryptedKeys_0, Producer.KeyRequest  keyRequest_1,
+						Producer.OnEncryptedKeys  onEncryptedKeys_0, net.named_data.jndn.encrypt.EncryptError.OnError  onError_1,
 						double timeSlot_2) {
 					this.onEncryptedKeys = onEncryptedKeys_0;
-					this.keyRequest = keyRequest_1;
+					this.onError = onError_1;
 					this.timeSlot = timeSlot_2;
 					this.outer_Producer = paramouter_Producer;
 				}
 		
 				public void onData(Interest interest, Data data) {
 					try {
-						outer_Producer.handleCoveringKey(interest, data, timeSlot, keyRequest,
-								onEncryptedKeys);
+						outer_Producer.handleCoveringKey(interest, data, timeSlot,
+								onEncryptedKeys, onError);
 					} catch (Exception ex) {
-						ILOG.J2CsMapping.Util.Logging.Logger.getLogger(typeof(Producer).FullName).log(
-								ILOG.J2CsMapping.Util.Logging.Level.SEVERE, null, ex);
+						net.named_data.jndn.encrypt.Producer.logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, null, ex);
 					}
 				}
 			}
 	
 		public sealed class Anonymous_C0 : OnTimeout {
 				private readonly Producer outer_Producer;
-				private readonly double timeSlot;
 				private readonly Producer.OnEncryptedKeys  onEncryptedKeys;
-				private readonly Producer.KeyRequest  keyRequest;
+				private readonly net.named_data.jndn.encrypt.EncryptError.OnError  onError;
+				private readonly double timeSlot;
 		
-				public Anonymous_C0(Producer paramouter_Producer, double timeSlot_0,
-						Producer.OnEncryptedKeys  onEncryptedKeys_1, Producer.KeyRequest  keyRequest_2) {
-					this.timeSlot = timeSlot_0;
-					this.onEncryptedKeys = onEncryptedKeys_1;
-					this.keyRequest = keyRequest_2;
+				public Anonymous_C0(Producer paramouter_Producer,
+						Producer.OnEncryptedKeys  onEncryptedKeys_0, net.named_data.jndn.encrypt.EncryptError.OnError  onError_1,
+						double timeSlot_2) {
+					this.onEncryptedKeys = onEncryptedKeys_0;
+					this.onError = onError_1;
+					this.timeSlot = timeSlot_2;
 					this.outer_Producer = paramouter_Producer;
 				}
 		
 				public void onTimeout(Interest interest) {
 					try {
-						outer_Producer.handleTimeout(interest, timeSlot, keyRequest,
-								onEncryptedKeys);
+						outer_Producer.handleTimeout(interest, timeSlot, onEncryptedKeys, onError);
 					} catch (IOException ex) {
-						ILOG.J2CsMapping.Util.Logging.Logger.getLogger(typeof(Producer).FullName).log(
-								ILOG.J2CsMapping.Util.Logging.Level.SEVERE, null, ex);
+						net.named_data.jndn.encrypt.Producer.logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, null, ex);
 					}
 				}
 			}
@@ -91,7 +95,7 @@ namespace net.named_data.jndn.encrypt {
 		/// <summary>
 		/// Create a Producer to use the given ProducerDb, Face and other values.
 		/// A producer can produce data with a naming convention:
-		/// /&lt;prefix>/SAMPLE/&lt;dataType>/[timestamp]
+		/// /{prefix}/SAMPLE/{dataType}/[timestamp]
 		/// The produced data packet is encrypted with a content key,
 		/// which is stored in the ProducerDb database.
 		/// A producer also needs to produce data containing a content key
@@ -120,7 +124,7 @@ namespace net.named_data.jndn.encrypt {
 		/// <summary>
 		/// Create a Producer to use the given ProducerDb, Face and other values.
 		/// A producer can produce data with a naming convention:
-		/// /&lt;prefix>/SAMPLE/&lt;dataType>/[timestamp]
+		/// /{prefix}/SAMPLE/{dataType}/[timestamp]
 		/// The produced data packet is encrypted with a content key,
 		/// which is stored in the ProducerDb database.
 		/// A producer also needs to produce data containing a content key
@@ -168,18 +172,19 @@ namespace net.named_data.jndn.encrypt {
 		}
 	
 		/// <summary>
-		/// Create the content key. This first checks if the content key exists. For an
-		/// existing content key, this returns the content key name directly. If the
-		/// key does not exist, this creates one and encrypts it using the
-		/// corresponding E-KEYs. The encrypted content keys are passed to the
-		/// onEncryptedKeys callback.
+		/// Create the content key corresponding to the timeSlot. This first checks if
+		/// the content key exists. For an existing content key, this returns the
+		/// content key name directly. If the key does not exist, this creates one and
+		/// encrypts it using the corresponding E-KEYs. The encrypted content keys are
+		/// passed to the onEncryptedKeys callback.
 		/// </summary>
 		///
 		/// <param name="timeSlot_0">The time slot as milliseconds since Jan 1, 1970 UTC.</param>
-		/// <param name="onEncryptedKeys_1">content key Data packets. If onEncryptedKeys is null, this does not use it.</param>
+		/// <param name="onEncryptedKeys_1">content key Data packets. If onEncryptedKeys is null, this does not use it. NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
+		/// <param name="onError_2">better error handling the callback should catch and properly handle any exceptions.</param>
 		/// <returns>The content key name.</returns>
 		public Name createContentKey(double timeSlot_0,
-				Producer.OnEncryptedKeys  onEncryptedKeys_1) {
+				Producer.OnEncryptedKeys  onEncryptedKeys_1, net.named_data.jndn.encrypt.EncryptError.OnError  onError_2) {
 			double hourSlot = getRoundedTimeSlot(timeSlot_0);
 	
 			// Create the content key name.
@@ -188,42 +193,60 @@ namespace net.named_data.jndn.encrypt {
 			contentKeyName.append(net.named_data.jndn.encrypt.Schedule.toIsoString(hourSlot));
 	
 			Blob contentKeyBits;
-			if (database_.hasContentKey(timeSlot_0)) {
-				contentKeyBits = database_.getContentKey(timeSlot_0);
-				return contentKeyName;
-			}
 	
+			// Check if we have created the content key before.
+			if (database_.hasContentKey(timeSlot_0))
+				// We have created the content key. Return its name directly.
+				return contentKeyName;
+	
+			// We haven't created the content key. Create one and add it into the database.
 			AesKeyParams aesParams = new AesKeyParams(128);
 			contentKeyBits = net.named_data.jndn.encrypt.algo.AesAlgorithm.generateKey(aesParams).getKeyBits();
 			database_.addContentKey(timeSlot_0, contentKeyBits);
 	
-			double timeCount = timeSlot_0;
+			// Now we need to retrieve the E-KEYs for content key encryption.
+			double timeCount = Math.Round(timeSlot_0,MidpointRounding.AwayFromZero);
 			ILOG.J2CsMapping.Collections.Collections.Put(keyRequests_,timeCount,new Producer.KeyRequest (eKeyInfo_.Count));
-			Producer.KeyRequest  keyRequest_2 = (Producer.KeyRequest ) ILOG.J2CsMapping.Collections.Collections.Get(keyRequests_,timeCount);
+			Producer.KeyRequest  keyRequest = (Producer.KeyRequest ) ILOG.J2CsMapping.Collections.Collections.Get(keyRequests_,timeCount);
 	
+			// Check if the current E-KEYs can cover the content key.
 			Exclude timeRange = new Exclude();
 			excludeAfter(timeRange,
 					new Name.Component(net.named_data.jndn.encrypt.Schedule.toIsoString(timeSlot_0)));
-			// Send interests for all nodes in the tree.
 			new ILOG.J2CsMapping.Collections.IteratorAdapter(eKeyInfo_.GetEnumerator());
 			for (IIterator i = new ILOG.J2CsMapping.Collections.IteratorAdapter(eKeyInfo_.GetEnumerator()); i.HasNext();) {
+				// For each current E-KEY.
 				DictionaryEntry entry = (DictionaryEntry) i.Next();
 				Producer.KeyInfo  keyInfo = (Producer.KeyInfo ) ((DictionaryEntry) entry).Value;
-				ILOG.J2CsMapping.Collections.Collections.Put(keyRequest_2.repeatAttempts,((DictionaryEntry) entry).Key,0);
 				if (timeSlot_0 < keyInfo.beginTimeSlot
 						|| timeSlot_0 >= keyInfo.endTimeSlot) {
-					sendKeyInterest((Name) ((DictionaryEntry) entry).Key, timeSlot_0, keyRequest_2,
-							onEncryptedKeys_1, timeRange);
+					// The current E-KEY cannot cover the content key, so retrieve one.
+					ILOG.J2CsMapping.Collections.Collections.Put(keyRequest.repeatAttempts,((DictionaryEntry) entry).Key,0);
+					sendKeyInterest(
+							new Interest((Name) ((DictionaryEntry) entry).Key).setExclude(
+									timeRange).setChildSelector(1), timeSlot_0,
+							onEncryptedKeys_1, onError_2);
 				} else {
+					// The current E-KEY can cover the content key.
+					// Encrypt the content key directly.
 					Name eKeyName = new Name((Name) ((DictionaryEntry) entry).Key);
 					eKeyName.append(net.named_data.jndn.encrypt.Schedule.toIsoString(keyInfo.beginTimeSlot));
 					eKeyName.append(net.named_data.jndn.encrypt.Schedule.toIsoString(keyInfo.endTimeSlot));
-					encryptContentKey(keyRequest_2, keyInfo.keyBits, eKeyName,
-							timeSlot_0, onEncryptedKeys_1);
+					encryptContentKey(keyInfo.keyBits, eKeyName, timeSlot_0,
+							onEncryptedKeys_1, onError_2);
 				}
 			}
 	
 			return contentKeyName;
+		}
+	
+		/// <summary>
+		/// Call the main createContentKey method where onError is defaultOnError.
+		/// </summary>
+		///
+		public Name createContentKey(double timeSlot_0,
+				Producer.OnEncryptedKeys  onEncryptedKeys_1) {
+			return createContentKey(timeSlot_0, onEncryptedKeys_1, defaultOnError);
 		}
 	
 		/// <summary>
@@ -235,12 +258,17 @@ namespace net.named_data.jndn.encrypt {
 		/// <param name="data">An empty Data object which is updated.</param>
 		/// <param name="timeSlot_0">The time slot as milliseconds since Jan 1, 1970 UTC.</param>
 		/// <param name="content">The content to encrypt.</param>
-		public void produce(Data data, double timeSlot_0, Blob content) {
-			Name contentKeyName = new Name(createContentKey(timeSlot_0, null));
+		/// <param name="onError_1">better error handling the callback should catch and properly handle any exceptions.</param>
+		public void produce(Data data, double timeSlot_0, Blob content,
+				net.named_data.jndn.encrypt.EncryptError.OnError  onError_1) {
+			// Get a content key.
+			Name contentKeyName = new Name(
+					createContentKey(timeSlot_0, null, onError_1));
 			Blob contentKey = database_.getContentKey(timeSlot_0);
 	
+			// Produce data.
 			Name dataName = new Name(namespace_);
-			dataName.append(net.named_data.jndn.encrypt.Schedule.toIsoString(getRoundedTimeSlot(timeSlot_0)));
+			dataName.append(net.named_data.jndn.encrypt.Schedule.toIsoString(timeSlot_0));
 	
 			data.setName(dataName);
 			EncryptParams paras = new EncryptParams(net.named_data.jndn.encrypt.algo.EncryptAlgorithmType.AesCbc,
@@ -250,13 +278,27 @@ namespace net.named_data.jndn.encrypt {
 			keyChain_.sign(data);
 		}
 	
+		/// <summary>
+		/// Call the main produce method where onError is defaultOnError.
+		/// </summary>
+		///
+		public void produce(Data data, double timeSlot_0, Blob content) {
+			produce(data, timeSlot_0, content, defaultOnError);
+		}
+	
+		/// <summary>
+		/// The default OnError callback which does nothing.
+		/// </summary>
+		///
+		public static readonly net.named_data.jndn.encrypt.EncryptError.OnError  defaultOnError = new Producer.Anonymous_C2 ();
+	
 		private class KeyInfo {
 			public double beginTimeSlot;
 			public double endTimeSlot;
 			public Blob keyBits;
 		}
 	
-		internal class KeyRequest {
+		private class KeyRequest {
 			public KeyRequest(int interests) {
 				this.repeatAttempts = new Hashtable();
 				this.encryptedKeys = new ArrayList();
@@ -288,48 +330,60 @@ namespace net.named_data.jndn.encrypt {
 		/// handleCoveringKey and handleTimeout.
 		/// </summary>
 		///
-		/// <param name="name">The name of the interest to send.</param>
+		/// <param name="interest">The interest to send.</param>
 		/// <param name="timeSlot_0"></param>
-		/// <param name="keyRequest_1"></param>
-		/// <param name="onEncryptedKeys_2"></param>
-		/// <param name="timeRange">The Exclude for the interest.</param>
-		private void sendKeyInterest(Name name, double timeSlot_0,
-				Producer.KeyRequest  keyRequest_1, Producer.OnEncryptedKeys  onEncryptedKeys_2,
-				Exclude timeRange) {
-			OnData onKey = new Producer.Anonymous_C1 (this, onEncryptedKeys_2, keyRequest_1, timeSlot_0);
+		/// <param name="onEncryptedKeys_1"></param>
+		private void sendKeyInterest(Interest interest, double timeSlot_0,
+				Producer.OnEncryptedKeys  onEncryptedKeys_1, net.named_data.jndn.encrypt.EncryptError.OnError  onError_2) {
+			OnData onKey = new Producer.Anonymous_C1 (this, onEncryptedKeys_1, onError_2, timeSlot_0);
 	
-			OnTimeout onTimeout = new Producer.Anonymous_C0 (this, timeSlot_0, onEncryptedKeys_2, keyRequest_1);
+			OnTimeout onTimeout = new Producer.Anonymous_C0 (this, onEncryptedKeys_1, onError_2, timeSlot_0);
 	
-			Interest keyInterest = new Interest(name);
-			keyInterest.setExclude(timeRange);
-			keyInterest.setChildSelector(1);
-	
-			face_.expressInterest(keyInterest, onKey, onTimeout);
+			face_.expressInterest(interest, onKey, onTimeout);
 		}
 	
 		/// <summary>
 		/// This is called from an expressInterest timeout to update the state of
-		/// keyRequest.
+		/// keyRequest. Re-express the interest if the number of retrials is less than
+		/// the max limit.
 		/// </summary>
 		///
 		/// <param name="interest">The timed-out interest.</param>
 		/// <param name="timeSlot_0">The time slot as milliseconds since Jan 1, 1970 UTC.</param>
-		/// <param name="keyRequest_1">The KeyRequest which is updated.</param>
-		/// <param name="onEncryptedKeys_2">encrypted content key Data packets. If onEncryptedKeys is null, this does not use it.</param>
+		/// <param name="onEncryptedKeys_1">encrypted content key Data packets. If onEncryptedKeys is null, this does not use it.</param>
 		internal void handleTimeout(Interest interest, double timeSlot_0,
-				Producer.KeyRequest  keyRequest_1, Producer.OnEncryptedKeys  onEncryptedKeys_2) {
+				Producer.OnEncryptedKeys  onEncryptedKeys_1, net.named_data.jndn.encrypt.EncryptError.OnError  onError_2) {
+			double timeCount = Math.Round(timeSlot_0,MidpointRounding.AwayFromZero);
+			Producer.KeyRequest  keyRequest = (Producer.KeyRequest ) ILOG.J2CsMapping.Collections.Collections.Get(keyRequests_,timeCount);
+	
 			Name interestName = interest.getName();
-	
-			if ((int) (Int32) ILOG.J2CsMapping.Collections.Collections.Get(keyRequest_1.repeatAttempts,interestName) < maxRepeatAttempts_) {
-				ILOG.J2CsMapping.Collections.Collections.Put(keyRequest_1.repeatAttempts,interestName,(int) (Int32) ILOG.J2CsMapping.Collections.Collections.Get(keyRequest_1.repeatAttempts,interestName) + 1);
-				sendKeyInterest(interestName, timeSlot_0, keyRequest_1,
-						onEncryptedKeys_2, interest.getExclude());
+			if ((int) (Int32) ILOG.J2CsMapping.Collections.Collections.Get(keyRequest.repeatAttempts,interestName) < maxRepeatAttempts_) {
+				// Increase the retrial count.
+				ILOG.J2CsMapping.Collections.Collections.Put(keyRequest.repeatAttempts,interestName,(int) (Int32) ILOG.J2CsMapping.Collections.Collections.Get(keyRequest.repeatAttempts,interestName) + 1);
+				sendKeyInterest(interest, timeSlot_0, onEncryptedKeys_1, onError_2);
 			} else
-				--keyRequest_1.interestCount;
+				// No more retrials.
+				updateKeyRequest(keyRequest, timeCount, onEncryptedKeys_1);
+		}
 	
-			if (keyRequest_1.interestCount == 0 && onEncryptedKeys_2 != null) {
-				onEncryptedKeys_2.onEncryptedKeys(keyRequest_1.encryptedKeys);
-				ILOG.J2CsMapping.Collections.Collections.Remove(keyRequests_,timeSlot_0);
+		/// <summary>
+		/// Decrease the count of outstanding E-KEY interests for the C-KEY for
+		/// timeCount. If the count decreases to 0, invoke onEncryptedKeys.
+		/// </summary>
+		///
+		/// <param name="keyRequest">The KeyRequest with the interestCount to update.</param>
+		/// <param name="timeCount">The time count for indexing keyRequests_.</param>
+		/// <param name="onEncryptedKeys_0">encrypted content key Data packets. If onEncryptedKeys is null, this does not use it.</param>
+		private void updateKeyRequest(Producer.KeyRequest  keyRequest, double timeCount,
+				Producer.OnEncryptedKeys  onEncryptedKeys_0) {
+			--keyRequest.interestCount;
+			if (keyRequest.interestCount == 0 && onEncryptedKeys_0 != null) {
+				try {
+					onEncryptedKeys_0.onEncryptedKeys(keyRequest.encryptedKeys);
+				} catch (Exception exception) {
+					logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in onEncryptedKeys", exception);
+				}
+				ILOG.J2CsMapping.Collections.Collections.Remove(keyRequests_,timeCount);
 			}
 		}
 	
@@ -342,36 +396,41 @@ namespace net.named_data.jndn.encrypt {
 		/// <param name="interest">The interest given to expressInterest.</param>
 		/// <param name="data">The fetched Data packet.</param>
 		/// <param name="timeSlot_0">The time slot as milliseconds since Jan 1, 1970 UTC.</param>
-		/// <param name="keyRequest_1">The KeyRequest which is updated.</param>
-		/// <param name="onEncryptedKeys_2">encrypted content key Data packets. If onEncryptedKeys is null, this does not use it.</param>
+		/// <param name="onEncryptedKeys_1">encrypted content key Data packets. If onEncryptedKeys is null, this does not use it.</param>
 		internal void handleCoveringKey(Interest interest, Data data,
-				double timeSlot_0, Producer.KeyRequest  keyRequest_1,
-				Producer.OnEncryptedKeys  onEncryptedKeys_2) {
+				double timeSlot_0, Producer.OnEncryptedKeys  onEncryptedKeys_1, net.named_data.jndn.encrypt.EncryptError.OnError  onError_2) {
+			double timeCount = Math.Round(timeSlot_0,MidpointRounding.AwayFromZero);
+			Producer.KeyRequest  keyRequest = (Producer.KeyRequest ) ILOG.J2CsMapping.Collections.Collections.Get(keyRequests_,timeCount);
+	
 			Name interestName = interest.getName();
 			Name keyName = data.getName();
 	
-			double begin = net.named_data.jndn.encrypt.Schedule.fromIsoString(keyName.get(iStartTimeStamp)
-					.getValue().toString());
-			double end = net.named_data.jndn.encrypt.Schedule.fromIsoString(keyName.get(iEndTimeStamp)
+			double begin = net.named_data.jndn.encrypt.Schedule.fromIsoString(keyName
+					.get(START_TIME_STAMP_INDEX).getValue().toString());
+			double end = net.named_data.jndn.encrypt.Schedule.fromIsoString(keyName.get(END_TIME_STAMP_INDEX)
 					.getValue().toString());
 	
 			if (timeSlot_0 >= end) {
+				// If the received E-KEY covers some earlier period, try to retrieve an
+				// E-KEY covering a later one.
 				Exclude timeRange = new Exclude(interest.getExclude());
-				excludeBefore(timeRange, keyName.get(iStartTimeStamp));
-				ILOG.J2CsMapping.Collections.Collections.Put(keyRequest_1.repeatAttempts,interestName,0);
-				sendKeyInterest(interestName, timeSlot_0, keyRequest_1,
-						onEncryptedKeys_2, timeRange);
-				return;
+				excludeBefore(timeRange, keyName.get(START_TIME_STAMP_INDEX));
+				ILOG.J2CsMapping.Collections.Collections.Put(keyRequest.repeatAttempts,interestName,0);
+	
+				sendKeyInterest(new Interest(interestName).setExclude(timeRange)
+						.setChildSelector(1), timeSlot_0, onEncryptedKeys_1, onError_2);
+			} else {
+				// If the received E-KEY covers the content key, encrypt the content.
+				Blob encryptionKey = data.getContent();
+				// If everything is correct, save the E-KEY as the current key.
+				if (encryptContentKey(encryptionKey, keyName, timeSlot_0,
+						onEncryptedKeys_1, onError_2)) {
+					Producer.KeyInfo  keyInfo = (Producer.KeyInfo ) ILOG.J2CsMapping.Collections.Collections.Get(eKeyInfo_,interestName);
+					keyInfo.beginTimeSlot = begin;
+					keyInfo.endTimeSlot = end;
+					keyInfo.keyBits = encryptionKey;
+				}
 			}
-	
-			Blob encryptionKey = data.getContent();
-			Producer.KeyInfo  keyInfo = (Producer.KeyInfo ) ILOG.J2CsMapping.Collections.Collections.Get(eKeyInfo_,interestName);
-			keyInfo.beginTimeSlot = begin;
-			keyInfo.endTimeSlot = end;
-			keyInfo.keyBits = encryptionKey;
-	
-			encryptContentKey(keyRequest_1, encryptionKey, keyName, timeSlot_0,
-					onEncryptedKeys_2);
 		}
 	
 		/// <summary>
@@ -379,18 +438,21 @@ namespace net.named_data.jndn.encrypt {
 		/// using encryptionKey.
 		/// </summary>
 		///
-		/// <param name="keyRequest_0">The KeyRequest which is updated.</param>
 		/// <param name="encryptionKey">The encryption key value.</param>
 		/// <param name="eKeyName">The key name for the EncryptedContent.</param>
-		/// <param name="timeSlot_1">The time slot as milliseconds since Jan 1, 1970 UTC.</param>
-		/// <param name="onEncryptedKeys_2">encrypted content key Data packets. If onEncryptedKeys is null, this does not use it.</param>
-		private void encryptContentKey(Producer.KeyRequest  keyRequest_0, Blob encryptionKey,
-				Name eKeyName, double timeSlot_1, Producer.OnEncryptedKeys  onEncryptedKeys_2) {
+		/// <param name="timeSlot_0">The time slot as milliseconds since Jan 1, 1970 UTC.</param>
+		/// <param name="onEncryptedKeys_1">encrypted content key Data packets. If onEncryptedKeys is null, this does not use it.</param>
+		/// <returns>True if encryption succeeds, otherwise false.</returns>
+		private bool encryptContentKey(Blob encryptionKey, Name eKeyName,
+				double timeSlot_0, Producer.OnEncryptedKeys  onEncryptedKeys_1, net.named_data.jndn.encrypt.EncryptError.OnError  onError_2) {
+			double timeCount = Math.Round(timeSlot_0,MidpointRounding.AwayFromZero);
+			Producer.KeyRequest  keyRequest = (Producer.KeyRequest ) ILOG.J2CsMapping.Collections.Collections.Get(keyRequests_,timeCount);
+	
 			Name keyName = new Name(namespace_);
 			keyName.append(net.named_data.jndn.encrypt.algo.Encryptor.NAME_COMPONENT_C_KEY);
-			keyName.append(net.named_data.jndn.encrypt.Schedule.toIsoString(getRoundedTimeSlot(timeSlot_1)));
+			keyName.append(net.named_data.jndn.encrypt.Schedule.toIsoString(getRoundedTimeSlot(timeSlot_0)));
 	
-			Blob contentKey = database_.getContentKey(timeSlot_1);
+			Blob contentKey = database_.getContentKey(timeSlot_0);
 	
 			Data cKeyData = new Data();
 			cKeyData.setName(keyName);
@@ -399,20 +461,18 @@ namespace net.named_data.jndn.encrypt {
 				net.named_data.jndn.encrypt.algo.Encryptor.encryptData(cKeyData, contentKey, eKeyName,
 						encryptionKey, paras);
 			} catch (Exception ex) {
-				// Consolidate errors such as InvalidKeyException.
-				throw new SecurityException(
-						"encryptContentKey: Error in encryptData: "
-								+ ex.Message);
+				try {
+					onError_2.onError(net.named_data.jndn.encrypt.EncryptError.ErrorCode.EncryptionFailure, ex.Message);
+				} catch (Exception exception) {
+					logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in onError", exception);
+				}
+				return false;
 			}
 	
 			keyChain_.sign(cKeyData);
-			ILOG.J2CsMapping.Collections.Collections.Add(keyRequest_0.encryptedKeys,cKeyData);
-	
-			--keyRequest_0.interestCount;
-			if (keyRequest_0.interestCount == 0 && onEncryptedKeys_2 != null) {
-				onEncryptedKeys_2.onEncryptedKeys(keyRequest_0.encryptedKeys);
-				ILOG.J2CsMapping.Collections.Collections.Remove(keyRequests_,timeSlot_1);
-			}
+			ILOG.J2CsMapping.Collections.Collections.Add(keyRequest.encryptedKeys,cKeyData);
+			updateKeyRequest(keyRequest, timeCount, onEncryptedKeys_1);
+			return true;
 		}
 	
 		// TODO: Move this to be the main representation inside the Exclude object.
@@ -642,8 +702,9 @@ namespace net.named_data.jndn.encrypt {
 		///
 		private readonly ProducerDb database_;
 		private readonly int maxRepeatAttempts_;
+		static internal readonly Logger logger_ = ILOG.J2CsMapping.Util.Logging.Logger.getLogger(typeof(Producer).FullName);
 	
-		private const int iStartTimeStamp = -2;
-		private const int iEndTimeStamp = -1;
+		private const int START_TIME_STAMP_INDEX = -2;
+		private const int END_TIME_STAMP_INDEX = -1;
 	}
 }

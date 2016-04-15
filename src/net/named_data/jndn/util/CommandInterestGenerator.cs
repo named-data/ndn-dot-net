@@ -70,7 +70,7 @@ namespace net.named_data.jndn.util {
 			//   so we don't need to call the nonNegativeInteger encoder.
 			ByteBuffer randomBuffer = ILOG.J2CsMapping.NIO.ByteBuffer.allocate(8);
 			// Note: SecureRandom is thread safe.
-			random_.nextBytes(randomBuffer.array());
+			net.named_data.jndn.util.Common.getRandom().nextBytes(randomBuffer.array());
 			interest.getName().append(new Blob(randomBuffer, false));
 	
 			keyChain.sign(interest, certificateName, wireFormat);
@@ -100,6 +100,5 @@ namespace net.named_data.jndn.util {
 	
 		private double lastTimestamp_;
 		private readonly Object lastTimestampLock_;
-		private static readonly SecureRandom random_ = new SecureRandom();
 	}
 }

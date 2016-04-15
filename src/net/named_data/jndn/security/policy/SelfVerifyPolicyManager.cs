@@ -100,16 +100,25 @@ namespace net.named_data.jndn.security.policy {
 		///
 		/// <param name="data">The Data object with the signature to check.</param>
 		/// <param name="stepCount"></param>
-		/// <param name="onVerified">If the signature is verified, this calls onVerified(data).</param>
-		/// <param name="onVerifyFailed"></param>
+		/// <param name="onVerified">better error handling the callback should catch and properly handle any exceptions.</param>
+		/// <param name="onVerifyFailed">NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
 		/// <returns>null for no further step for looking up a certificate chain.</returns>
 		public override ValidationRequest checkVerificationPolicy(Data data, int stepCount,
 				OnVerified onVerified, OnVerifyFailed onVerifyFailed) {
 			// wireEncode returns the cached encoding if available.
-			if (verify(data.getSignature(), data.wireEncode()))
-				onVerified.onVerified(data);
-			else
-				onVerifyFailed.onVerifyFailed(data);
+			if (verify(data.getSignature(), data.wireEncode())) {
+				try {
+					onVerified.onVerified(data);
+				} catch (Exception ex) {
+					logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in onVerified", ex);
+				}
+			} else {
+				try {
+					onVerifyFailed.onVerifyFailed(data);
+				} catch (Exception ex_0) {
+					logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in onVerifyFailed", ex_0);
+				}
+			}
 	
 			// No more steps, so return a null ValidationRequest.
 			return null;
@@ -124,8 +133,8 @@ namespace net.named_data.jndn.security.policy {
 		///
 		/// <param name="interest">The interest with the signature to check.</param>
 		/// <param name="stepCount"></param>
-		/// <param name="onVerified"></param>
-		/// <param name="onVerifyFailed"></param>
+		/// <param name="onVerified">NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
+		/// <param name="onVerifyFailed">NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
 		/// <returns>null for no further step for looking up a certificate chain.</returns>
 		public override ValidationRequest checkVerificationPolicy(Interest interest,
 				int stepCount, OnVerifiedInterest onVerified,
@@ -137,19 +146,33 @@ namespace net.named_data.jndn.security.policy {
 						.getName().get(-2).getValue().buf(), interest.getName()
 						.get(-1).getValue().buf());
 			} catch (EncodingException ex) {
-				ILOG.J2CsMapping.Util.Logging.Logger.getLogger(typeof(SelfVerifyPolicyManager).FullName)
-						.log(ILOG.J2CsMapping.Util.Logging.Level.INFO,
-								"Cannot decode the signed interest SignatureInfo and value",
-								ex);
-				onVerifyFailed.onVerifyInterestFailed(interest);
+				logger_.log(
+						ILOG.J2CsMapping.Util.Logging.Level.INFO,
+						"Cannot decode the signed interest SignatureInfo and value",
+						ex);
+				try {
+					onVerifyFailed.onVerifyInterestFailed(interest);
+				} catch (Exception exception) {
+					logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in onVerifyInterestFailed",
+							exception);
+				}
 				return null;
 			}
 	
 			// wireEncode returns the cached encoding if available.
-			if (verify(signature, interest.wireEncode(wireFormat)))
-				onVerified.onVerifiedInterest(interest);
-			else
-				onVerifyFailed.onVerifyInterestFailed(interest);
+			if (verify(signature, interest.wireEncode(wireFormat))) {
+				try {
+					onVerified.onVerifiedInterest(interest);
+				} catch (Exception ex_0) {
+					logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in onVerifiedInterest", ex_0);
+				}
+			} else {
+				try {
+					onVerifyFailed.onVerifyInterestFailed(interest);
+				} catch (Exception ex_1) {
+					logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in onVerifyInterestFailed", ex_1);
+				}
+			}
 	
 			// No more steps, so return a null ValidationRequest.
 			return null;
@@ -212,15 +235,24 @@ namespace net.named_data.jndn.security.policy {
 		/// <returns>The public key DER or an empty Blob if not found.</returns>
 		private Blob getPublicKeyDer(KeyLocator keyLocator) {
 			if (keyLocator.getType() == net.named_data.jndn.KeyLocatorType.KEYNAME
-					&& identityStorage_ != null)
-				// Assume the key name is a certificate name.
-				return identityStorage_.getKey(net.named_data.jndn.security.certificate.IdentityCertificate
-						.certificateNameToPublicKeyName(keyLocator.getKeyName()));
-			else
+					&& identityStorage_ != null) {
+				try {
+					// Assume the key name is a certificate name.
+					return identityStorage_
+							.getKey(net.named_data.jndn.security.certificate.IdentityCertificate
+									.certificateNameToPublicKeyName(keyLocator
+											.getKeyName()));
+				} catch (SecurityException ex) {
+					// The storage doesn't have the key.
+					return new Blob();
+				}
+			} else
 				// Can't find a key to verify.
 				return new Blob();
 		}
 	
 		private readonly IdentityStorage identityStorage_;
+		private static readonly Logger logger_ = ILOG.J2CsMapping.Util.Logging.Logger
+				.getLogger(typeof(SelfVerifyPolicyManager).FullName);
 	}
 }

@@ -380,40 +380,13 @@ namespace net.named_data.jndn.security {
 		/// </summary>
 		///
 		/// <param name="certificateName">The name of the requested certificate.</param>
-		/// <returns>The requested certificate which is valid.</returns>
+		/// <returns>The requested certificate.</returns>
 		public IdentityCertificate getCertificate(Name certificateName) {
 			return identityManager_.getCertificate(certificateName);
 		}
 	
-		/// <summary>
-		/// Get a certificate even if the certificate is not valid anymore.
-		/// </summary>
-		///
-		/// <param name="certificateName">The name of the requested certificate.</param>
-		/// <returns>The requested certificate.</returns>
-		public IdentityCertificate getAnyCertificate(Name certificateName) {
-			return identityManager_.getAnyCertificate(certificateName);
-		}
-	
-		/// <summary>
-		/// Get an identity certificate with the specified name.
-		/// </summary>
-		///
-		/// <param name="certificateName">The name of the requested certificate.</param>
-		/// <returns>The requested certificate which is valid.</returns>
 		public IdentityCertificate getIdentityCertificate(Name certificateName) {
 			return identityManager_.getCertificate(certificateName);
-		}
-	
-		/// <summary>
-		/// Get an identity certificate even if the certificate is not valid anymore.
-		/// </summary>
-		///
-		/// <param name="certificateName">The name of the requested certificate.</param>
-		/// <returns>The requested certificate.</returns>
-		public IdentityCertificate getAnyIdentityCertificate(
-				Name certificateName) {
-			return identityManager_.getAnyCertificate(certificateName);
 		}
 	
 		/// <summary>
@@ -686,13 +659,27 @@ namespace net.named_data.jndn.security {
 						face_.expressInterest(nextStep.interest_, callbacks,
 								callbacks);
 					} catch (IOException ex) {
-						onVerifyFailed.onVerifyFailed(data);
+						try {
+							onVerifyFailed.onVerifyFailed(data);
+						} catch (Exception exception) {
+							logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in onVerifyFailed",
+									exception);
+						}
 					}
 				}
-			} else if (policyManager_.skipVerifyAndTrust(data))
-				onVerified.onVerified(data);
-			else
-				onVerifyFailed.onVerifyFailed(data);
+			} else if (policyManager_.skipVerifyAndTrust(data)) {
+				try {
+					onVerified.onVerified(data);
+				} catch (Exception ex_0) {
+					logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in onVerified", ex_0);
+				}
+			} else {
+				try {
+					onVerifyFailed.onVerifyFailed(data);
+				} catch (Exception ex_1) {
+					logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in onVerifyFailed", ex_1);
+				}
+			}
 		}
 	
 		/// <summary>
@@ -703,8 +690,8 @@ namespace net.named_data.jndn.security {
 		/// </summary>
 		///
 		/// <param name="data">To set the wireEncoding, you can call data.wireDecode.</param>
-		/// <param name="onVerified"></param>
-		/// <param name="onVerifyFailed"></param>
+		/// <param name="onVerified">NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
+		/// <param name="onVerifyFailed">NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
 		public void verifyData(Data data, OnVerified onVerified,
 				OnVerifyFailed onVerifyFailed) {
 			verifyData(data, onVerified, onVerifyFailed, 0);
@@ -727,13 +714,27 @@ namespace net.named_data.jndn.security {
 						face_.expressInterest(nextStep.interest_, callbacks,
 								callbacks);
 					} catch (IOException ex) {
-						onVerifyFailed.onVerifyInterestFailed(interest);
+						try {
+							onVerifyFailed.onVerifyInterestFailed(interest);
+						} catch (Exception exception) {
+							logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE,
+									"Error in onVerifyInterestFailed", exception);
+						}
 					}
 				}
-			} else if (policyManager_.skipVerifyAndTrust(interest))
-				onVerified.onVerifiedInterest(interest);
-			else
-				onVerifyFailed.onVerifyInterestFailed(interest);
+			} else if (policyManager_.skipVerifyAndTrust(interest)) {
+				try {
+					onVerified.onVerifiedInterest(interest);
+				} catch (Exception ex_0) {
+					logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in onVerifiedInterest", ex_0);
+				}
+			} else {
+				try {
+					onVerifyFailed.onVerifyInterestFailed(interest);
+				} catch (Exception ex_1) {
+					logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in onVerifyInterestFailed", ex_1);
+				}
+			}
 		}
 	
 		/// <summary>
@@ -744,8 +745,8 @@ namespace net.named_data.jndn.security {
 		/// </summary>
 		///
 		/// <param name="interest">The interest with the signature to check.</param>
-		/// <param name="onVerified"></param>
-		/// <param name="onVerifyFailed"></param>
+		/// <param name="onVerified">NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
+		/// <param name="onVerifyFailed">NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
 		public void verifyInterest(Interest interest,
 				OnVerifiedInterest onVerified, OnVerifyInterestFailed onVerifyFailed) {
 			verifyInterest(interest, onVerified, onVerifyFailed, 0);
@@ -758,6 +759,73 @@ namespace net.named_data.jndn.security {
 		/// <param name="face">The Face object.</param>
 		public void setFace(Face face) {
 			face_ = face;
+		}
+	
+		/// <summary>
+		/// Wire encode the data packet, compute an HmacWithSha256 and update the
+		/// signature value.
+		/// </summary>
+		///
+		/// @note This method is an experimental feature. The API may change.
+		/// <param name="data">The Data object to be signed. This updates its signature.</param>
+		/// <param name="key">The key for the HmacWithSha256.</param>
+		/// <param name="wireFormat">A WireFormat object used to encode the data packet.</param>
+		public static void signWithHmacWithSha256(Data data, Blob key,
+				WireFormat wireFormat) {
+			// Encode once to get the signed portion.
+			SignedBlob encoding = data.wireEncode(wireFormat);
+			byte[] signatureBytes = net.named_data.jndn.util.Common.computeHmacWithSha256(
+					key.getImmutableArray(), encoding.signedBuf());
+			data.getSignature().setSignature(new Blob(signatureBytes, false));
+		}
+	
+		/// <summary>
+		/// Wire encode the data packet, compute an HmacWithSha256 and update the
+		/// signature value.
+		/// Use the default WireFormat.getDefaultWireFormat().
+		/// </summary>
+		///
+		/// @note This method is an experimental feature. The API may change.
+		/// <param name="data">The Data object to be signed. This updates its signature.</param>
+		/// <param name="key">The key for the HmacWithSha256.</param>
+		public static void signWithHmacWithSha256(Data data, Blob key) {
+			signWithHmacWithSha256(data, key, net.named_data.jndn.encoding.WireFormat.getDefaultWireFormat());
+		}
+	
+		/// <summary>
+		/// Compute a new HmacWithSha256 for the data packet and verify it against the
+		/// signature value.
+		/// </summary>
+		///
+		/// @note This method is an experimental feature. The API may change.
+		/// <param name="data">The Data packet to verify.</param>
+		/// <param name="key">The key for the HmacWithSha256.</param>
+		/// <param name="wireFormat">A WireFormat object used to encode the data packet.</param>
+		/// <returns>True if the signature verifies, otherwise false.</returns>
+		public static bool verifyDataWithHmacWithSha256(Data data, Blob key,
+				WireFormat wireFormat) {
+			// wireEncode returns the cached encoding if available.
+			SignedBlob encoding = data.wireEncode(wireFormat);
+			byte[] newSignatureBytes = net.named_data.jndn.util.Common.computeHmacWithSha256(
+					key.getImmutableArray(), encoding.signedBuf());
+	
+			return ILOG.J2CsMapping.NIO.ByteBuffer.wrap(newSignatureBytes).equals(
+					data.getSignature().getSignature().buf());
+		}
+	
+		/// <summary>
+		/// Compute a new HmacWithSha256 for the data packet and verify it against the
+		/// signature value.
+		/// Use the default WireFormat.getDefaultWireFormat().
+		/// </summary>
+		///
+		/// @note This method is an experimental feature. The API may change.
+		/// <param name="data">The Data packet to verify.</param>
+		/// <param name="key">The key for the HmacWithSha256.</param>
+		/// <returns>True if the signature verifies, otherwise false.</returns>
+		public static bool verifyDataWithHmacWithSha256(Data data, Blob key) {
+			return verifyDataWithHmacWithSha256(data, key,
+					net.named_data.jndn.encoding.WireFormat.getDefaultWireFormat());
 		}
 	
 		public static readonly RsaKeyParams DEFAULT_KEY_PARAMS = new RsaKeyParams();
@@ -798,10 +866,20 @@ namespace net.named_data.jndn.security {
 						try {
 							outer_KeyChain.face_.expressInterest(interest, callbacks, callbacks);
 						} catch (IOException ex) {
-							onVerifyFailed_.onVerifyFailed(originalData_);
+							try {
+								onVerifyFailed_.onVerifyFailed(originalData_);
+							} catch (Exception exception) {
+								net.named_data.jndn.security.KeyChain.logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in onVerifyFailed",
+										exception);
+							}
 						}
-					} else
-						onVerifyFailed_.onVerifyFailed(originalData_);
+					} else {
+						try {
+							onVerifyFailed_.onVerifyFailed(originalData_);
+						} catch (Exception ex_0) {
+							net.named_data.jndn.security.KeyChain.logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in onVerifyFailed", ex_0);
+						}
+					}
 				}
 		
 				private readonly ValidationRequest nextStep_;
@@ -851,10 +929,22 @@ namespace net.named_data.jndn.security {
 						try {
 							outer_KeyChain.face_.expressInterest(interest, callbacks, callbacks);
 						} catch (IOException ex) {
-							onVerifyFailed_.onVerifyInterestFailed(originalInterest_);
+							try {
+								onVerifyFailed_
+										.onVerifyInterestFailed(originalInterest_);
+							} catch (Exception exception) {
+								net.named_data.jndn.security.KeyChain.logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE,
+										"Error in onVerifyInterestFailed", exception);
+							}
 						}
-					} else
-						onVerifyFailed_.onVerifyInterestFailed(originalInterest_);
+					} else {
+						try {
+							onVerifyFailed_.onVerifyInterestFailed(originalInterest_);
+						} catch (Exception ex_0) {
+							net.named_data.jndn.security.KeyChain.logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE,
+									"Error in onVerifyInterestFailed", ex_0);
+						}
+					}
 				}
 		
 				private readonly ValidationRequest nextStep_;
@@ -893,7 +983,7 @@ namespace net.named_data.jndn.security {
 				} catch (SecurityException e) {
 					// Create a default identity name.
 					ByteBuffer randomComponent = ILOG.J2CsMapping.NIO.ByteBuffer.allocate(4);
-					random_.nextBytes(randomComponent.array());
+					net.named_data.jndn.util.Common.getRandom().nextBytes(randomComponent.array());
 					defaultIdentity = new Name().append("tmp-identity").append(
 							new Blob(randomComponent, false));
 				}
@@ -906,6 +996,6 @@ namespace net.named_data.jndn.security {
 		private readonly IdentityManager identityManager_;
 		private readonly PolicyManager policyManager_;
 		internal Face face_;
-		private static readonly SecureRandom random_ = new SecureRandom();
+		static internal readonly Logger logger_ = ILOG.J2CsMapping.Util.Logging.Logger.getLogger(typeof(KeyChain).FullName);
 	}
 }

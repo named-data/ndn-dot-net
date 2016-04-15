@@ -24,7 +24,6 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.security.SecureRandom;
 import net.named_data.jndn.Data;
 import net.named_data.jndn.Face;
 import net.named_data.jndn.Interest;
@@ -39,6 +38,8 @@ import net.named_data.jndn.security.identity.IdentityManager;
 import net.named_data.jndn.security.policy.NoVerifyPolicyManager;
 import net.named_data.jndn.security.policy.PolicyManager;
 import net.named_data.jndn.util.Blob;
+import net.named_data.jndn.util.Common;
+import net.named_data.jndn.util.SignedBlob;
 
 /**
  * KeyChain is the main class of the security library.
@@ -410,7 +411,7 @@ public class KeyChain {
   /**
    * Get a certificate with the specified name.
    * @param certificateName The name of the requested certificate.
-   * @return The requested certificate which is valid.
+   * @return The requested certificate.
    */
   public final IdentityCertificate
   getCertificate(Name certificateName) throws SecurityException, DerDecodingException
@@ -419,36 +420,12 @@ public class KeyChain {
   }
 
   /**
-   * Get a certificate even if the certificate is not valid anymore.
-   * @param certificateName The name of the requested certificate.
-   * @return The requested certificate.
-   */
-  public final IdentityCertificate
-  getAnyCertificate(Name certificateName) throws SecurityException, DerDecodingException
-  {
-    return identityManager_.getAnyCertificate(certificateName);
-  }
-
-  /**
-   * Get an identity certificate with the specified name.
-   * @param certificateName The name of the requested certificate.
-   * @return The requested certificate which is valid.
+   * @deprecated Use getCertificate.
    */
   public final IdentityCertificate
   getIdentityCertificate(Name certificateName) throws SecurityException, DerDecodingException
   {
     return identityManager_.getCertificate(certificateName);
-  }
-
-  /**
-   * Get an identity certificate even if the certificate is not valid anymore.
-   * @param certificateName The name of the requested certificate.
-   * @return The requested certificate.
-   */
-  public final IdentityCertificate
-  getAnyIdentityCertificate(Name certificateName) throws SecurityException, DerDecodingException
-  {
-    return identityManager_.getAnyCertificate(certificateName);
   }
 
   /**
@@ -755,14 +732,28 @@ public class KeyChain {
           face_.expressInterest(nextStep.interest_, callbacks, callbacks);
         }
         catch (IOException ex) {
-          onVerifyFailed.onVerifyFailed(data);
+          try {
+            onVerifyFailed.onVerifyFailed(data);
+          } catch (Throwable exception) {
+            logger_.log(Level.SEVERE, "Error in onVerifyFailed", exception);
+          }
         }
       }
     }
-    else if (policyManager_.skipVerifyAndTrust(data))
-      onVerified.onVerified(data);
-    else
-      onVerifyFailed.onVerifyFailed(data);
+    else if (policyManager_.skipVerifyAndTrust(data)) {
+      try {
+        onVerified.onVerified(data);
+      } catch (Throwable ex) {
+        logger_.log(Level.SEVERE, "Error in onVerified", ex);
+      }
+    }
+    else {
+      try {
+        onVerifyFailed.onVerifyFailed(data);
+      } catch (Throwable ex) {
+        logger_.log(Level.SEVERE, "Error in onVerifyFailed", ex);
+      }
+    }
   }
 
   /**
@@ -775,8 +766,14 @@ public class KeyChain {
    * To set the wireEncoding, you can call data.wireDecode.
    * @param onVerified If the signature is verified, this calls
    * onVerified.onVerified(data).
+   * NOTE: The library will log any exceptions thrown by this callback, but for
+   * better error handling the callback should catch and properly handle any
+   * exceptions.
    * @param onVerifyFailed If the signature check fails, this calls
    * onVerifyFailed.onVerifyFailed(data).
+   * NOTE: The library will log any exceptions thrown by this callback, but for
+   * better error handling the callback should catch and properly handle any
+   * exceptions.
    */
   public final void
   verifyData(Data data, OnVerified onVerified, OnVerifyFailed onVerifyFailed)
@@ -803,14 +800,28 @@ public class KeyChain {
           face_.expressInterest(nextStep.interest_, callbacks, callbacks);
         }
         catch (IOException ex) {
-          onVerifyFailed.onVerifyInterestFailed(interest);
+          try {
+            onVerifyFailed.onVerifyInterestFailed(interest);
+          } catch (Throwable exception) {
+            logger_.log(Level.SEVERE, "Error in onVerifyInterestFailed", exception);
+          }
         }
       }
     }
-    else if (policyManager_.skipVerifyAndTrust(interest))
-      onVerified.onVerifiedInterest(interest);
-    else
-      onVerifyFailed.onVerifyInterestFailed(interest);
+    else if (policyManager_.skipVerifyAndTrust(interest)) {
+      try {
+        onVerified.onVerifiedInterest(interest);
+      } catch (Throwable ex) {
+        logger_.log(Level.SEVERE, "Error in onVerifiedInterest", ex);
+      }
+    }
+    else {
+      try {
+        onVerifyFailed.onVerifyInterestFailed(interest);
+      } catch (Throwable ex) {
+        logger_.log(Level.SEVERE, "Error in onVerifyInterestFailed", ex);
+      }
+    }
   }
 
   /**
@@ -821,8 +832,14 @@ public class KeyChain {
    * @param interest The interest with the signature to check.
    * @param onVerified If the signature is verified, this calls
    * onVerified.onVerifiedInterest(interest).
+   * NOTE: The library will log any exceptions thrown by this callback, but for
+   * better error handling the callback should catch and properly handle any
+   * exceptions.
    * @param onVerifyFailed If the signature check fails, this calls
    * onVerifyFailed.onVerifyInterestFailed(interest).
+   * NOTE: The library will log any exceptions thrown by this callback, but for
+   * better error handling the callback should catch and properly handle any
+   * exceptions.
    */
   public final void
   verifyInterest
@@ -838,6 +855,75 @@ public class KeyChain {
    */
   public final void
   setFace(Face face) { face_ = face; }
+
+  /**
+   * Wire encode the data packet, compute an HmacWithSha256 and update the
+   * signature value.
+   * @note This method is an experimental feature. The API may change.
+   * @param data The Data object to be signed. This updates its signature.
+   * @param key The key for the HmacWithSha256.
+   * @param wireFormat A WireFormat object used to encode the data packet.
+   */
+  public static void
+  signWithHmacWithSha256(Data data, Blob key, WireFormat wireFormat)
+  {
+    // Encode once to get the signed portion.
+    SignedBlob encoding = data.wireEncode(wireFormat);
+    byte[] signatureBytes = Common.computeHmacWithSha256
+      (key.getImmutableArray(), encoding.signedBuf());
+    data.getSignature().setSignature(new Blob(signatureBytes, false));
+  }
+
+  /**
+   * Wire encode the data packet, compute an HmacWithSha256 and update the
+   * signature value.
+   * Use the default WireFormat.getDefaultWireFormat().
+   * @note This method is an experimental feature. The API may change.
+   * @param data The Data object to be signed. This updates its signature.
+   * @param key The key for the HmacWithSha256.
+   */
+  public static void
+  signWithHmacWithSha256(Data data, Blob key)
+  {
+    signWithHmacWithSha256(data, key, WireFormat.getDefaultWireFormat());
+  }
+
+  /**
+   * Compute a new HmacWithSha256 for the data packet and verify it against the
+   * signature value.
+   * @note This method is an experimental feature. The API may change.
+   * @param data The Data packet to verify.
+   * @param key The key for the HmacWithSha256.
+   * @param wireFormat A WireFormat object used to encode the data packet.
+   * @return True if the signature verifies, otherwise false.
+   */
+  public static boolean
+  verifyDataWithHmacWithSha256(Data data, Blob key, WireFormat wireFormat)
+  {
+    // wireEncode returns the cached encoding if available.
+    SignedBlob encoding = data.wireEncode(wireFormat);
+    byte[] newSignatureBytes = Common.computeHmacWithSha256
+      (key.getImmutableArray(), encoding.signedBuf());
+
+    return ByteBuffer.wrap(newSignatureBytes).equals
+      (data.getSignature().getSignature().buf());
+  }
+
+  /**
+   * Compute a new HmacWithSha256 for the data packet and verify it against the
+   * signature value.
+   * Use the default WireFormat.getDefaultWireFormat().
+   * @note This method is an experimental feature. The API may change.
+   * @param data The Data packet to verify.
+   * @param key The key for the HmacWithSha256.
+   * @return True if the signature verifies, otherwise false.
+   */
+  public static boolean
+  verifyDataWithHmacWithSha256(Data data, Blob key)
+  {
+    return verifyDataWithHmacWithSha256
+      (data, key, WireFormat.getDefaultWireFormat());
+  }
 
   public static final RsaKeyParams DEFAULT_KEY_PARAMS = new RsaKeyParams();
 
@@ -879,11 +965,20 @@ public class KeyChain {
           face_.expressInterest(interest, callbacks, callbacks);
         }
         catch (IOException ex) {
-          onVerifyFailed_.onVerifyFailed(originalData_);
+          try {
+            onVerifyFailed_.onVerifyFailed(originalData_);
+          } catch (Throwable exception) {
+            logger_.log(Level.SEVERE, "Error in onVerifyFailed", exception);
+          }
         }
       }
-      else
-        onVerifyFailed_.onVerifyFailed(originalData_);
+      else {
+        try {
+          onVerifyFailed_.onVerifyFailed(originalData_);
+        } catch (Throwable ex) {
+          logger_.log(Level.SEVERE, "Error in onVerifyFailed", ex);
+        }
+      }
     }
 
     private final ValidationRequest nextStep_;
@@ -933,11 +1028,20 @@ public class KeyChain {
           face_.expressInterest(interest, callbacks, callbacks);
         }
         catch (IOException ex) {
-          onVerifyFailed_.onVerifyInterestFailed(originalInterest_);
+          try {
+            onVerifyFailed_.onVerifyInterestFailed(originalInterest_);
+          } catch (Throwable exception) {
+            logger_.log(Level.SEVERE, "Error in onVerifyInterestFailed", exception);
+          }
         }
       }
-      else
-        onVerifyFailed_.onVerifyInterestFailed(originalInterest_);
+      else {
+        try {
+          onVerifyFailed_.onVerifyInterestFailed(originalInterest_);
+        } catch (Throwable ex) {
+          logger_.log(Level.SEVERE, "Error in onVerifyInterestFailed", ex);
+        }
+      }
     }
 
     private final ValidationRequest nextStep_;
@@ -978,7 +1082,7 @@ public class KeyChain {
       } catch (SecurityException e) {
         // Create a default identity name.
         ByteBuffer randomComponent = ByteBuffer.allocate(4);
-        random_.nextBytes(randomComponent.array());
+        Common.getRandom().nextBytes(randomComponent.array());
         defaultIdentity = new Name().append("tmp-identity")
           .append(new Blob(randomComponent, false));
       }
@@ -991,5 +1095,5 @@ public class KeyChain {
   private final IdentityManager identityManager_;
   private final PolicyManager policyManager_;
   private Face face_ = null;
-  private static final SecureRandom random_ = new SecureRandom();
+  private static final Logger logger_ = Logger.getLogger(KeyChain.class.getName());
 }

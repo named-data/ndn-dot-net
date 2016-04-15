@@ -225,11 +225,11 @@ public class BasicIdentityStorage extends Sqlite3IdentityStorageBase {
 
   /**
    * Add a public key to the identity storage. Also call addIdentity to ensure
-   * that the identityName for the key exists.
+   * that the identityName for the key exists. However, if the key already
+   * exists, do nothing.
    * @param keyName The name of the public key to be added.
    * @param keyType Type of the public key to be added.
    * @param publicKeyDer A blob of the public key DER to be added.
-   * @throws SecurityException if a key with the keyName already exists.
    */
   public final void
   addKey(Name keyName, KeyType keyType, Blob publicKeyDer) throws SecurityException
@@ -237,7 +237,8 @@ public class BasicIdentityStorage extends Sqlite3IdentityStorageBase {
     if (keyName.size() == 0)
       return;
 
-    checkAddKey(keyName);
+    if (doesKeyExist(keyName))
+      return;
 
     String keyId = keyName.get(-1).toEscapedString();
     Name identityName = keyName.getPrefix(-1);
@@ -265,13 +266,14 @@ public class BasicIdentityStorage extends Sqlite3IdentityStorageBase {
   /**
    * Get the public key DER blob from the identity storage.
    * @param keyName The name of the requested public key.
-   * @return The DER Blob.  If not found, return a Blob with a null pointer.
+   * @return The DER Blob.
+   * @throws SecurityException if the key doesn't exist.
    */
   public final Blob
   getKey(Name keyName) throws SecurityException
   {
-    if (!doesKeyExist(keyName))
-      return new Blob();
+    if (keyName.size() == 0)
+      throw new SecurityException("BasicIdentityStorage::getKey: Empty keyName");
 
     String keyId = keyName.get(-1).toEscapedString();
     Name identityName = keyName.getPrefix(-1);
@@ -285,9 +287,10 @@ public class BasicIdentityStorage extends Sqlite3IdentityStorageBase {
         ResultSet result = statement.executeQuery();
 
         if (result.next())
-          return new Blob(result.getBytes("public_key"));
+          return new Blob(result.getBytes("public_key"), false);
         else
-          return new Blob();
+          throw new SecurityException
+            ("BasicIdentityStorage::getKey: The key does not exist");
       } finally {
         statement.close();
       }
@@ -353,18 +356,23 @@ public class BasicIdentityStorage extends Sqlite3IdentityStorageBase {
   }
 
   /**
-   * Add a certificate to the identity storage.
+   * Add a certificate to the identity storage. Also call addKey to ensure that
+   * the certificate key exists. If the certificate is already installed, don't
+   * replace it.
    * @param certificate The certificate to be added.  This makes a copy of the
    * certificate.
-   * @throws SecurityException if the certificate is already installed.
    */
   public final void
   addCertificate(IdentityCertificate certificate) throws SecurityException
   {
-    checkAddCertificate(certificate);
-
     Name certificateName = certificate.getName();
     Name keyName = certificate.getPublicKeyName();
+
+    addKey(keyName, certificate.getPublicKeyInfo().getKeyType(),
+           certificate.getPublicKeyInfo().getKeyDer());
+
+    if (doesCertificateExist(certificateName))
+      return;
 
     // Insert the certificate.
     try {
@@ -402,57 +410,40 @@ public class BasicIdentityStorage extends Sqlite3IdentityStorageBase {
   /**
    * Get a certificate from the identity storage.
    * @param certificateName The name of the requested certificate.
-   * @param allowAny If false, only a valid certificate will be
-   * returned, otherwise validity is disregarded.
-   * @return The requested certificate. If not found, return null.
+   * @return The requested certificate.
+   * @throws SecurityException if the certificate doesn't exist.
    */
   public final IdentityCertificate
-  getCertificate(Name certificateName, boolean allowAny) throws SecurityException
+  getCertificate(Name certificateName) throws SecurityException
   {
-    if (doesCertificateExist(certificateName)) {
+    try {
+      PreparedStatement statement;
+      statement = database_.prepareStatement(SELECT_getCertificate);
+      statement.setString(1, certificateName.toUri());
+
+      IdentityCertificate certificate = new IdentityCertificate();
       try {
-        PreparedStatement statement;
+        ResultSet result = statement.executeQuery();
 
-        if (!allowAny) {
-          throw new UnsupportedOperationException
-            ("BasicIdentityStorage.getCertificate for !allowAny is not implemented");
-          /*
-          statement = database_.prepareStatement
-            ("SELECT certificate_data FROM Certificate " +
-             "WHERE cert_name=? AND not_before<datetime(?, 'unixepoch') AND not_after>datetime(?, 'unixepoch') and valid_flag=1");
-          statement.setString(1, certificateName.toUri());
-          sqlite3_bind_int64(statement, 2, (sqlite3_int64)floor(ndn_getNowMilliseconds() / 1000.0));
-          sqlite3_bind_int64(statement, 3, (sqlite3_int64)floor(ndn_getNowMilliseconds() / 1000.0));
-          */
-        }
-        else {
-          statement = database_.prepareStatement(SELECT_getCertificate);
-          statement.setString(1, certificateName.toUri());
-        }
-
-        IdentityCertificate certificate = new IdentityCertificate();
-        try {
-          ResultSet result = statement.executeQuery();
-
-          if (result.next()) {
-            try {
-              certificate.wireDecode(new Blob(result.getBytes("certificate_data")));
-            } catch (EncodingException ex) {
-              throw new SecurityException
-                ("BasicIdentityStorage: Error decoding certificate data: " + ex);
-            }
+        if (result.next()) {
+          try {
+            certificate.wireDecode(new Blob(result.getBytes("certificate_data"), false));
+          } catch (EncodingException ex) {
+            throw new SecurityException
+              ("BasicIdentityStorage: Error decoding certificate data: " + ex);
           }
-        } finally {
-          statement.close();
         }
-
-        return certificate;
-      } catch (SQLException exception) {
-        throw new SecurityException("BasicIdentityStorage: SQLite error: " + exception);
+        else
+          throw new SecurityException
+            ("BasicIdentityStorage::getKey: The key certificate not exist");
+      } finally {
+        statement.close();
       }
+
+      return certificate;
+    } catch (SQLException exception) {
+      throw new SecurityException("BasicIdentityStorage: SQLite error: " + exception);
     }
-    else
-      return new IdentityCertificate();
   }
 
   /*****************************************
@@ -551,6 +542,34 @@ public class BasicIdentityStorage extends Sqlite3IdentityStorageBase {
   }
 
   /**
+   * Append all the identity names to the nameList.
+   * @param nameList Append result names to nameList.
+   * @param isDefault If true, add only the default identity name. If false, add
+   * only the non-default identity names.
+   */
+  public void
+  getAllIdentities(ArrayList nameList, boolean isDefault)
+    throws SecurityException
+  {
+    try {
+      String sql = isDefault ? SELECT_getAllIdentities_default_true
+        : SELECT_getAllIdentities_default_false;
+      PreparedStatement statement = database_.prepareStatement(sql);
+
+      try {
+        ResultSet result = statement.executeQuery();
+
+        while (result.next())
+          nameList.add(new Name(result.getString("identity_name")));
+      } finally {
+        statement.close();
+      }
+    } catch (SQLException exception) {
+      throw new SecurityException("BasicIdentityStorage: SQLite error: " + exception);
+    }
+  }
+
+  /**
    * Append all the key names of a particular identity to the nameList.
    * @param identityName The identity name to search for.
    * @param nameList Append result names to nameList.
@@ -573,6 +592,37 @@ public class BasicIdentityStorage extends Sqlite3IdentityStorageBase {
         while (result.next())
           nameList.add
             (new Name(identityName).append(result.getString("key_identifier")));
+      } finally {
+        statement.close();
+      }
+    } catch (SQLException exception) {
+      throw new SecurityException("BasicIdentityStorage: SQLite error: " + exception);
+    }
+  }
+
+  /**
+   * Append all the certificate names of a particular key name to the nameList.
+   * @param keyName The key name to search for.
+   * @param nameList Append result names to nameList.
+   * @param isDefault If true, add only the default certificate name. If false,
+   * add only the non-default certificate names.
+   */
+  public void
+  getAllCertificateNamesOfKey
+    (Name keyName, ArrayList nameList, boolean isDefault) throws SecurityException
+  {
+    try {
+      String sql = isDefault ? SELECT_getAllCertificateNamesOfKey_default_true
+        : SELECT_getAllCertificateNamesOfKey_default_false;
+      PreparedStatement statement = database_.prepareStatement(sql);
+      statement.setString(1, keyName.getPrefix(-1).toUri());
+      statement.setString(2, keyName.get(-1).toEscapedString());
+
+      try {
+        ResultSet result = statement.executeQuery();
+
+        while (result.next())
+          nameList.add(new Name(result.getString("cert_name")));
       } finally {
         statement.close();
       }

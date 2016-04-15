@@ -11,6 +11,7 @@
 namespace net.named_data.jndn.security.policy {
 	
 	using ILOG.J2CsMapping.Text;
+	using ILOG.J2CsMapping.Util.Logging;
 	using System;
 	using System.Collections;
 	using System.ComponentModel;
@@ -281,8 +282,8 @@ namespace net.named_data.jndn.security.policy {
 		///
 		/// <param name="data">The Data object with the signature to check.</param>
 		/// <param name="stepCount"></param>
-		/// <param name="onVerified"></param>
-		/// <param name="onVerifyFailed"></param>
+		/// <param name="onVerified">NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
+		/// <param name="onVerifyFailed">NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
 		/// <returns>the indication of next verification step, null if there is no
 		/// further step.</returns>
 		public sealed override ValidationRequest checkVerificationPolicy(Data data,
@@ -290,7 +291,11 @@ namespace net.named_data.jndn.security.policy {
 			Interest certificateInterest = getCertificateInterest(stepCount,
 					"data", data.getName(), data.getSignature());
 			if (certificateInterest == null) {
-				onVerifyFailed.onVerifyFailed(data);
+				try {
+					onVerifyFailed.onVerifyFailed(data);
+				} catch (Exception ex) {
+					logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in onVerifyFailed", ex);
+				}
 				return null;
 			}
 	
@@ -302,10 +307,19 @@ namespace net.named_data.jndn.security.policy {
 			else {
 				// Certificate is known. Verify the signature.
 				// wireEncode returns the cached encoding if available.
-				if (verify(data.getSignature(), data.wireEncode()))
-					onVerified.onVerified(data);
-				else
-					onVerifyFailed.onVerifyFailed(data);
+				if (verify(data.getSignature(), data.wireEncode())) {
+					try {
+						onVerified.onVerified(data);
+					} catch (Exception ex_0) {
+						logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in onVerified", ex_0);
+					}
+				} else {
+					try {
+						onVerifyFailed.onVerifyFailed(data);
+					} catch (Exception ex_1) {
+						logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in onVerifyFailed", ex_1);
+					}
+				}
 	
 				return null;
 			}
@@ -318,8 +332,8 @@ namespace net.named_data.jndn.security.policy {
 		///
 		/// <param name="interest">The interest with the signature to check.</param>
 		/// <param name="stepCount"></param>
-		/// <param name="onVerified">If the signature is verified, this calls onVerified(interest).</param>
-		/// <param name="onVerifyFailed"></param>
+		/// <param name="onVerified">better error handling the callback should catch and properly handle any exceptions.</param>
+		/// <param name="onVerifyFailed">NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
 		/// <returns>the indication of next verification step, null if there is no
 		/// further step.</returns>
 		public sealed override ValidationRequest checkVerificationPolicy(Interest interest,
@@ -328,7 +342,11 @@ namespace net.named_data.jndn.security.policy {
 			Signature signature = extractSignature(interest, wireFormat);
 			if (signature == null) {
 				// Can't get the signature from the interest name.
-				onVerifyFailed.onVerifyInterestFailed(interest);
+				try {
+					onVerifyFailed.onVerifyInterestFailed(interest);
+				} catch (Exception ex) {
+					logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in onVerifyInterestFailed", ex);
+				}
 				return null;
 			}
 	
@@ -337,7 +355,11 @@ namespace net.named_data.jndn.security.policy {
 			Interest certificateInterest = getCertificateInterest(stepCount,
 					"interest", interest.getName().getPrefix(-4), signature);
 			if (certificateInterest == null) {
-				onVerifyFailed.onVerifyInterestFailed(interest);
+				try {
+					onVerifyFailed.onVerifyInterestFailed(interest);
+				} catch (Exception ex_0) {
+					logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in onVerifyInterestFailed", ex_0);
+				}
 				return null;
 			}
 	
@@ -359,17 +381,32 @@ namespace net.named_data.jndn.security.policy {
 				double timestamp = interest.getName().get(-4).toNumber();
 	
 				if (!interestTimestampIsFresh(keyName, timestamp)) {
-					onVerifyFailed.onVerifyInterestFailed(interest);
+					try {
+						onVerifyFailed.onVerifyInterestFailed(interest);
+					} catch (Exception ex_1) {
+						logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE,
+								"Error in onVerifyInterestFailed", ex_1);
+					}
 					return null;
 				}
 	
 				// Certificate is known. Verify the signature.
 				// wireEncode returns the cached encoding if available.
 				if (verify(signature, interest.wireEncode())) {
-					onVerified.onVerifiedInterest(interest);
+					try {
+						onVerified.onVerifiedInterest(interest);
+					} catch (Exception ex_2) {
+						logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in onVerifiedInterest", ex_2);
+					}
 					updateTimestampForKey(keyName, timestamp);
-				} else
-					onVerifyFailed.onVerifyInterestFailed(interest);
+				} else {
+					try {
+						onVerifyFailed.onVerifyInterestFailed(interest);
+					} catch (Exception ex_3) {
+						logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE,
+								"Error in onVerifyInterestFailed", ex_3);
+					}
+				}
 	
 				return null;
 			}
@@ -440,7 +477,7 @@ namespace net.named_data.jndn.security.policy {
 				byte[] decodedData = net.named_data.jndn.util.Common.base64Decode(encodedData.toString());
 				IdentityCertificate cert = new IdentityCertificate();
 				try {
-					cert.wireDecode(new Blob(decodedData));
+					cert.wireDecode(new Blob(decodedData, false));
 				} catch (EncodingException ex_1) {
 					throw new SecurityException(
 							"Can't decode the IdentityCertificate from file "
@@ -734,7 +771,7 @@ namespace net.named_data.jndn.security.policy {
 					byte[] certData = net.named_data.jndn.util.Common.base64Decode(certID);
 					cert = new IdentityCertificate();
 					try {
-						cert.wireDecode(new Blob(certData));
+						cert.wireDecode(new Blob(certData, false));
 					} catch (EncodingException ex) {
 						throw new SecurityException(
 								"Cannot base64 decode the cert data: "
@@ -1038,7 +1075,12 @@ namespace net.named_data.jndn.security.policy {
 					try {
 						certificate = new IdentityCertificate(data);
 					} catch (DerDecodingException ex) {
-						onVerifyFailed_.onVerifyFailed(originalData_);
+						try {
+							onVerifyFailed_.onVerifyFailed(originalData_);
+						} catch (Exception exception) {
+							net.named_data.jndn.security.policy.ConfigPolicyManager.logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in onVerifyFailed",
+									exception);
+						}
 						return;
 					}
 					outer_ConfigPolicyManager.certificateCache_.insertCertificate(certificate);
@@ -1049,7 +1091,12 @@ namespace net.named_data.jndn.security.policy {
 						outer_ConfigPolicyManager.checkVerificationPolicy(originalData_, stepCount_ + 1,
 								onVerified_, onVerifyFailed_);
 					} catch (SecurityException ex_0) {
-						onVerifyFailed_.onVerifyFailed(originalData_);
+						try {
+							onVerifyFailed_.onVerifyFailed(originalData_);
+						} catch (Exception exception_1) {
+							net.named_data.jndn.security.policy.ConfigPolicyManager.logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in onVerifyFailed",
+									exception_1);
+						}
 					}
 				}
 		
@@ -1091,7 +1138,12 @@ namespace net.named_data.jndn.security.policy {
 					try {
 						certificate = new IdentityCertificate(data);
 					} catch (DerDecodingException ex) {
-						onVerifyFailed_.onVerifyInterestFailed(originalInterest_);
+						try {
+							onVerifyFailed_.onVerifyInterestFailed(originalInterest_);
+						} catch (Exception exception) {
+							net.named_data.jndn.security.policy.ConfigPolicyManager.logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE,
+									"Error in onVerifyInterestFailed", exception);
+						}
 						return;
 					}
 					outer_ConfigPolicyManager.certificateCache_.insertCertificate(certificate);
@@ -1102,7 +1154,12 @@ namespace net.named_data.jndn.security.policy {
 						outer_ConfigPolicyManager.checkVerificationPolicy(originalInterest_, stepCount_ + 1,
 								onVerified_, onVerifyFailed_, wireFormat_);
 					} catch (SecurityException ex_0) {
-						onVerifyFailed_.onVerifyInterestFailed(originalInterest_);
+						try {
+							onVerifyFailed_.onVerifyInterestFailed(originalInterest_);
+						} catch (Exception exception_1) {
+							net.named_data.jndn.security.policy.ConfigPolicyManager.logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE,
+									"Error in onVerifyInterestFailed", exception_1);
+						}
 					}
 				}
 		
@@ -1211,5 +1268,7 @@ namespace net.named_data.jndn.security.policy {
 		private BoostInfoParser config_;
 		private bool requiresVerification_;
 		private ConfigPolicyManager.TrustAnchorRefreshManager  refreshManager_;
+		static internal readonly Logger logger_ = ILOG.J2CsMapping.Util.Logging.Logger
+				.getLogger(typeof(ConfigPolicyManager).FullName);
 	}
 }

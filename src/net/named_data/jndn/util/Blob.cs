@@ -75,6 +75,24 @@ namespace net.named_data.jndn.util {
 		}
 	
 		/// <summary>
+		/// Create a new Blob from the the byte array. IMPORTANT: If copy is false,
+		/// after calling this constructor, if you keep a pointer to the buffer then
+		/// you must treat it as immutable and promise not to change it.
+		/// </summary>
+		///
+		/// <param name="value">The byte array. If copy is true, this makes a copy.</param>
+		/// <param name="copy"></param>
+		public Blob(byte[] value_ren, bool copy) {
+			this.haveHashCode_ = false;
+			if (copy) {
+				buffer_ = ILOG.J2CsMapping.NIO.ByteBuffer.allocate(value_ren.Length);
+				buffer_.put(value_ren);
+				buffer_.flip();
+			} else
+				buffer_ = ILOG.J2CsMapping.NIO.ByteBuffer.wrap(value_ren);
+		}
+	
+		/// <summary>
 		/// Create a new Blob with a copy of the bytes in the array.
 		/// </summary>
 		///

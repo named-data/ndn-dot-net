@@ -206,7 +206,7 @@ namespace net.named_data.jndn.security.identity {
 			}
 			try {
 				signature.update(data);
-				return new Blob(signature.sign());
+				return new Blob(signature.sign(), false);
 			} catch (SignatureException exception_1) {
 				throw new SecurityException("SignatureException: "
 						+ exception_1.Message);

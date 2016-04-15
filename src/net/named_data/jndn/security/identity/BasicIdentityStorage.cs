@@ -214,18 +214,19 @@ namespace net.named_data.jndn.security.identity {
 	
 		/// <summary>
 		/// Add a public key to the identity storage. Also call addIdentity to ensure
-		/// that the identityName for the key exists.
+		/// that the identityName for the key exists. However, if the key already
+		/// exists, do nothing.
 		/// </summary>
 		///
 		/// <param name="keyName">The name of the public key to be added.</param>
 		/// <param name="keyType">Type of the public key to be added.</param>
 		/// <param name="publicKeyDer">A blob of the public key DER to be added.</param>
-		/// <exception cref="System.Security.SecurityException">if a key with the keyName already exists.</exception>
 		public sealed override void addKey(Name keyName, KeyType keyType, Blob publicKeyDer) {
 			if (keyName.size() == 0)
 				return;
 	
-			checkAddKey(keyName);
+			if (doesKeyExist(keyName))
+				return;
 	
 			String keyId = keyName.get(-1).toEscapedString();
 			Name identityName = keyName.getPrefix(-1);
@@ -256,10 +257,12 @@ namespace net.named_data.jndn.security.identity {
 		/// </summary>
 		///
 		/// <param name="keyName">The name of the requested public key.</param>
-		/// <returns>The DER Blob.  If not found, return a Blob with a null pointer.</returns>
+		/// <returns>The DER Blob.</returns>
+		/// <exception cref="System.Security.SecurityException">if the key doesn't exist.</exception>
 		public sealed override Blob getKey(Name keyName) {
-			if (!doesKeyExist(keyName))
-				return new Blob();
+			if (keyName.size() == 0)
+				throw new SecurityException(
+						"BasicIdentityStorage::getKey: Empty keyName");
 	
 			String keyId = keyName.get(-1).toEscapedString();
 			Name identityName = keyName.getPrefix(-1);
@@ -274,9 +277,10 @@ namespace net.named_data.jndn.security.identity {
 					SqlDataReader result = statement.executeQuery();
 	
 					if (result.NextResult())
-						return new Blob(result.getBytes("public_key"));
+						return new Blob(result.getBytes("public_key"), false);
 					else
-						return new Blob();
+						throw new SecurityException(
+								"BasicIdentityStorage::getKey: The key does not exist");
 				} finally {
 					statement.close();
 				}
@@ -344,16 +348,21 @@ namespace net.named_data.jndn.security.identity {
 		}
 	
 		/// <summary>
-		/// Add a certificate to the identity storage.
+		/// Add a certificate to the identity storage. Also call addKey to ensure that
+		/// the certificate key exists. If the certificate is already installed, don't
+		/// replace it.
 		/// </summary>
 		///
 		/// <param name="certificate"></param>
-		/// <exception cref="System.Security.SecurityException">if the certificate is already installed.</exception>
 		public sealed override void addCertificate(IdentityCertificate certificate) {
-			checkAddCertificate(certificate);
-	
 			Name certificateName = certificate.getName();
 			Name keyName = certificate.getPublicKeyName();
+	
+			addKey(keyName, certificate.getPublicKeyInfo().getKeyType(),
+					certificate.getPublicKeyInfo().getKeyDer());
+	
+			if (doesCertificateExist(certificateName))
+				return;
 	
 			// Insert the certificate.
 			try {
@@ -396,56 +405,39 @@ namespace net.named_data.jndn.security.identity {
 		/// </summary>
 		///
 		/// <param name="certificateName">The name of the requested certificate.</param>
-		/// <param name="allowAny"></param>
-		/// <returns>The requested certificate. If not found, return null.</returns>
-		public sealed override IdentityCertificate getCertificate(Name certificateName,
-				bool allowAny) {
-			if (doesCertificateExist(certificateName)) {
+		/// <returns>The requested certificate.</returns>
+		/// <exception cref="System.Security.SecurityException">if the certificate doesn't exist.</exception>
+		public sealed override IdentityCertificate getCertificate(Name certificateName) {
+			try {
+				PreparedStatement statement;
+				statement = database_.prepareStatement(net.named_data.jndn.security.identity.Sqlite3IdentityStorageBase.SELECT_getCertificate);
+				statement.setString(1, certificateName.toUri());
+	
+				IdentityCertificate certificate = new IdentityCertificate();
 				try {
-					PreparedStatement statement;
+					SqlDataReader result = statement.executeQuery();
 	
-					if (!allowAny) {
-						throw new NotSupportedException(
-								"BasicIdentityStorage.getCertificate for !allowAny is not implemented");
-						/*
-						statement = database_.prepareStatement
-						  ("SELECT certificate_data FROM Certificate " +
-						   "WHERE cert_name=? AND not_before<datetime(?, 'unixepoch') AND not_after>datetime(?, 'unixepoch') and valid_flag=1");
-						statement.setString(1, certificateName.toUri());
-						sqlite3_bind_int64(statement, 2, (sqlite3_int64)floor(ndn_getNowMilliseconds() / 1000.0));
-						sqlite3_bind_int64(statement, 3, (sqlite3_int64)floor(ndn_getNowMilliseconds() / 1000.0));
-						*/
-					} else {
-						statement = database_
-								.prepareStatement(net.named_data.jndn.security.identity.Sqlite3IdentityStorageBase.SELECT_getCertificate);
-						statement.setString(1, certificateName.toUri());
-					}
-	
-					IdentityCertificate certificate = new IdentityCertificate();
-					try {
-						SqlDataReader result = statement.executeQuery();
-	
-						if (result.NextResult()) {
-							try {
-								certificate.wireDecode(new Blob(result
-										.getBytes("certificate_data")));
-							} catch (EncodingException ex) {
-								throw new SecurityException(
-										"BasicIdentityStorage: Error decoding certificate data: "
-												+ ex);
-							}
+					if (result.NextResult()) {
+						try {
+							certificate.wireDecode(new Blob(result
+									.getBytes("certificate_data"), false));
+						} catch (EncodingException ex) {
+							throw new SecurityException(
+									"BasicIdentityStorage: Error decoding certificate data: "
+											+ ex);
 						}
-					} finally {
-						statement.close();
-					}
-	
-					return certificate;
-				} catch (SQLException exception) {
-					throw new SecurityException(
-							"BasicIdentityStorage: SQLite error: " + exception);
+					} else
+						throw new SecurityException(
+								"BasicIdentityStorage::getKey: The key certificate not exist");
+				} finally {
+					statement.close();
 				}
-			} else
-				return new IdentityCertificate();
+	
+				return certificate;
+			} catch (SQLException exception) {
+				throw new SecurityException("BasicIdentityStorage: SQLite error: "
+						+ exception);
+			}
 		}
 	
 		/*****************************************
@@ -544,6 +536,32 @@ namespace net.named_data.jndn.security.identity {
 		}
 	
 		/// <summary>
+		/// Append all the identity names to the nameList.
+		/// </summary>
+		///
+		/// <param name="nameList">Append result names to nameList.</param>
+		/// <param name="isDefault"></param>
+		public override void getAllIdentities(ArrayList nameList, bool isDefault) {
+			try {
+				String sql = (isDefault) ? net.named_data.jndn.security.identity.Sqlite3IdentityStorageBase.SELECT_getAllIdentities_default_true
+						: net.named_data.jndn.security.identity.Sqlite3IdentityStorageBase.SELECT_getAllIdentities_default_false;
+				PreparedStatement statement = database_.prepareStatement(sql);
+	
+				try {
+					SqlDataReader result = statement.executeQuery();
+	
+					while (result.NextResult())
+						ILOG.J2CsMapping.Collections.Collections.Add(nameList,new Name((string)result["identity_name"]));
+				} finally {
+					statement.close();
+				}
+			} catch (SQLException exception) {
+				throw new SecurityException("BasicIdentityStorage: SQLite error: "
+						+ exception);
+			}
+		}
+	
+		/// <summary>
 		/// Append all the key names of a particular identity to the nameList.
 		/// </summary>
 		///
@@ -563,6 +581,36 @@ namespace net.named_data.jndn.security.identity {
 	
 					while (result.NextResult())
 						ILOG.J2CsMapping.Collections.Collections.Add(nameList,new Name(identityName).append((string)result["key_identifier"]));
+				} finally {
+					statement.close();
+				}
+			} catch (SQLException exception) {
+				throw new SecurityException("BasicIdentityStorage: SQLite error: "
+						+ exception);
+			}
+		}
+	
+		/// <summary>
+		/// Append all the certificate names of a particular key name to the nameList.
+		/// </summary>
+		///
+		/// <param name="keyName">The key name to search for.</param>
+		/// <param name="nameList">Append result names to nameList.</param>
+		/// <param name="isDefault"></param>
+		public override void getAllCertificateNamesOfKey(Name keyName, ArrayList nameList,
+				bool isDefault) {
+			try {
+				String sql = (isDefault) ? net.named_data.jndn.security.identity.Sqlite3IdentityStorageBase.SELECT_getAllCertificateNamesOfKey_default_true
+						: net.named_data.jndn.security.identity.Sqlite3IdentityStorageBase.SELECT_getAllCertificateNamesOfKey_default_false;
+				PreparedStatement statement = database_.prepareStatement(sql);
+				statement.setString(1, keyName.getPrefix(-1).toUri());
+				statement.setString(2, keyName.get(-1).toEscapedString());
+	
+				try {
+					SqlDataReader result = statement.executeQuery();
+	
+					while (result.NextResult())
+						ILOG.J2CsMapping.Collections.Collections.Add(nameList,new Name((string)result["cert_name"]));
 				} finally {
 					statement.close();
 				}

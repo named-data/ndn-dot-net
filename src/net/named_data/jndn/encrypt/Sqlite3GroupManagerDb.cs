@@ -152,7 +152,7 @@ namespace net.named_data.jndn.encrypt {
 	
 					if (result.NextResult()) {
 						try {
-							schedule.wireDecode(new Blob(result.getBytes(1)));
+							schedule.wireDecode(new Blob(result.getBytes(1), false));
 						} catch (EncodingException ex) {
 							// We don't expect this to happen.
 							throw new GroupManagerDb.Error(
@@ -199,7 +199,7 @@ namespace net.named_data.jndn.encrypt {
 					while (result.NextResult()) {
 						Name keyName = new Name();
 						try {
-							keyName.wireDecode(new Blob(result.getBytes(1)),
+							keyName.wireDecode(new Blob(result.getBytes(1), false),
 									net.named_data.jndn.encoding.TlvWireFormat.get());
 						} catch (EncodingException ex) {
 							// We don't expect this to happen.
@@ -208,7 +208,7 @@ namespace net.named_data.jndn.encrypt {
 											+ ex);
 						}
 	
-						ILOG.J2CsMapping.Collections.Collections.Put(map,keyName,new Blob(result.getBytes(2)));
+						ILOG.J2CsMapping.Collections.Collections.Put(map,keyName,new Blob(result.getBytes(2), false));
 					}
 				} finally {
 					statement.close();
@@ -389,7 +389,8 @@ namespace net.named_data.jndn.encrypt {
 					while (result.NextResult()) {
 						Name identity = new Name();
 						try {
-							identity.wireDecode(new Blob(result.getBytes(1)),
+							identity.wireDecode(
+									new Blob(result.getBytes(1), false),
 									net.named_data.jndn.encoding.TlvWireFormat.get());
 						} catch (EncodingException ex) {
 							// We don't expect this to happen.

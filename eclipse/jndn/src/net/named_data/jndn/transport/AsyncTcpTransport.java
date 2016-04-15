@@ -26,6 +26,10 @@ import java.nio.channels.AsynchronousChannelGroup;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.channels.CompletionHandler;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import net.named_data.jndn.encoding.ElementListener;
 import net.named_data.jndn.encoding.ElementReader;
 import net.named_data.jndn.encoding.EncodingException;
@@ -44,23 +48,43 @@ public class AsyncTcpTransport extends Transport {
     // This is the CompletionHandler for asyncRead().
     readCompletionHandler_ = new CompletionHandler<Integer, Void>() {
       public void completed(Integer bytesRead, Void attachment) {
-        if (bytesRead > 0) {
-          inputBuffer_.flip();
-          try {
+        // Need to catch and log exceptions at this async entry point.
+        try {
+          if (bytesRead > 0) {
+            inputBuffer_.flip();
             elementReader_.onReceivedData(inputBuffer_);
-          } catch (EncodingException ex) {
-            // TODO: How to notify the application of failure?
-            ex.printStackTrace();
           }
-        }
 
-        // Repeatedly do  async read.
-        asyncRead();
+          // Repeatedly do  async read.
+          asyncRead();
+        } catch (Throwable ex) {
+          logger_.log(Level.SEVERE, null, ex);
+        }
       }
 
       public void failed(Throwable ex, Void attachment) {
-        // TODO: How to notify the application of failure?
-        ex.printStackTrace();
+        logger_.log(Level.SEVERE, null, ex);
+      }};
+
+    // This is the CompletionHandler for send().
+    writeCompletionHandler_ = new CompletionHandler<Integer, ByteBuffer>() {
+      public void completed(Integer bytesRead, ByteBuffer data) {
+        // Need to catch and log exceptions at this async entry point.
+        try {
+          if (data.hasRemaining()) {
+            channel_.write(data, data, writeCompletionHandler_);
+          }
+          else {
+            writeLock_.release();
+          }
+        } catch (Throwable ex) {
+          logger_.log(Level.SEVERE, null, ex);
+        }
+      }
+
+      public void failed(Throwable ex, ByteBuffer data) {
+        writeLock_.release();
+        logger_.log(Level.SEVERE, null, ex);
       }};
   }
 
@@ -173,14 +197,18 @@ public class AsyncTcpTransport extends Transport {
        null,
        new CompletionHandler<Void, Void>() {
          public void completed(Void dummy, Void attachment) {
-           if (onConnected != null)
-             onConnected.run();
-           asyncRead();
+           // Need to catch and log exceptions at this async entry point.
+           try {
+             if (onConnected != null)
+               onConnected.run();
+             asyncRead();
+           } catch (Throwable ex) {
+             logger_.log(Level.SEVERE, null, ex);
+           }
          }
 
          public void failed(Throwable ex, Void attachment) {
-           // TODO: How to notify the application of failure?
-           ex.printStackTrace();
+           logger_.log(Level.SEVERE, null, ex);
          }});
 
     elementReader_ = new ElementReader(elementListener);
@@ -191,12 +219,12 @@ public class AsyncTcpTransport extends Transport {
   {
     inputBuffer_.limit(inputBuffer_.capacity());
     inputBuffer_.position(0);
-    // read is already async, so no need to dispatch.
+    // We only call asyncRead after a previous call, so no need to dispatch.
     channel_.read(inputBuffer_, null, readCompletionHandler_);
   }
 
   /**
-   * Set data to the host.
+   * Send data to the host.
    * @param data The buffer of data to send.  This reads from position() to
    * limit(), but does not change the position.
    * @throws IOException For I/O error.
@@ -208,17 +236,35 @@ public class AsyncTcpTransport extends Transport {
       throw new IOException
         ("Cannot send because the socket is not open.  Use connect.");
 
-    // Save and restore the position.
-    // TODO: Copy the buffer so that the sending thread doesn't change it?
-    int savePosition = data.position();
+    // This does not copy the bytes, but only duplicates the position which is
+    // updated by write(). We assume that the sender won't change the bytes of
+    // the buffer during send, so that we can avoid a costly copy operation.
+    data = data.duplicate();
+
+    // The completion handler will call write again if needed, or will notify
+    // to release the wait when finished writing.
     try {
-      while (data.hasRemaining())
-        // write is already async, so no need to dispatch.
-        // TODO: The CompletionHandler should write remaining bytes.
-        channel_.write(data);
+      sendDataSequentially(data);
+    } catch (InterruptedException e) {
+      throw new IOException(e);
     }
-    finally {
-      data.position(savePosition);
+  }
+
+  /**
+   * Send data buffers one-by-one; this is necessary because async IO writes
+   * cannot overlap without a WritePendingException (see
+   * https://docs.oracle.com/javase/7/docs/api/java/nio/channels/AsynchronousSocketChannel.html#write(java.nio.ByteBuffer))
+   * @param data the buffer to send
+   * @throws InterruptedException if an external agent interrupts the thread; usually this means that someone is trying
+   * to close the
+   * @throws IOException if the channel write fails
+   */
+  private void sendDataSequentially(ByteBuffer data) throws InterruptedException, IOException {
+    if(writeLock_.tryAcquire(DEFAULT_LOCK_TIMEOUT_MS, TimeUnit.MILLISECONDS)) {
+      channel_.write(data, data, writeCompletionHandler_);
+    }
+    else{
+      throw new IOException("Failed to acquire lock on channel to write buffer");
     }
   }
 
@@ -245,10 +291,15 @@ public class AsyncTcpTransport extends Transport {
 
   private AsynchronousSocketChannel channel_;
   private final CompletionHandler<Integer, Void> readCompletionHandler_;
+  private final CompletionHandler<Integer, ByteBuffer> writeCompletionHandler_;
   private final ScheduledExecutorService threadPool_;
   private ByteBuffer inputBuffer_ = ByteBuffer.allocate(Common.MAX_NDN_PACKET_SIZE);
   private ElementReader elementReader_;
   private ConnectionInfo connectionInfo_;
   private boolean isLocal_;
   private final Object isLocalLock_ = new Object();
+  private final Semaphore writeLock_ = new Semaphore(1);
+  private static final Logger logger_ = Logger.getLogger
+    (AsyncTcpTransport.class.getName());
+  public static final int DEFAULT_LOCK_TIMEOUT_MS = 10000;
 }

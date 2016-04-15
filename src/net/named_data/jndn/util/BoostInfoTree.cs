@@ -165,7 +165,7 @@ namespace net.named_data.jndn.util {
 	
 		public String prettyPrint(int indentLevel) {
 			// Set prefix to indentLevel spaces.
-      String prefix = ILOG.J2CsMapping.Util.StringUtil.NewString(new char[indentLevel]).replace("\0", " ");
+			String prefix = ILOG.J2CsMapping.Util.StringUtil.NewString(new char[indentLevel]).replace("\0", " ");
 			String s = "";
 	
 			if (parent_ != null) {
@@ -178,7 +178,7 @@ namespace net.named_data.jndn.util {
 				if (parent_ != null)
 					s += prefix + "{\n";
 				String nextLevel = ILOG.J2CsMapping.Util.StringUtil.NewString(new char[indentLevel + 2]).replace(
-          "\0", " ");
+						"\0", " ");
 				for (int i = 0; i < subtrees_.Count; ++i) {
 					BoostInfoTree.TreeEntry  entry = (BoostInfoTree.TreeEntry ) subtrees_[i];
 					for (int iSubTree = 0; iSubTree < entry.subtreeList_.Count; ++iSubTree)
@@ -200,7 +200,7 @@ namespace net.named_data.jndn.util {
 			return prettyPrint(1);
 		}
 	
-    public override String ToString() {
+		public override String ToString() {
 			return prettyPrint();
 		}
 	

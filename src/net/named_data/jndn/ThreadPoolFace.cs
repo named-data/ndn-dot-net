@@ -11,6 +11,7 @@
 namespace net.named_data.jndn {
 	
 	using ILOG.J2CsMapping.Util;
+	using ILOG.J2CsMapping.Util.Logging;
 	using System;
 	using System.Collections;
 	using System.Collections.concurrent;
@@ -30,19 +31,24 @@ namespace net.named_data.jndn {
 		public sealed class Anonymous_C3 : OnData {
 				public sealed class Anonymous_C5 : IRunnable {
 								private readonly ThreadPoolFace.Anonymous_C3  outer_Anonymous_C3;
-								private readonly Data data;
 								private readonly Interest localInterest;
+								private readonly Data data;
 					
 								public Anonymous_C5(ThreadPoolFace.Anonymous_C3  paramouter_Anonymous_C3,
-										Data data_0, Interest localInterest_1) {
-									this.data = data_0;
-									this.localInterest = localInterest_1;
+										Interest localInterest_0, Data data_1) {
+									this.localInterest = localInterest_0;
+									this.data = data_1;
 									this.outer_Anonymous_C3 = paramouter_Anonymous_C3;
 								}
 					
 								// Call the passed-in onData.
 								public void run() {
-									outer_Anonymous_C3.finalOnData.onData(localInterest, data);
+									// Need to catch and log exceptions at this async entry point.
+									try {
+										outer_Anonymous_C3.finalOnData.onData(localInterest, data);
+									} catch (Exception ex) {
+										net.named_data.jndn.ThreadPoolFace.logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in onData", ex);
+									}
 								}
 							}
 		
@@ -56,10 +62,9 @@ namespace net.named_data.jndn {
 				}
 		
 				public void onData(Interest localInterest_0, Data data_1) {
-					outer_ThreadPoolFace.threadPool_.submit(new net.named_data.jndn.ThreadPoolFace.Anonymous_C3.Anonymous_C5 (this, data_1, localInterest_0));
+					outer_ThreadPoolFace.threadPool_.submit(new net.named_data.jndn.ThreadPoolFace.Anonymous_C3.Anonymous_C5 (this, localInterest_0, data_1));
 				}
 			}
-	
 		public sealed class Anonymous_C2 : OnTimeout {
 				public sealed class Anonymous_C4 : IRunnable {
 								private readonly ThreadPoolFace.Anonymous_C2  outer_Anonymous_C2;
@@ -73,7 +78,13 @@ namespace net.named_data.jndn {
 					
 								// Call the passed-in onTimeout.
 								public void run() {
-									outer_Anonymous_C2.finalOnTimeout.onTimeout(localInterest);
+									// Need to catch and log exceptions at this async entry point.
+									try {
+										outer_Anonymous_C2.finalOnTimeout.onTimeout(localInterest);
+									} catch (Exception ex) {
+										net.named_data.jndn.ThreadPoolFace.logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE,
+												"Error in onTimeout", ex);
+									}
 								}
 							}
 		
@@ -90,39 +101,36 @@ namespace net.named_data.jndn {
 					outer_ThreadPoolFace.threadPool_.submit(new net.named_data.jndn.ThreadPoolFace.Anonymous_C2.Anonymous_C4 (this, localInterest_0));
 				}
 			}
-	
 		public sealed class Anonymous_C1 : IRunnable {
 				private readonly ThreadPoolFace outer_ThreadPoolFace;
-				private readonly long pendingInterestId;
-				private readonly Interest interest;
-				private readonly OnTimeout onTimeoutSubmit;
-				private readonly WireFormat wireFormat;
 				private readonly OnData onDataSubmit;
+				private readonly Interest interest;
+				private readonly long pendingInterestId;
+				private readonly WireFormat wireFormat;
+				private readonly OnTimeout onTimeoutSubmit;
 		
 				public Anonymous_C1(ThreadPoolFace paramouter_ThreadPoolFace,
-						long pendingInterestId_0, Interest interest_1,
-						OnTimeout onTimeoutSubmit_2, WireFormat wireFormat_3,
-						OnData onDataSubmit_4) {
-					this.pendingInterestId = pendingInterestId_0;
+						OnData onDataSubmit_0, Interest interest_1, long pendingInterestId_2,
+						WireFormat wireFormat_3, OnTimeout onTimeoutSubmit_4) {
+					this.onDataSubmit = onDataSubmit_0;
 					this.interest = interest_1;
-					this.onTimeoutSubmit = onTimeoutSubmit_2;
+					this.pendingInterestId = pendingInterestId_2;
 					this.wireFormat = wireFormat_3;
-					this.onDataSubmit = onDataSubmit_4;
+					this.onTimeoutSubmit = onTimeoutSubmit_4;
 					this.outer_ThreadPoolFace = paramouter_ThreadPoolFace;
 				}
 		
 				public void run() {
+					// Need to catch and log exceptions at this async entry point.
 					try {
 						outer_ThreadPoolFace.node_.expressInterest(pendingInterestId, interest,
 								onDataSubmit, onTimeoutSubmit, wireFormat,
 								outer_ThreadPoolFace);
-					} catch (IOException ex) {
-						// TODO: How to notify the application of failure?
-						Console.Error.WriteLine(ex.StackTrace);
+					} catch (Exception ex) {
+						net.named_data.jndn.ThreadPoolFace.logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, null, ex);
 					}
 				}
 			}
-	
 		public sealed class Anonymous_C0 : IRunnable {
 			private readonly IRunnable callback;
 	
@@ -131,10 +139,14 @@ namespace net.named_data.jndn {
 			}
 	
 			public void run() {
-				callback.run();
+				// Need to catch and log exceptions at this async entry point.
+				try {
+					callback.run();
+				} catch (Exception ex) {
+					net.named_data.jndn.ThreadPoolFace.logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, null, ex);
+				}
 			}
 		}
-	
 		/// <summary>
 		/// Create a new ThreadPoolFace for communication with an NDN hub with the given
 		/// Transport object and connectionInfo.
@@ -171,8 +183,8 @@ namespace net.named_data.jndn {
 			OnTimeout onTimeoutSubmit_6 = (onTimeout == null) ? null
 					: new ThreadPoolFace.Anonymous_C2 (this, finalOnTimeout_5);
 	
-			threadPool_.submit(new ThreadPoolFace.Anonymous_C1 (this, pendingInterestId_2, interest_0, onTimeoutSubmit_6,
-					wireFormat_1, onDataSubmit_4));
+			threadPool_.submit(new ThreadPoolFace.Anonymous_C1 (this, onDataSubmit_4, interest_0, pendingInterestId_2,
+					wireFormat_1, onTimeoutSubmit_6));
 	
 			return pendingInterestId_2;
 		}
@@ -190,5 +202,6 @@ namespace net.named_data.jndn {
 		}
 	
 		internal readonly ScheduledExecutorService threadPool_;
+		static internal readonly Logger logger_ = ILOG.J2CsMapping.Util.Logging.Logger.getLogger(typeof(ThreadPoolFace).FullName);
 	}
 }

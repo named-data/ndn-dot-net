@@ -117,7 +117,7 @@ namespace net.named_data.jndn.security.certificate {
 		 */
 		public Blob getDigest(DigestAlgorithm digestAlgorithm) {
 			if (digestAlgorithm == net.named_data.jndn.security.DigestAlgorithm.SHA256) {
-				return new Blob(net.named_data.jndn.util.Common.digestSha256(keyDer_.buf()));
+				return new Blob(net.named_data.jndn.util.Common.digestSha256(keyDer_.buf()), false);
 			} else
 				throw new UnrecognizedDigestAlgorithmException("Wrong format!");
 		}

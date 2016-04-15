@@ -51,8 +51,8 @@ namespace net.named_data.jndn.encrypt.algo {
 		/// asymmetric encryption algorithm and the payload is larger than the maximum
 		/// plaintext size, this encrypts the payload with a symmetric key that is
 		/// asymmetrically encrypted and provided as a nonce in the content of the data
-		/// packet. The packet's /&lt;dataName>/ is updated to be
-		/// /&lt;dataName>/FOR/&lt;keyName>
+		/// packet. The packet's /{dataName}/ is updated to be
+		/// /{dataName}/FOR/{keyName}
 		/// </summary>
 		///
 		/// <param name="data">The data packet which is updated.</param>
@@ -88,7 +88,7 @@ namespace net.named_data.jndn.encrypt.algo {
 	
 				// 128-bit nonce.
 				ByteBuffer nonceKeyBuffer = ILOG.J2CsMapping.NIO.ByteBuffer.allocate(16);
-				random_.nextBytes(nonceKeyBuffer.array());
+				net.named_data.jndn.util.Common.getRandom().nextBytes(nonceKeyBuffer.array());
 				Blob nonceKey = new Blob(nonceKeyBuffer, false);
 	
 				Name nonceKeyName = new Name(keyName);
@@ -182,8 +182,5 @@ namespace net.named_data.jndn.encrypt.algo {
 			} else
 				throw new Exception("Unsupported encryption method");
 		}
-	
-		// TODO: Move this to a common utility?
-		private static readonly SecureRandom random_ = new SecureRandom();
 	}
 }

@@ -63,48 +63,6 @@ public abstract class Sqlite3IdentityStorageBase extends IdentityStorage {
   updateKeyStatus(Name keyName, boolean isActive) throws SecurityException;
 
   /**
-   * Throw an exception if it is an error for addKey to add the key.
-   * @param keyName The name of the public key to be added.
-   * @throws SecurityException if the key already exists or other problem.
-   */
-  protected void
-  checkAddKey(Name keyName) throws SecurityException
-  {
-    if (doesKeyExist(keyName))
-      throw new SecurityException("a key with the same name already exists!");
-  }
-
-  /**
-   * Throw an exception if it is an error for addCertificate to add the certificate.
-   * @param certificate The certificate to be added.  This makes a copy of the
-   * certificate.
-   * @throws SecurityException if the certificate is already installed or other
-   * problem.
-   */
-  protected void
-  checkAddCertificate(IdentityCertificate certificate) throws SecurityException
-  {
-    Name certificateName = certificate.getName();
-    Name keyName = certificate.getPublicKeyName();
-
-    if (!doesKeyExist(keyName))
-      throw new SecurityException
-        ("No corresponding Key record for certificate!" + keyName.toUri() +
-         " " + certificateName.toUri());
-
-    // Check if the certificate already exists.
-    if (doesCertificateExist(certificateName))
-      throw new SecurityException("Certificate has already been installed!");
-
-    // Check if the public key of the certificate is the same as the key record.
-
-    Blob keyBlob = getKey(keyName);
-
-    if (keyBlob.isNull() || !keyBlob.equals(certificate.getPublicKeyInfo().getKeyDer()))
-      throw new SecurityException("Certificate does not match the public key!");
-  }
-
-  /**
    * Throw an exception if it is an error for setDefaultKeyNameForIdentity to
    * set it.
    * @param keyName The key name.
@@ -195,10 +153,20 @@ public abstract class Sqlite3IdentityStorageBase extends IdentityStorage {
     "SELECT key_identifier FROM Key WHERE identity_name=? AND default_key=1";
   protected static final String SELECT_getDefaultCertificateNameForKey =
     "SELECT cert_name FROM Certificate WHERE identity_name=? AND key_identifier=? AND default_cert=1";
+  protected static final String SELECT_getAllIdentities_default_true =
+    "SELECT identity_name FROM Identity WHERE default_identity=1";
+  protected static final String SELECT_getAllIdentities_default_false =
+    "SELECT identity_name FROM Identity WHERE default_identity=0";
   protected static final String SELECT_getAllKeyNamesOfIdentity_default_true =
     "SELECT key_identifier FROM Key WHERE default_key=1 and identity_name=?";
   protected static final String SELECT_getAllKeyNamesOfIdentity_default_false =
     "SELECT key_identifier FROM Key WHERE default_key=0 and identity_name=?";
+  protected static final String SELECT_getAllCertificateNamesOfKey_default_true =
+    "SELECT cert_name FROM Certificate" +
+    "  WHERE default_cert=1 and identity_name=? and key_identifier=?";
+  protected static final String SELECT_getAllCertificateNamesOfKey_default_false =
+    "SELECT cert_name FROM Certificate" +
+    "  WHERE default_cert=0 and identity_name=? and key_identifier=?";
 
   protected static final String WHERE_updateKeyStatus =
     "identity_name=? AND key_identifier=?";

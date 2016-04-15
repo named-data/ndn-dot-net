@@ -78,8 +78,8 @@ namespace net.named_data.jndn.security.identity {
 				privateKeyStorage_ = new FilePrivateKeyStorage();
 		}
 #endif
-
-    /// <summary>
+	
+		/// <summary>
 		/// Create an identity by creating a pair of Key-Signing-Key (KSK) for this
 		/// identity and a self-signed certificate of the KSK. If a key pair or
 		/// certificate for the identity already exists, use it.
@@ -453,7 +453,7 @@ namespace net.named_data.jndn.security.identity {
 		/// prepare an unsigned identity certificate.
 		/// </summary>
 		///
-		/// <param name="keyName">The key name, e.g., `/<identity_name>/ksk-123456`.</param>
+		/// <param name="keyName">The key name, e.g., `/{identity_name}/ksk-123456`.</param>
 		/// <param name="signingIdentity">The signing identity.</param>
 		/// <param name="notBefore">See IdentityCertificate.</param>
 		/// <param name="notAfter">See IdentityCertificate.</param>
@@ -485,7 +485,7 @@ namespace net.named_data.jndn.security.identity {
 		/// after subject identity (i.e., before `ksk-...`).
 		/// </summary>
 		///
-		/// <param name="keyName">The key name, e.g., `/<identity_name>/ksk-123456`.</param>
+		/// <param name="keyName">The key name, e.g., `/{identity_name}/ksk-123456`.</param>
 		/// <param name="signingIdentity">The signing identity.</param>
 		/// <param name="notBefore">See IdentityCertificate.</param>
 		/// <param name="notAfter">See IdentityCertificate.</param>
@@ -503,7 +503,7 @@ namespace net.named_data.jndn.security.identity {
 		/// Prepare an unsigned identity certificate.
 		/// </summary>
 		///
-		/// <param name="keyName">The key name, e.g., `/<identity_name>/ksk-123456`.</param>
+		/// <param name="keyName">The key name, e.g., `/{identity_name}/ksk-123456`.</param>
 		/// <param name="publicKey">The public key to sign.</param>
 		/// <param name="signingIdentity">The signing identity.</param>
 		/// <param name="notBefore">See IdentityCertificate.</param>
@@ -584,7 +584,7 @@ namespace net.named_data.jndn.security.identity {
 		/// after subject identity (i.e., before `ksk-...`).
 		/// </summary>
 		///
-		/// <param name="keyName">The key name, e.g., `/<identity_name>/ksk-123456`.</param>
+		/// <param name="keyName">The key name, e.g., `/{identity_name}/ksk-123456`.</param>
 		/// <param name="publicKey">The public key to sign.</param>
 		/// <param name="signingIdentity">The signing identity.</param>
 		/// <param name="notBefore">See IdentityCertificate.</param>
@@ -720,19 +720,9 @@ namespace net.named_data.jndn.security.identity {
 		/// </summary>
 		///
 		/// <param name="certificateName">The name of the requested certificate.</param>
-		/// <returns>the requested certificate which is valid.</returns>
-		public IdentityCertificate getCertificate(Name certificateName) {
-			return identityStorage_.getCertificate(certificateName, false);
-		}
-	
-		/// <summary>
-		/// Get a certificate even if the certificate is not valid anymore.
-		/// </summary>
-		///
-		/// <param name="certificateName">The name of the requested certificate.</param>
 		/// <returns>the requested certificate.</returns>
-		public IdentityCertificate getAnyCertificate(Name certificateName) {
-			return identityStorage_.getCertificate(certificateName, true);
+		public IdentityCertificate getCertificate(Name certificateName) {
+			return identityStorage_.getCertificate(certificateName);
 		}
 	
 		/// <summary>
@@ -758,6 +748,42 @@ namespace net.named_data.jndn.security.identity {
 		public Name getDefaultCertificateName() {
 			return identityStorage_
 					.getDefaultCertificateNameForIdentity(getDefaultIdentity());
+		}
+	
+		/// <summary>
+		/// Append all the identity names to the nameList.
+		/// </summary>
+		///
+		/// <param name="nameList">Append result names to nameList.</param>
+		/// <param name="isDefault"></param>
+		public void getAllIdentities(ArrayList nameList, bool isDefault) {
+			identityStorage_.getAllIdentities(nameList, isDefault);
+		}
+	
+		/// <summary>
+		/// Append all the key names of a particular identity to the nameList.
+		/// </summary>
+		///
+		/// <param name="identityName">The identity name to search for.</param>
+		/// <param name="nameList">Append result names to nameList.</param>
+		/// <param name="isDefault"></param>
+		public void getAllKeyNamesOfIdentity(Name identityName,
+				ArrayList nameList, bool isDefault) {
+			identityStorage_.getAllKeyNamesOfIdentity(identityName, nameList,
+					isDefault);
+		}
+	
+		/// <summary>
+		/// Append all the certificate names of a particular key name to the nameList.
+		/// </summary>
+		///
+		/// <param name="keyName">The key name to search for.</param>
+		/// <param name="nameList">Append result names to nameList.</param>
+		/// <param name="isDefault"></param>
+		public void getAllCertificateNamesOfKey(Name keyName, ArrayList nameList,
+				bool isDefault) {
+			identityStorage_.getAllCertificateNamesOfKey(keyName, nameList,
+					isDefault);
 		}
 	
 		/// <summary>
@@ -868,7 +894,7 @@ namespace net.named_data.jndn.security.identity {
 	
 			// Digest and set the signature.
 			byte[] signedPortionDigest = net.named_data.jndn.util.Common.digestSha256(encoding.signedBuf());
-			data.getSignature().setSignature(new Blob(signedPortionDigest));
+			data.getSignature().setSignature(new Blob(signedPortionDigest, false));
 	
 			// Encode again to include the signature.
 			data.wireEncode(wireFormat);
@@ -895,7 +921,7 @@ namespace net.named_data.jndn.security.identity {
 	
 			// Digest and set the signature.
 			byte[] signedPortionDigest = net.named_data.jndn.util.Common.digestSha256(encoding.signedBuf());
-			signature.setSignature(new Blob(signedPortionDigest));
+			signature.setSignature(new Blob(signedPortionDigest, false));
 	
 			// Remove the empty signature and append the real one.
 			interest.setName(interest.getName().getPrefix(-1)

@@ -204,11 +204,11 @@ public class AndroidSqlite3IdentityStorage extends Sqlite3IdentityStorageBase {
 
   /**
    * Add a public key to the identity storage. Also call addIdentity to ensure
-   * that the identityName for the key exists.
+   * that the identityName for the key exists. However, if the key already
+   * exists, do nothing.
    * @param keyName The name of the public key to be added.
    * @param keyType Type of the public key to be added.
    * @param publicKeyDer A blob of the public key DER to be added.
-   * @throws SecurityException if a key with the keyName already exists.
    */
   public final void
   addKey(Name keyName, KeyType keyType, Blob publicKeyDer) throws SecurityException
@@ -216,7 +216,8 @@ public class AndroidSqlite3IdentityStorage extends Sqlite3IdentityStorageBase {
     if (keyName.size() == 0)
       return;
 
-    checkAddKey(keyName);
+    if (doesKeyExist(keyName))
+      return;
 
     String keyId = keyName.get(-1).toEscapedString();
     Name identityName = keyName.getPrefix(-1);
@@ -236,13 +237,15 @@ public class AndroidSqlite3IdentityStorage extends Sqlite3IdentityStorageBase {
   /**
    * Get the public key DER blob from the identity storage.
    * @param keyName The name of the requested public key.
-   * @return The DER Blob.  If not found, return a Blob with a null pointer.
+   * @return The DER Blob.
+   * @throws SecurityException if the key doesn't exist.
    */
   public final Blob
   getKey(Name keyName) throws SecurityException
   {
-    if (!doesKeyExist(keyName))
-      return new Blob();
+    if (keyName.size() == 0)
+      throw new SecurityException
+        ("AndroidSqlite3IdentityStorage::getKey: Empty keyName");
 
     String keyId = keyName.get(-1).toEscapedString();
     Name identityName = keyName.getPrefix(-1);
@@ -253,7 +256,8 @@ public class AndroidSqlite3IdentityStorage extends Sqlite3IdentityStorageBase {
       if (cursor.moveToNext())
         return new Blob(cursor.getBlob(0));
       else
-        return new Blob();
+        throw new SecurityException
+          ("AndroidSqlite3IdentityStorage::getKey: The key does not exist");
     } finally {
       cursor.close();
     }
@@ -299,18 +303,23 @@ public class AndroidSqlite3IdentityStorage extends Sqlite3IdentityStorageBase {
   }
 
   /**
-   * Add a certificate to the identity storage.
+   * Add a certificate to the identity storage. Also call addKey to ensure that
+   * the certificate key exists. If the certificate is already installed, don't
+   * replace it.
    * @param certificate The certificate to be added.  This makes a copy of the
    * certificate.
-   * @throws SecurityException if the certificate is already installed.
    */
   public final void
   addCertificate(IdentityCertificate certificate) throws SecurityException
   {
-    checkAddCertificate(certificate);
-
     Name certificateName = certificate.getName();
     Name keyName = certificate.getPublicKeyName();
+
+    addKey(keyName, certificate.getPublicKeyInfo().getKeyType(),
+           certificate.getPublicKeyInfo().getKeyDer());
+
+    if (doesCertificateExist(certificateName))
+      return;
 
     // Insert the certificate.
     ContentValues values = new ContentValues();
@@ -339,18 +348,13 @@ public class AndroidSqlite3IdentityStorage extends Sqlite3IdentityStorageBase {
   /**
    * Get a certificate from the identity storage.
    * @param certificateName The name of the requested certificate.
-   * @param allowAny If false, only a valid certificate will be
-   * returned, otherwise validity is disregarded.
-   * @return The requested certificate. If not found, return null.
+   * @return The requested certificate.
+   * @throws SecurityException if the certificate doesn't exist.
    */
   public final IdentityCertificate
-  getCertificate(Name certificateName, boolean allowAny) throws SecurityException
+  getCertificate(Name certificateName) throws SecurityException
   {
     if (doesCertificateExist(certificateName)) {
-      if (!allowAny)
-        throw new UnsupportedOperationException
-          ("AndroidSqlite3IdentityStorage.getCertificate for !allowAny is not implemented");
-
       Cursor cursor = database_.rawQuery
         (SELECT_getCertificate, new String[] { certificateName.toUri() });
 
@@ -364,6 +368,9 @@ public class AndroidSqlite3IdentityStorage extends Sqlite3IdentityStorageBase {
               ("AndroidSqlite3IdentityStorage: Error decoding certificate data: " + ex);
           }
         }
+        else
+          throw new SecurityException
+            ("AndroidSqlite3IdentityStorage::getKey: The certificate does not exist");
       } finally {
         cursor.close();
       }
@@ -452,6 +459,28 @@ public class AndroidSqlite3IdentityStorage extends Sqlite3IdentityStorageBase {
   }
 
   /**
+   * Append all the identity names to the nameList.
+   * @param nameList Append result names to nameList.
+   * @param isDefault If true, add only the default identity name. If false, add
+   * only the non-default identity names.
+   */
+  public void
+  getAllIdentities(ArrayList nameList, boolean isDefault)
+    throws SecurityException
+  {
+    String sql = isDefault ? SELECT_getAllIdentities_default_true
+        : SELECT_getAllIdentities_default_false;
+    Cursor cursor = database_.rawQuery(sql, new String[0]);
+
+    try {
+      while (cursor.moveToNext())
+        nameList.add(new Name(cursor.getString(0)));
+    } finally {
+      cursor.close();
+    }
+  }
+
+  /**
    * Append all the key names of a particular identity to the nameList.
    * @param identityName The identity name to search for.
    * @param nameList Append result names to nameList.
@@ -470,6 +499,31 @@ public class AndroidSqlite3IdentityStorage extends Sqlite3IdentityStorageBase {
       while (cursor.moveToNext())
         nameList.add
           (new Name(identityName).append(cursor.getString(0)));
+    } finally {
+      cursor.close();
+    }
+  }
+
+  /**
+   * Append all the certificate names of a particular key name to the nameList.
+   * @param keyName The key name to search for.
+   * @param nameList Append result names to nameList.
+   * @param isDefault If true, add only the default key name. If false, add only
+   * the non-default key names.
+   */
+  public void
+  getAllCertificateNamesOfKey
+    (Name keyName, ArrayList nameList, boolean isDefault) throws SecurityException
+  {
+    String sql = isDefault ? SELECT_getAllCertificateNamesOfKey_default_true
+        : SELECT_getAllCertificateNamesOfKey_default_false;
+    Cursor cursor = database_.rawQuery
+      (sql, new String[] { keyName.getPrefix(-1).toUri(),
+                           keyName.get(-1).toEscapedString() });
+
+    try {
+      while (cursor.moveToNext())
+        nameList.add(new Name(cursor.getString(0)));
     } finally {
       cursor.close();
     }

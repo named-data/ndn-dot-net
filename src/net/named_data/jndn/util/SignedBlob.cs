@@ -76,14 +76,17 @@ namespace net.named_data.jndn.util {
 		}
 	
 		/// <summary>
-		/// Create a new SignedBlob with a copy of the bytes in the array.
+		/// Create a new SignedBlob from the the byte array. IMPORTANT: If copy is false,
+		/// after calling this constructor, if you keep a pointer to the buffer then
+		/// you must treat it as immutable and promise not to change it.
 		/// </summary>
 		///
-		/// <param name="value">The byte array to copy.</param>
+		/// <param name="value">The byte array. If copy is true, this makes a copy.</param>
+		/// <param name="copy"></param>
 		/// <param name="signedPortionBeginOffset"></param>
 		/// <param name="signedPortionEndOffset"></param>
-		public SignedBlob(byte[] value_ren, int signedPortionBeginOffset,
-				int signedPortionEndOffset) : base(value_ren) {
+		public SignedBlob(byte[] value_ren, bool copy, int signedPortionBeginOffset,
+				int signedPortionEndOffset) : base(value_ren, copy) {
 			signedPortionBeginOffset_ = signedPortionBeginOffset;
 			signedPortionEndOffset_ = signedPortionEndOffset;
 			setSignedBuffer();

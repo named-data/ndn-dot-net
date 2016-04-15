@@ -18,6 +18,8 @@ namespace net.named_data.jndn.util {
 	using System.Runtime.CompilerServices;
 	using System.Security.Cryptography;
 	using System.Text;
+	using javax.crypto;
+	using javax.crypto.spec;
 	
 	/// <summary>
 	/// The Common class has static utility functions.
@@ -32,6 +34,40 @@ namespace net.named_data.jndn.util {
 		/// fractions of a millisecond.</returns>
 		public static double getNowMilliseconds() {
 			return (double) (DateTime.Now - new DateTime(1970, 1, 1)).TotalMilliseconds;
+		}
+	
+		/// <summary>
+		/// Get the library-wide random number generator. This method is synchronized so that multiple accesses to the
+		/// generator when a generator is not yet set will not throw an UnsupportedOperationException
+		/// </summary>
+		///
+		/// <returns>the random number generator set in 
+		/// <see cref="M:Net.Named_data.Jndn.Util.Common.SetRandom(System.Random)"/>
+		///  or (by default) a SecureRandom</returns>
+		[MethodImpl(MethodImplOptions.Synchronized)]
+		public static SecureRandom getRandom() {
+			if (randomNumberGenerator_ == null) {
+				setRandom(new SecureRandom());
+			}
+			return randomNumberGenerator_;
+		}
+	
+		/// <summary>
+		/// Set the library-wide random number generator; this method will only allow the generator to be set once.
+		/// Additionally, this method is thread-safe in that it guarantees that only the first caller will be able to set
+		/// the generator.
+		/// </summary>
+		///
+		/// <param name="randomNumberGenerator">the random number generator</param>
+		/// <exception cref="System.NotSupportedException">if a user attempts to set the generator a second time</exception>
+		[MethodImpl(MethodImplOptions.Synchronized)]
+		public static void setRandom(SecureRandom randomNumberGenerator) {
+			if (randomNumberGenerator_ == null) {
+				randomNumberGenerator_ = randomNumberGenerator;
+			} else {
+				throw new NotSupportedException(
+						"The random number generator may only be set once");
+			}
 		}
 	
 		/// <summary>
@@ -53,6 +89,38 @@ namespace net.named_data.jndn.util {
 			sha256.update(data);
 			data.position(savePosition);
 			return sha256.Hash;
+		}
+	
+		/// <summary>
+		/// Compute the HMAC with SHA-256 of data, as defined in
+		/// http://tools.ietf.org/html/rfc2104#section-2 .
+		/// </summary>
+		///
+		/// <param name="key">The key byte array.</param>
+		/// <param name="data">The input byte buffer. This does not change the position.</param>
+		/// <returns>The HMAC result.</returns>
+		public static byte[] computeHmacWithSha256(byte[] key, ByteBuffer data) {
+			String algorithm = "HmacSHA256";
+			Mac mac;
+			try {
+				mac = javax.crypto.Mac.getInstance(algorithm);
+			} catch (Exception ex) {
+				// Don't expect this to happen.
+				throw new Exception("computeHmac: " + algorithm + " is not supported: "
+						+ ex.Message);
+			}
+	
+			try {
+				mac.init(new SecretKeySpec(key, algorithm));
+			} catch (InvalidKeyException ex_0) {
+				// Don't expect this to happen.
+				throw new Exception("computeHmac: Can't init " + algorithm
+						+ " with key: " + ex_0.Message);
+			}
+			int savePosition = data.position();
+			mac.update(data);
+			data.position(savePosition);
+			return mac.doFinal();
 		}
 	
 		/// <summary>
@@ -173,5 +241,6 @@ namespace net.named_data.jndn.util {
 	
 		private static Common.Base64ConverterType  base64ConverterType_ = net.named_data.jndn.util.Common.Base64ConverterType.UNINITIALIZED;
 		private static Type base64Converter_ = null;
+		private static SecureRandom randomNumberGenerator_;
 	}
 }

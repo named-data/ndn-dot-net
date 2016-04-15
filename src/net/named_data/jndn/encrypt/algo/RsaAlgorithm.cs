@@ -41,7 +41,7 @@ namespace net.named_data.jndn.encrypt.algo {
 			generator.initialize(paras.getKeySize());
 			KeyPair pair = generator.generateKeyPair();
 	
-			return new DecryptKey(new Blob(pair.getPrivate().getEncoded()));
+			return new DecryptKey(new Blob(pair.getPrivate().getEncoded(), false));
 		}
 	
 		/// <summary>
@@ -78,7 +78,7 @@ namespace net.named_data.jndn.encrypt.algo {
 							.getImmutableArray()), new Int64(publicExponent
 							.getImmutableArray())));
 	
-			return new EncryptKey(new Blob(publicKey.getEncoded()));
+			return new EncryptKey(new Blob(publicKey.getEncoded(), false));
 		}
 	
 		/// <summary>
@@ -105,7 +105,8 @@ namespace net.named_data.jndn.encrypt.algo {
 	
 			Cipher cipher = javax.crypto.Cipher.getInstance(transformation);
 			cipher.init(javax.crypto.Cipher.DECRYPT_MODE, privateKey);
-			return new Blob(cipher.doFinal(encryptedData.getImmutableArray()));
+			return new Blob(cipher.doFinal(encryptedData.getImmutableArray()),
+					false);
 		}
 	
 		/// <summary>
@@ -132,12 +133,11 @@ namespace net.named_data.jndn.encrypt.algo {
 	
 			Cipher cipher = javax.crypto.Cipher.getInstance(transformation);
 			cipher.init(javax.crypto.Cipher.ENCRYPT_MODE, publicKey);
-			return new Blob(cipher.doFinal(plainData.getImmutableArray()));
+			return new Blob(cipher.doFinal(plainData.getImmutableArray()), false);
 		}
 	
-		// TODO: Move this to a common utility?
-		private static readonly SecureRandom random_ = new SecureRandom();
 		private static KeyFactory keyFactory_;
+	
 		static RsaAlgorithm() {
 				try {
 					keyFactory_ = System.KeyFactory.getInstance("RSA");

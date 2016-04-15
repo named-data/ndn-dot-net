@@ -67,7 +67,7 @@ namespace net.named_data.jndn {
 			///
 			/// <param name="value">The value byte array.</param>
 			public Component(byte[] value_ren) {
-				value_ = new Blob(value_ren);
+				value_ = new Blob(value_ren, true);
 			}
 	
 			/// <summary>
@@ -108,6 +108,60 @@ namespace net.named_data.jndn {
 			/// <returns>The escaped string.</returns>
 			public String toEscapedString() {
 				return net.named_data.jndn.Name.toEscapedString(value_.buf());
+			}
+	
+			/// <summary>
+			/// Check if this component is a segment number according to NDN naming
+			/// conventions for "Segment number" (marker 0x00).
+			/// http://named-data.net/doc/tech-memos/naming-conventions.pdf
+			/// </summary>
+			///
+			/// <returns>True if this is a segment number.</returns>
+			public bool isSegment() {
+				return value_.size() >= 1 && value_.buf().get(0) == (byte) 0x00;
+			}
+	
+			/// <summary>
+			/// Check if this component is a segment byte offset according to NDN
+			/// naming conventions for segment "Byte offset" (marker 0xFB).
+			/// http://named-data.net/doc/tech-memos/naming-conventions.pdf
+			/// </summary>
+			///
+			/// <returns>True if this is a segment byte offset.</returns>
+			public bool isSegmentOffset() {
+				return value_.size() >= 1 && value_.buf().get(0) == (byte) 0xFB;
+			}
+	
+			/// <summary>
+			/// Check if this component is a version number according to NDN naming
+			/// conventions for "Versioning" (marker 0xFD).
+			/// </summary>
+			///
+			/// <returns>True if this is a version number.</returns>
+			public bool isVersion() {
+				return value_.size() >= 1 && value_.buf().get(0) == (byte) 0xFD;
+			}
+	
+			/// <summary>
+			/// Check if this component is a timestamp according to NDN naming
+			/// conventions for "Timestamp" (marker 0xFC).
+			/// http://named-data.net/doc/tech-memos/naming-conventions.pdf
+			/// </summary>
+			///
+			/// <returns>True if this is a timestamp.</returns>
+			public bool isTimestamp() {
+				return value_.size() >= 1 && value_.buf().get(0) == (byte) 0xFC;
+			}
+	
+			/// <summary>
+			/// Check if this component is a sequence number according to NDN naming
+			/// conventions for "Sequencing" (marker 0xFE).
+			/// http://named-data.net/doc/tech-memos/naming-conventions.pdf
+			/// </summary>
+			///
+			/// <returns>True if this is a sequence number.</returns>
+			public bool isSequenceNumber() {
+				return value_.size() >= 1 && value_.buf().get(0) == (byte) 0xFE;
 			}
 	
 			/// <summary>
@@ -249,6 +303,101 @@ namespace net.named_data.jndn {
 				encoder.writeNonNegativeInteger(number);
 				encoder.writeNonNegativeInteger((long) marker);
 				return new Name.Component (new Blob(encoder.getOutput(), false));
+			}
+	
+			/// <summary>
+			/// Create a component with the encoded segment number according to NDN
+			/// naming conventions for "Segment number" (marker 0x00).
+			/// http://named-data.net/doc/tech-memos/naming-conventions.pdf
+			/// </summary>
+			///
+			/// <param name="segment">The segment number.</param>
+			/// <returns>The new Component.</returns>
+			public static Name.Component  fromSegment(long segment) {
+				return fromNumberWithMarker(segment, 0x00);
+			}
+	
+			/// <summary>
+			/// Create a component with the encoded segment byte offset according to NDN
+			/// naming conventions for segment "Byte offset" (marker 0xFB).
+			/// http://named-data.net/doc/tech-memos/naming-conventions.pdf
+			/// </summary>
+			///
+			/// <param name="segmentOffset">The segment byte offset.</param>
+			/// <returns>The new Component.</returns>
+			public static Name.Component  fromSegmentOffset(long segmentOffset) {
+				return fromNumberWithMarker(segmentOffset, 0xFB);
+			}
+	
+			/// <summary>
+			/// Create a component with the encoded version number according to NDN
+			/// naming conventions for "Versioning" (marker 0xFD).
+			/// http://named-data.net/doc/tech-memos/naming-conventions.pdf
+			/// Note that this encodes the exact value of version without converting from a
+			/// time representation.
+			/// </summary>
+			///
+			/// <param name="version">The version number.</param>
+			/// <returns>The new Component.</returns>
+			public static Name.Component  fromVersion(long version) {
+				return fromNumberWithMarker(version, 0xFD);
+			}
+	
+			/// <summary>
+			/// Create a component with the encoded timestamp according to NDN naming
+			/// conventions for "Timestamp" (marker 0xFC).
+			/// http://named-data.net/doc/tech-memos/naming-conventions.pdf
+			/// </summary>
+			///
+			/// <param name="timestamp"></param>
+			/// <returns>The new Component.</returns>
+			public static Name.Component  fromTimestamp(long timestamp) {
+				return fromNumberWithMarker(timestamp, 0xFC);
+			}
+	
+			/// <summary>
+			/// Create a component with the encoded sequence number according to NDN naming
+			/// conventions for "Sequencing" (marker 0xFE).
+			/// http://named-data.net/doc/tech-memos/naming-conventions.pdf
+			/// </summary>
+			///
+			/// <param name="sequenceNumber">The sequence number.</param>
+			/// <returns>The new Component.</returns>
+			public static Name.Component  fromSequenceNumber(long sequenceNumber) {
+				return fromNumberWithMarker(sequenceNumber, 0xFE);
+			}
+	
+			/// <summary>
+			/// Get the successor of this component, as described in Name.getSuccessor.
+			/// </summary>
+			///
+			/// <returns>A new Name.Component which is the successor of this.</returns>
+			public Name.Component  getSuccessor() {
+				// Allocate an extra byte in case the result is larger.
+				ByteBuffer result = ILOG.J2CsMapping.NIO.ByteBuffer.allocate(value_.size() + 1);
+	
+				bool carry = true;
+				for (int i = value_.size() - 1; i >= 0; --i) {
+					if (carry) {
+						// b & 0xff makes the byte unsigned and returns an int.
+						int x = value_.buf().get(value_.buf().position() + i) & 0xff;
+						x = (x + 1) & 0xff;
+						result.put(i, (byte) x);
+						carry = (x == 0);
+					} else
+						result.put(i, value_.buf().get(value_.buf().position() + i));
+				}
+	
+				if (carry)
+					// Assume all the bytes were set to zero (or the component was empty).
+					// In NDN ordering, carry does not mean to prepend a 1, but to make a
+					// component one byte longer of all zeros.
+					result.put(result.limit() - 1, (byte) 0);
+				else
+					// We didn't need the extra byte.
+					result.limit(value_.size());
+	
+				return new Name.Component (new Blob(result, false));
 			}
 	
 			/// <summary>
@@ -529,7 +678,7 @@ namespace net.named_data.jndn {
 		/// </summary>
 		///
 		/// <param name="iStartComponent">name.size() - N.</param>
-		/// <param name="nComponents">The number of components starting at iStartComponent.</param>
+		/// <param name="nComponents"></param>
 		/// <returns>A new name.</returns>
 		public Name getSubName(int iStartComponent, int nComponents) {
 			if (iStartComponent < 0)
@@ -552,15 +701,7 @@ namespace net.named_data.jndn {
 		/// <param name="iStartComponent">name.size() - N.</param>
 		/// <returns>A new name.</returns>
 		public Name getSubName(int iStartComponent) {
-			if (iStartComponent < 0)
-				iStartComponent = components_.Count - (-iStartComponent);
-	
-			Name result = new Name();
-	
-			for (int i = iStartComponent; i < components_.Count; ++i)
-				ILOG.J2CsMapping.Collections.Collections.Add(result.components_,components_[i]);
-	
-			return result;
+			return getSubName(iStartComponent, components_.Count);
 		}
 	
 		/// <summary>
@@ -621,7 +762,7 @@ namespace net.named_data.jndn {
 		/// <param name="segment">The segment number.</param>
 		/// <returns>This name so that you can chain calls to append.</returns>
 		public Name appendSegment(long segment) {
-			return append(net.named_data.jndn.Name.Component.fromNumberWithMarker(segment, 0x00));
+			return append(net.named_data.jndn.Name.Component.fromSegment(segment));
 		}
 	
 		/// <summary>
@@ -633,7 +774,7 @@ namespace net.named_data.jndn {
 		/// <param name="segmentOffset">The segment byte offset.</param>
 		/// <returns>This name so that you can chain calls to append.</returns>
 		public Name appendSegmentOffset(long segmentOffset) {
-			return append(net.named_data.jndn.Name.Component.fromNumberWithMarker(segmentOffset, 0xFB));
+			return append(net.named_data.jndn.Name.Component.fromSegmentOffset(segmentOffset));
 		}
 	
 		/// <summary>
@@ -647,7 +788,7 @@ namespace net.named_data.jndn {
 		/// <param name="version">The version number.</param>
 		/// <returns>This name so that you can chain calls to append.</returns>
 		public Name appendVersion(long version) {
-			return append(net.named_data.jndn.Name.Component.fromNumberWithMarker(version, 0xFD));
+			return append(net.named_data.jndn.Name.Component.fromVersion(version));
 		}
 	
 		/// <summary>
@@ -659,7 +800,7 @@ namespace net.named_data.jndn {
 		/// <param name="timestamp"></param>
 		/// <returns>This name so that you can chain calls to append.</returns>
 		public Name appendTimestamp(long timestamp) {
-			return append(net.named_data.jndn.Name.Component.fromNumberWithMarker(timestamp, 0xFC));
+			return append(net.named_data.jndn.Name.Component.fromTimestamp(timestamp));
 		}
 	
 		/// <summary>
@@ -671,7 +812,7 @@ namespace net.named_data.jndn {
 		/// <param name="sequenceNumber">The sequence number.</param>
 		/// <returns>This name so that you can chain calls to append.</returns>
 		public Name appendSequenceNumber(long sequenceNumber) {
-			return append(net.named_data.jndn.Name.Component.fromNumberWithMarker(sequenceNumber, 0xFE));
+			return append(net.named_data.jndn.Name.Component.fromSequenceNumber(sequenceNumber));
 		}
 	
 		/// <summary>
@@ -723,6 +864,31 @@ namespace net.named_data.jndn {
 		}
 	
 		/// <summary>
+		/// Get the successor of this name which is defined as follows.
+		/// N represents the set of NDN Names, and X,Y ∈ N.
+		/// Operator &lt; is defined by the NDN canonical order on N.
+		/// Y is the successor of X, if (a) X &lt; Y, and (b) ∄ Z ∈ N s.t. X &lt; Z &lt; Y.
+		/// In plain words, the successor of a name is the same name, but with its last
+		/// component advanced to a next possible value.
+		/// Examples:
+		/// - The successor of / is /%00
+		/// - The successor of /%00%01/%01%02 is /%00%01/%01%03
+		/// - The successor of /%00%01/%01%FF is /%00%01/%02%00
+		/// - The successor of /%00%01/%FF%FF is /%00%01/%00%00%00
+		/// </summary>
+		///
+		/// <returns>A new name which is the successor of this.</returns>
+		public Name getSuccessor() {
+			if (size() == 0) {
+				// Return "/%00".
+				Name result = new Name();
+				result.append(new byte[1]);
+				return result;
+			} else
+				return getPrefix(-1).append(get(-1).getSuccessor());
+		}
+	
+		/// <summary>
 		/// Check if the N components of this name are the same as the first N
 		/// components of the given name.
 		/// </summary>
@@ -743,6 +909,18 @@ namespace net.named_data.jndn {
 			}
 	
 			return true;
+		}
+	
+		/// <summary>
+		/// Check if the N components of this name are the same as the first N
+		/// components of the given name.
+		/// </summary>
+		///
+		/// <param name="name">The Name to check.</param>
+		/// <returns>true if this matches the given name, otherwise false.  This always
+		/// returns true if this name is empty.</returns>
+		public bool isPrefixOf(Name name) {
+			return match(name);
 		}
 	
 		/// <summary>
@@ -829,9 +1007,37 @@ namespace net.named_data.jndn {
 		/// ordering.
 		/// See http://named-data.net/doc/0.2/technical/CanonicalOrder.html</returns>
 		public int compare(Name other) {
-			for (int i = 0; i < size() && i < other.size(); ++i) {
-				int comparison = ((Name.Component ) components_[i])
-						.compare((Name.Component ) other.components_[i]);
+			return compare(0, components_.Count, other);
+		}
+	
+		/// <summary>
+		/// Compare a subset of this name to a subset of the other name, equivalent to
+		/// this.getSubName(iStartComponent, nComponents).compare
+		/// (other.getSubName(iOtherStartComponent, nOtherComponents)).
+		/// </summary>
+		///
+		/// <param name="iStartComponent">name.size() - N.</param>
+		/// <param name="nComponents"></param>
+		/// <param name="other">The other Name to compare with.</param>
+		/// <param name="iOtherStartComponent">starting from other.size() - N.</param>
+		/// <param name="nOtherComponents">until the end of the name.</param>
+		/// <returns>0 If the sub names compare equal, -1 if this sub name comes before
+		/// the other sub name in the canonical ordering, or 1 if after.</returns>
+		public int compare(int iStartComponent, int nComponents, Name other,
+				int iOtherStartComponent, int nOtherComponents) {
+			if (iStartComponent < 0)
+				iStartComponent = size() - (-iStartComponent);
+			if (iOtherStartComponent < 0)
+				iOtherStartComponent = other.size() - (-iOtherStartComponent);
+	
+			nComponents = Math.Min(nComponents,size() - iStartComponent);
+			nOtherComponents = Math.Min(nOtherComponents,other.size()
+							- iOtherStartComponent);
+	
+			int count = Math.Min(nComponents,nOtherComponents);
+			for (int i = 0; i < count; ++i) {
+				int comparison = ((Name.Component ) components_[iStartComponent + i])
+						.compare((Name.Component ) other.components_[iOtherStartComponent + i]);
 				if (comparison == 0)
 					// The components at this index are equal, so check the next components.
 					continue;
@@ -842,12 +1048,46 @@ namespace net.named_data.jndn {
 	
 			// The components up to min(this.size(), other.size()) are equal, so the
 			//   shorter name is less.
-			if (size() < other.size())
+			if (nComponents < nOtherComponents)
 				return -1;
-			else if (size() > other.size())
+			else if (nComponents > nOtherComponents)
 				return 1;
 			else
 				return 0;
+		}
+	
+		/// <summary>
+		/// Compare a subset of this name to a subset of the other name, equivalent to
+		/// this.getSubName(iStartComponent, nComponents).compare
+		/// (other.getSubName(iOtherStartComponent)), getting all components of other
+		/// from iOtherStartComponent to the end of the name.
+		/// </summary>
+		///
+		/// <param name="iStartComponent">name.size() - N.</param>
+		/// <param name="nComponents"></param>
+		/// <param name="other">The other Name to compare with.</param>
+		/// <param name="iOtherStartComponent">starting from other.size() - N.</param>
+		/// <returns>0 If the sub names compare equal, -1 if this sub name comes before
+		/// the other sub name in the canonical ordering, or 1 if after.</returns>
+		public int compare(int iStartComponent, int nComponents, Name other,
+				int iOtherStartComponent) {
+			return compare(iStartComponent, nComponents, other,
+					iOtherStartComponent, other.components_.Count);
+		}
+	
+		/// <summary>
+		/// Compare a subset of this name to all of the other name, equivalent to
+		/// this.getSubName(iStartComponent, nComponents).compare(other).
+		/// </summary>
+		///
+		/// <param name="iStartComponent">name.size() - N.</param>
+		/// <param name="nComponents"></param>
+		/// <param name="other">The other Name to compare with.</param>
+		/// <returns>0 If the sub names compare equal, -1 if this sub name comes before
+		/// the other name in the canonical ordering, or 1 if after.</returns>
+		public int compare(int iStartComponent, int nComponents, Name other) {
+			return compare(iStartComponent, nComponents, other, 0,
+					other.components_.Count);
 		}
 	
 		public int compareTo(Object o) {

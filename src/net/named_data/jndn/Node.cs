@@ -97,15 +97,15 @@ namespace net.named_data.jndn {
 							connectStatus_ = net.named_data.jndn.Node.ConnectStatus.CONNECT_REQUESTED;
 			
 							// expressInterestHelper will be called by onConnected.
-							ILOG.J2CsMapping.Collections.Collections.Add(onConnectedCallbacks_,new Node.Anonymous_C3 (this, pendingInterestId, interestCopy, onData,
-													wireFormat, face, onTimeout));
+							ILOG.J2CsMapping.Collections.Collections.Add(onConnectedCallbacks_,new Node.Anonymous_C3 (this, onData, pendingInterestId, face,
+													wireFormat, interestCopy, onTimeout));
 			
 							IRunnable onConnected = new Node.Anonymous_C2 (this);
 							transport_.connect(connectionInfo_, this, onConnected);
 						} else if (connectStatus_ == net.named_data.jndn.Node.ConnectStatus.CONNECT_REQUESTED) {
 							// Still connecting. add to the interests to express by onConnected.
-							ILOG.J2CsMapping.Collections.Collections.Add(onConnectedCallbacks_,new Node.Anonymous_C1 (this, face, onTimeout, wireFormat, onData,
-													pendingInterestId, interestCopy));
+							ILOG.J2CsMapping.Collections.Collections.Add(onConnectedCallbacks_,new Node.Anonymous_C1 (this, pendingInterestId, interestCopy, face,
+													onTimeout, wireFormat, onData));
 						} else if (connectStatus_ == net.named_data.jndn.Node.ConnectStatus.CONNECT_COMPLETE)
 							// We have to repeat this check for CONNECT_COMPLETE in case the
 							// onConnected callback was called while we were waiting to enter this
@@ -318,9 +318,14 @@ namespace net.named_data.jndn {
 				// The lock on interestFilterTable_ is released, so call the callbacks.
 				for (int i = 0; i < matchedFilters.Count; ++i) {
 					InterestFilterTable.Entry entry = (InterestFilterTable.Entry) matchedFilters[i];
-					entry.getOnInterest().onInterest(entry.getFilter().getPrefix(),
-							interest, entry.getFace(), entry.getInterestFilterId(),
-							entry.getFilter());
+					try {
+						entry.getOnInterest().onInterest(
+								entry.getFilter().getPrefix(), interest,
+								entry.getFace(), entry.getInterestFilterId(),
+								entry.getFilter());
+					} catch (Exception ex) {
+						logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in onInterest", ex);
+					}
 				}
 			} else if (data != null) {
 				ArrayList pitEntries = new ArrayList();
@@ -328,8 +333,12 @@ namespace net.named_data.jndn {
 						data.getName(), pitEntries);
 				for (int i_0 = 0; i_0 < pitEntries.Count; ++i_0) {
 					PendingInterestTable.Entry pendingInterest = (PendingInterestTable.Entry) pitEntries[i_0];
-					pendingInterest.getOnData().onData(
-							pendingInterest.getInterest(), data);
+					try {
+						pendingInterest.getOnData().onData(
+								pendingInterest.getInterest(), data);
+					} catch (Exception ex_1) {
+						logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in onData", ex_1);
+					}
 				}
 			}
 		}
@@ -447,21 +456,21 @@ namespace net.named_data.jndn {
 	
 		public sealed class Anonymous_C3 : IRunnable {
 				private readonly Node outer_Node;
-				private readonly long pendingInterestId;
-				private readonly Interest interestCopy;
 				private readonly OnData onData;
-				private readonly WireFormat wireFormat;
+				private readonly long pendingInterestId;
 				private readonly Face face;
+				private readonly WireFormat wireFormat;
+				private readonly Interest interestCopy;
 				private readonly OnTimeout onTimeout;
 		
-				public Anonymous_C3(Node paramouter_Node, long pendingInterestId_0,
-						Interest interestCopy_1, OnData onData_2, WireFormat wireFormat_3,
-						Face face_4, OnTimeout onTimeout_5) {
-					this.pendingInterestId = pendingInterestId_0;
-					this.interestCopy = interestCopy_1;
-					this.onData = onData_2;
+				public Anonymous_C3(Node paramouter_Node, OnData onData_0,
+						long pendingInterestId_1, Face face_2, WireFormat wireFormat_3,
+						Interest interestCopy_4, OnTimeout onTimeout_5) {
+					this.onData = onData_0;
+					this.pendingInterestId = pendingInterestId_1;
+					this.face = face_2;
 					this.wireFormat = wireFormat_3;
-					this.face = face_4;
+					this.interestCopy = interestCopy_4;
 					this.onTimeout = onTimeout_5;
 					this.outer_Node = paramouter_Node;
 				}
@@ -498,22 +507,22 @@ namespace net.named_data.jndn {
 			}
 		public sealed class Anonymous_C1 : IRunnable {
 				private readonly Node outer_Node;
+				private readonly long pendingInterestId;
+				private readonly Interest interestCopy;
 				private readonly Face face;
 				private readonly OnTimeout onTimeout;
 				private readonly WireFormat wireFormat;
 				private readonly OnData onData;
-				private readonly long pendingInterestId;
-				private readonly Interest interestCopy;
 		
-				public Anonymous_C1(Node paramouter_Node, Face face_0,
-						OnTimeout onTimeout_1, WireFormat wireFormat_2, OnData onData_3,
-						long pendingInterestId_4, Interest interestCopy_5) {
-					this.face = face_0;
-					this.onTimeout = onTimeout_1;
-					this.wireFormat = wireFormat_2;
-					this.onData = onData_3;
-					this.pendingInterestId = pendingInterestId_4;
-					this.interestCopy = interestCopy_5;
+				public Anonymous_C1(Node paramouter_Node, long pendingInterestId_0,
+						Interest interestCopy_1, Face face_2, OnTimeout onTimeout_3,
+						WireFormat wireFormat_4, OnData onData_5) {
+					this.pendingInterestId = pendingInterestId_0;
+					this.interestCopy = interestCopy_1;
+					this.face = face_2;
+					this.onTimeout = onTimeout_3;
+					this.wireFormat = wireFormat_4;
+					this.onData = onData_5;
 					this.outer_Node = paramouter_Node;
 				}
 		
@@ -557,29 +566,35 @@ namespace net.named_data.jndn {
 			/// <param name="responseData"></param>
 			public virtual void onData(Interest interest, Data responseData) {
 				// Decode responseData.getContent() and check for a success code.
-				// TODO: Move this into the TLV code.
-				TlvDecoder decoder = new TlvDecoder(responseData.getContent().buf());
-				long statusCode;
+				ControlResponse controlResponse = new ControlResponse();
 				try {
-					decoder.readNestedTlvsStart(net.named_data.jndn.encoding.tlv.Tlv.NfdCommand_ControlResponse);
-					statusCode = decoder
-							.readNonNegativeIntegerTlv(net.named_data.jndn.encoding.tlv.Tlv.NfdCommand_StatusCode);
+					controlResponse.wireDecode(responseData.getContent(),
+							net.named_data.jndn.encoding.TlvWireFormat.get());
 				} catch (EncodingException ex) {
 					net.named_data.jndn.Node.logger_.log(
 							ILOG.J2CsMapping.Util.Logging.Level.INFO,
 							"Register prefix failed: Error decoding the NFD response: {0}",
 							ex);
-					info_.onRegisterFailed_.onRegisterFailed(info_.prefix_);
+					try {
+						info_.onRegisterFailed_.onRegisterFailed(info_.prefix_);
+					} catch (Exception exception) {
+						net.named_data.jndn.Node.logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in onRegisterFailed",
+								exception);
+					}
 					return;
 				}
 	
 				// Status code 200 is "OK".
-				if (statusCode != 200) {
+				if (controlResponse.getStatusCode() != 200) {
 					net.named_data.jndn.Node.logger_.log(
 							ILOG.J2CsMapping.Util.Logging.Level.INFO,
 							"Register prefix failed: Expected NFD status code 200, got: {0}",
-							statusCode);
-					info_.onRegisterFailed_.onRegisterFailed(info_.prefix_);
+							controlResponse.getStatusCode());
+					try {
+						info_.onRegisterFailed_.onRegisterFailed(info_.prefix_);
+					} catch (Exception ex_0) {
+						net.named_data.jndn.Node.logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in onRegisterFailed", ex_0);
+					}
 					return;
 				}
 	
@@ -587,9 +602,14 @@ namespace net.named_data.jndn {
 						ILOG.J2CsMapping.Util.Logging.Level.INFO,
 						"Register prefix succeeded with the NFD forwarder for prefix {0}",
 						info_.prefix_.toUri());
-				if (info_.onRegisterSuccess_ != null)
-					info_.onRegisterSuccess_.onRegisterSuccess(info_.prefix_,
-							info_.registeredPrefixId_);
+				if (info_.onRegisterSuccess_ != null) {
+					try {
+						info_.onRegisterSuccess_.onRegisterSuccess(info_.prefix_,
+								info_.registeredPrefixId_);
+					} catch (Exception ex_1) {
+						net.named_data.jndn.Node.logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in onRegisterSuccess", ex_1);
+					}
+				}
 			}
 	
 			/// <summary>
@@ -599,7 +619,11 @@ namespace net.named_data.jndn {
 			/// <param name="timedOutInterest"></param>
 			public virtual void onTimeout(Interest timedOutInterest) {
 				net.named_data.jndn.Node.logger_.log(ILOG.J2CsMapping.Util.Logging.Level.INFO, "Timeout for NFD register prefix command.");
-				info_.onRegisterFailed_.onRegisterFailed(info_.prefix_);
+				try {
+					info_.onRegisterFailed_.onRegisterFailed(info_.prefix_);
+				} catch (Exception ex) {
+					net.named_data.jndn.Node.logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in onRegisterFailed", ex);
+				}
 			}
 	
 			public class Info {
@@ -667,7 +691,12 @@ namespace net.named_data.jndn {
 						ILOG.J2CsMapping.Util.Logging.Level.INFO,
 						"Register prefix failed: Error attempting to determine if the face is local: {0}",
 						ex);
-				onRegisterFailed.onRegisterFailed(prefix);
+				try {
+					onRegisterFailed.onRegisterFailed(prefix);
+				} catch (Exception exception) {
+					logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in onRegisterFailed",
+							exception);
+				}
 				return;
 			}
 	
@@ -714,7 +743,12 @@ namespace net.named_data.jndn {
 						ILOG.J2CsMapping.Util.Logging.Level.INFO,
 						"Register prefix failed: Error sending the register prefix interest to the forwarder: {0}",
 						ex_2);
-				onRegisterFailed.onRegisterFailed(prefix);
+				try {
+					onRegisterFailed.onRegisterFailed(prefix);
+				} catch (Exception exception_3) {
+					logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in onRegisterFailed",
+							exception_3);
+				}
 			}
 		}
 	

@@ -29,7 +29,7 @@ namespace net.named_data.jndn.encrypt.algo {
 		/// Create an EncryptParams with the given parameters.
 		/// </summary>
 		///
-		/// <param name="algorithmType">The algorithm type, or NONE if not specified.</param>
+		/// <param name="algorithmType">The algorithm type, or null if not specified.</param>
 		/// <param name="initialVectorLength"></param>
 		public EncryptParams(EncryptAlgorithmType algorithmType,
 				int initialVectorLength) {
@@ -37,7 +37,7 @@ namespace net.named_data.jndn.encrypt.algo {
 	
 			if (initialVectorLength > 0) {
 				ByteBuffer initialVector = ILOG.J2CsMapping.NIO.ByteBuffer.allocate(initialVectorLength);
-				random_.nextBytes(initialVector.array());
+				net.named_data.jndn.util.Common.getRandom().nextBytes(initialVector.array());
 				initialVector_ = new Blob(initialVector, false);
 			} else
 				initialVector_ = new Blob();
@@ -48,7 +48,7 @@ namespace net.named_data.jndn.encrypt.algo {
 		/// initial vector.
 		/// </summary>
 		///
-		/// <param name="algorithmType">The algorithm type, or NONE if not specified.</param>
+		/// <param name="algorithmType">The algorithm type, or null if not specified.</param>
 		public EncryptParams(EncryptAlgorithmType algorithmType) {
 			algorithmType_ = algorithmType;
 			initialVector_ = new Blob();
@@ -58,7 +58,7 @@ namespace net.named_data.jndn.encrypt.algo {
 		/// Get the algorithm type.
 		/// </summary>
 		///
-		/// <returns>The algorithm type, or NONE if not specified.</returns>
+		/// <returns>The algorithm type, or null if not specified.</returns>
 		public EncryptAlgorithmType getAlgorithmType() {
 			return algorithmType_;
 		}
@@ -76,7 +76,7 @@ namespace net.named_data.jndn.encrypt.algo {
 		/// Set the algorithm type.
 		/// </summary>
 		///
-		/// <param name="algorithmType">The algorithm type. If not specified, set to NONE.</param>
+		/// <param name="algorithmType">The algorithm type. If not specified, set to null.</param>
 		/// <returns>This EncryptParams so that you can chain calls to update values.</returns>
 		public EncryptParams setAlgorithmType(
 				EncryptAlgorithmType algorithmType) {
@@ -97,7 +97,5 @@ namespace net.named_data.jndn.encrypt.algo {
 	
 		private EncryptAlgorithmType algorithmType_;
 		private Blob initialVector_;
-		// TODO: Move this to a common utility?
-		private static readonly SecureRandom random_ = new SecureRandom();
 	}
 }

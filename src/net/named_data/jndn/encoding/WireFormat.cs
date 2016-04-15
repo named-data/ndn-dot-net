@@ -51,8 +51,8 @@ namespace net.named_data.jndn.encoding {
 		/// </summary>
 		///
 		/// <param name="interest">The Interest object to encode.</param>
-		/// <param name="signedPortionBeginOffset">name component and ends just before the final name component (which is assumed to be a signature for a signed interest). If you are not encoding in order to sign, you can call encodeInterest(const Interest& interest) to ignore this returned value.</param>
-		/// <param name="signedPortionEndOffset">name component and ends just before the final name component (which is assumed to be a signature for a signed interest). If you are not encoding in order to sign, you can call encodeInterest(const Interest& interest) to ignore this returned value.</param>
+		/// <param name="signedPortionBeginOffset">name component and ends just before the final name component (which is assumed to be a signature for a signed interest). If you are not encoding in order to sign, you can call encodeInterest(Interest interest) to ignore this returned value.</param>
+		/// <param name="signedPortionEndOffset">name component and ends just before the final name component (which is assumed to be a signature for a signed interest). If you are not encoding in order to sign, you can call encodeInterest(Interest interest) to ignore this returned value.</param>
 		/// <returns>A Blob containing the encoding.</returns>
 		/// <exception cref="System.NotSupportedException">for unimplemented if the derivedclass does not override.</exception>
 		public virtual Blob encodeInterest(Interest interest,
@@ -183,6 +183,34 @@ namespace net.named_data.jndn.encoding {
 				ByteBuffer input) {
 			throw new NotSupportedException(
 					"decodeControlParameters is not implemented");
+		}
+	
+		/// <summary>
+		/// Encode controlResponse and return the encoding.
+		/// Your derived class should override.
+		/// </summary>
+		///
+		/// <param name="controlResponse">The ControlResponse object to encode.</param>
+		/// <returns>A Blob containing the encoding.</returns>
+		/// <exception cref="System.NotSupportedException">for unimplemented if the derivedclass does not override.</exception>
+		public virtual Blob encodeControlResponse(ControlResponse controlResponse) {
+			throw new NotSupportedException(
+					"encodeControlResponse is not implemented");
+		}
+	
+		/// <summary>
+		/// Decode input as a control parameters and set the fields of the
+		/// controlResponse object.  Your derived class should override.
+		/// </summary>
+		///
+		/// <param name="controlResponse"></param>
+		/// <param name="input"></param>
+		/// <exception cref="System.NotSupportedException">for unimplemented if the derivedclass does not override.</exception>
+		/// <exception cref="EncodingException">For invalid encoding.</exception>
+		public virtual void decodeControlResponse(ControlResponse controlResponse,
+				ByteBuffer input) {
+			throw new NotSupportedException(
+					"decodeControlResponse is not implemented");
 		}
 	
 		/// <summary>
