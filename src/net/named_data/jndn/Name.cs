@@ -481,7 +481,7 @@ namespace net.named_data.jndn {
 			this.changeCount_ = 0;
 			this.haveHashCode_ = false;
 			this.hashCodeChangeCount_ = 0;
-			components_ = new ArrayList();
+			components_ = new ArrayList<Component>();
 		}
 	
 		/// <summary>
@@ -493,7 +493,7 @@ namespace net.named_data.jndn {
 			this.changeCount_ = 0;
 			this.haveHashCode_ = false;
 			this.hashCodeChangeCount_ = 0;
-			components_ = new ArrayList(name.components_);
+			components_ = new ArrayList<Component>(name.components_);
 		}
 	
 		/// <summary>
@@ -506,7 +506,7 @@ namespace net.named_data.jndn {
 			this.haveHashCode_ = false;
 			this.hashCodeChangeCount_ = 0;
 			// Don't need to deep-copy Component elements because they are read-only.
-			components_ = new ArrayList(components);
+			components_ = new ArrayList<Component>(components);
 		}
 	
 		/// <summary>
@@ -518,7 +518,7 @@ namespace net.named_data.jndn {
 			this.changeCount_ = 0;
 			this.haveHashCode_ = false;
 			this.hashCodeChangeCount_ = 0;
-			components_ = new ArrayList();
+			components_ = new ArrayList<Component>();
 			for (int i = 0; i < components.Length; ++i)
 				ILOG.J2CsMapping.Collections.Collections.Add(components_,components[i]);
 		}
@@ -533,7 +533,7 @@ namespace net.named_data.jndn {
 			this.changeCount_ = 0;
 			this.haveHashCode_ = false;
 			this.hashCodeChangeCount_ = 0;
-			components_ = new ArrayList();
+			components_ = new ArrayList<Component>();
 			set(uri);
 		}
 	
@@ -554,9 +554,9 @@ namespace net.named_data.jndn {
 		/// <returns>The name component at the index.</returns>
 		public Name.Component  get(int i) {
 			if (i >= 0)
-				return (Name.Component ) components_[i];
+				return components_[i];
 			else
-				return (Name.Component ) components_[components_.Count - (-i)];
+				return components_[components_.Count - (-i)];
 		}
 	
 		public void set(String uri) {
@@ -853,8 +853,7 @@ namespace net.named_data.jndn {
 				int hashCode = 0;
 				// Use a similar hash code algorithm as String.
 				for (int i = 0; i < components_.Count; ++i)
-					hashCode = 37 * hashCode
-							+ ((Name.Component ) components_[i]).GetHashCode();
+					hashCode = 37 * hashCode + components_[i].GetHashCode();
 	
 				hashCode_ = hashCode;
 				haveHashCode_ = true;
@@ -1036,8 +1035,8 @@ namespace net.named_data.jndn {
 	
 			int count = Math.Min(nComponents,nOtherComponents);
 			for (int i = 0; i < count; ++i) {
-				int comparison = ((Name.Component ) components_[iStartComponent + i])
-						.compare((Name.Component ) other.components_[iOtherStartComponent + i]);
+				int comparison = components_[iStartComponent + i].compare(
+						other.components_[iOtherStartComponent + i]);
 				if (comparison == 0)
 					// The components at this index are equal, so check the next components.
 					continue;
@@ -1266,8 +1265,7 @@ namespace net.named_data.jndn {
 			return result;
 		}
 	
-		// Use ArrayList without generics so it works with older Java compilers.
-		private readonly ArrayList components_;
+		private readonly ArrayList<Component> components_;
 		private long changeCount_;
 		private bool haveHashCode_;
 		private int hashCode_;

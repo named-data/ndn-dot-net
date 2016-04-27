@@ -34,7 +34,7 @@ namespace net.named_data.jndn {
 		/// </summary>
 		///
 		public DelegationSet() {
-			this.delegations_ = new ArrayList();
+			this.delegations_ = new ArrayList<Delegation>();
 		}
 	
 		/// <summary>
@@ -43,7 +43,7 @@ namespace net.named_data.jndn {
 		///
 		/// <param name="delegationSet">The DelegationSet to copy values from.</param>
 		public DelegationSet(DelegationSet delegationSet) {
-			this.delegations_ = new ArrayList();
+			this.delegations_ = new ArrayList<Delegation>();
 			delegations_.AddRange(delegationSet.delegations_);
 		}
 	
@@ -119,7 +119,7 @@ namespace net.named_data.jndn {
 			// Find the index of the first entry where it is not less than newDelegation.
 			int i = 0;
 			while (i < delegations_.Count) {
-				if (((DelegationSet.Delegation ) delegations_[i]).compare(newDelegation) >= 0)
+				if (delegations_[i].compare(newDelegation) >= 0)
 					break;
 	
 				++i;
@@ -151,7 +151,7 @@ namespace net.named_data.jndn {
 			bool wasRemoved = false;
 			// Go backwards through the list so we can remove entries.
 			for (int i = delegations_.Count - 1; i >= 0; --i) {
-				if (((DelegationSet.Delegation ) delegations_[i]).getName().equals(name)) {
+				if (delegations_[i].getName().equals(name)) {
 					wasRemoved = true;
 					ILOG.J2CsMapping.Collections.Collections.RemoveAt(delegations_,i);
 				}
@@ -185,7 +185,7 @@ namespace net.named_data.jndn {
 		/// <param name="i">The index of the component, starting from 0.</param>
 		/// <returns>The delegation at the index.</returns>
 		public DelegationSet.Delegation  get(int i) {
-			return (DelegationSet.Delegation ) delegations_[i];
+			return delegations_[i];
 		}
 	
 		/// <summary>
@@ -196,7 +196,7 @@ namespace net.named_data.jndn {
 		/// <returns>The index of the delegation, or -1 if not found.</returns>
 		public int find(Name name) {
 			for (int i = 0; i < delegations_.Count; ++i) {
-				if (((DelegationSet.Delegation ) delegations_[i]).getName().equals(name))
+				if (delegations_[i].getName().equals(name))
 					return i;
 			}
 	
@@ -270,7 +270,6 @@ namespace net.named_data.jndn {
 			wireDecode(input.buf());
 		}
 	
-		// Use ArrayList without generics so it works with older Java compilers.
-		private readonly ArrayList delegations_;
+		private readonly ArrayList<Delegation> delegations_;
 	}
 }

@@ -83,7 +83,7 @@ namespace net.named_data.jndn {
 		///
 		public Exclude() {
 			this.changeCount_ = 0;
-			entries_ = new ArrayList();
+			entries_ = new ArrayList<Entry>();
 		}
 	
 		/// <summary>
@@ -94,7 +94,7 @@ namespace net.named_data.jndn {
 		public Exclude(Exclude exclude) {
 			this.changeCount_ = 0;
 			// Each entry is read-only, so do a shallow copy.
-			entries_ = new ArrayList(exclude.entries_);
+			entries_ = new ArrayList<Entry>(exclude.entries_);
 		}
 	
 		/// <summary>
@@ -113,7 +113,7 @@ namespace net.named_data.jndn {
 		/// <param name="i">The index of the entry, starting from 0.</param>
 		/// <returns>The entry at the index.</returns>
 		public Exclude.Entry get(int i) {
-			return (Exclude.Entry) entries_[i];
+			return entries_[i];
 		}
 	
 		/// <summary>
@@ -239,8 +239,7 @@ namespace net.named_data.jndn {
 			return changeCount_;
 		}
 	
-		// Use ArrayList without generics so it works with older Java compilers.
-		private readonly ArrayList entries_;
+		private readonly ArrayList<Entry> entries_;
 		private long changeCount_;
 	}
 }
