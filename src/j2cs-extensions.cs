@@ -107,6 +107,17 @@ namespace net.named_data.jndn.util {
     toString(this StringBuilder builder) { return builder.ToString(); }
   }
 
+  // We need a generic version of ArrayList.
+  public class ArrayList<T> : System.Collections.Generic.List<T> {
+    public ArrayList() {}
+
+    public ArrayList(IList list)
+    {
+      foreach (T item in list)
+        Add(item);
+    }
+  }
+
   public class BufferUnderflowException : Exception {
     public BufferUnderflowException(string message) : base(message) {}
   }
