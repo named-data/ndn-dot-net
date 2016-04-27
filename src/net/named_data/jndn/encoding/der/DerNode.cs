@@ -262,7 +262,7 @@ namespace net.named_data.jndn.encoding.der {
 			/// <param name="nodeType">The DER node type, a value from DerNodeType.</param>
 			public DerStructure(int nodeType) : base(nodeType) {
 				this.childChanged_ = false;
-				this.nodeList_ = new ArrayList();
+				this.nodeList_ = new ArrayList<DerNode>();
 				this.size_ = 0;
 			}
 	
@@ -294,7 +294,7 @@ namespace net.named_data.jndn.encoding.der {
 				int newSize = 0;
 	
 				for (int i = 0; i < nodeList_.Count; ++i) {
-					DerNode n = (DerNode) nodeList_[i];
+					DerNode n = nodeList_[i];
 					newSize += n.getSize();
 				}
 	
@@ -347,7 +347,7 @@ namespace net.named_data.jndn.encoding.der {
 				temp.ensuredPut(header_);
 	
 				for (int i = 0; i < nodeList_.Count; ++i) {
-					DerNode n = (DerNode) nodeList_[i];
+					DerNode n = nodeList_[i];
 					Blob encodedChild = n.encode();
 					temp.ensuredPut(encodedChild.buf());
 				}
@@ -377,8 +377,7 @@ namespace net.named_data.jndn.encoding.der {
 			}
 	
 			private bool childChanged_;
-			// Use ArrayList without generics so it works with older Java compilers.
-			private readonly ArrayList nodeList_; // Of DerNode.
+			private readonly ArrayList<DerNode> nodeList_;
 			private int size_;
 		}
 	

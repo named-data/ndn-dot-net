@@ -21,7 +21,7 @@ namespace net.named_data.jndn.sync {
 	
 	public class DigestTree {
 		public DigestTree() {
-			this.digestNode_ = new ArrayList();
+			this.digestNode_ = new ArrayList<DigestTree.Node>();
 			root_ = "00";
 		}
 	
@@ -164,8 +164,8 @@ namespace net.named_data.jndn.sync {
 					new Object[] { sessionNo, nodeIndex });
 			if (nodeIndex >= 0) {
 				// Only update to a  newer status.
-				if (((DigestTree.Node ) digestNode_[nodeIndex]).getSequenceNo() < sequenceNo)
-					((DigestTree.Node ) digestNode_[nodeIndex]).setSequenceNo(sequenceNo);
+				if (digestNode_[nodeIndex].getSequenceNo() < sequenceNo)
+					digestNode_[nodeIndex].setSequenceNo(sequenceNo);
 				else
 					return false;
 			} else {
@@ -177,7 +177,7 @@ namespace net.named_data.jndn.sync {
 				// Find the index of the first node where it is not less than temp.
 				int i = 0;
 				while (i < digestNode_.Count) {
-					if (!((DigestTree.Node ) digestNode_[i]).lessThan(temp))
+					if (!digestNode_[i].lessThan(temp))
 						break;
 					++i;
 				}
@@ -190,8 +190,8 @@ namespace net.named_data.jndn.sync {
 	
 		public int find(String dataPrefix, long sessionNo) {
 			for (int i = 0; i < digestNode_.Count; ++i) {
-				if (((DigestTree.Node ) digestNode_[i]).getDataPrefix().equals(dataPrefix)
-						&& ((DigestTree.Node ) digestNode_[i]).getSessionNo() == sessionNo)
+				if (digestNode_[i].getDataPrefix().equals(dataPrefix)
+						&& digestNode_[i].getSessionNo() == sessionNo)
 					return i;
 			}
 	
@@ -203,7 +203,7 @@ namespace net.named_data.jndn.sync {
 		}
 	
 		public DigestTree.Node  get(int i) {
-			return (DigestTree.Node ) digestNode_[i];
+			return digestNode_[i];
 		}
 	
 		/// <summary>
@@ -260,15 +260,14 @@ namespace net.named_data.jndn.sync {
 			}
 	
 			for (int i = 0; i < digestNode_.Count; ++i)
-				updateHex(sha256, ((DigestTree.Node ) digestNode_[i]).getDigest());
+				updateHex(sha256, digestNode_[i].getDigest());
 			byte[] digestRoot = sha256.Hash;
 			root_ = net.named_data.jndn.util.Common.toHex(digestRoot);
 			ILOG.J2CsMapping.Util.Logging.Logger.getLogger(typeof(DigestTree).FullName).log(ILOG.J2CsMapping.Util.Logging.Level.FINE,
 					"update root to: {0}", root_);
 		}
 	
-		// Use ArrayList without generics so it works with older Java compilers.
-		private readonly ArrayList digestNode_; // of DigestTree.Node
+		private readonly ArrayList<DigestTree.Node> digestNode_;
 		private String root_;
 		// This is to force an import of net.named_data.jndn.util.
 		private static Common dummyCommon_ = new Common();

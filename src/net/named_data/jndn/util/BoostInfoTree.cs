@@ -29,7 +29,7 @@ namespace net.named_data.jndn.util {
 	///
 	public class BoostInfoTree {
 		public BoostInfoTree(String value_ren, BoostInfoTree parent) {
-			this.subtrees_ = new ArrayList();
+			this.subtrees_ = new ArrayList<TreeEntry>();
 			this.value_ = "";
 			this.parent_ = null;
 			this.lastChild_ = null;
@@ -38,7 +38,7 @@ namespace net.named_data.jndn.util {
 		}
 	
 		public BoostInfoTree(String value_ren) {
-			this.subtrees_ = new ArrayList();
+			this.subtrees_ = new ArrayList<TreeEntry>();
 			this.value_ = "";
 			this.parent_ = null;
 			this.lastChild_ = null;
@@ -46,7 +46,7 @@ namespace net.named_data.jndn.util {
 		}
 	
 		public BoostInfoTree() {
-			this.subtrees_ = new ArrayList();
+			this.subtrees_ = new ArrayList<TreeEntry>();
 			this.value_ = "";
 			this.parent_ = null;
 			this.lastChild_ = null;
@@ -180,7 +180,7 @@ namespace net.named_data.jndn.util {
 				String nextLevel = ILOG.J2CsMapping.Util.StringUtil.NewString(new char[indentLevel + 2]).replace(
 						"\0", " ");
 				for (int i = 0; i < subtrees_.Count; ++i) {
-					BoostInfoTree.TreeEntry  entry = (BoostInfoTree.TreeEntry ) subtrees_[i];
+					BoostInfoTree.TreeEntry  entry = subtrees_[i];
 					for (int iSubTree = 0; iSubTree < entry.subtreeList_.Count; ++iSubTree)
 						s += nextLevel
 								+ entry.treeName_
@@ -222,7 +222,7 @@ namespace net.named_data.jndn.util {
 		/// <returns>A list of BoostInfoTree, or null if not found.</returns>
 		private ArrayList find(String treeName) {
 			for (int i = 0; i < subtrees_.Count; ++i) {
-				BoostInfoTree.TreeEntry  entry = (BoostInfoTree.TreeEntry ) subtrees_[i];
+				BoostInfoTree.TreeEntry  entry = subtrees_[i];
 				if (entry.treeName_.equals(treeName))
 					return entry.subtreeList_;
 			}
@@ -230,10 +230,8 @@ namespace net.named_data.jndn.util {
 			return null;
 		}
 	
-		// subtrees_ is a list of TreeEntry.
 		// We can't use a map for subtrees_ because we want the keys to be in order.
-		// Use ArrayList without generics so it works with older Java compilers.
-		private ArrayList subtrees_;
+		private ArrayList<TreeEntry> subtrees_;
 		private String value_;
 		private BoostInfoTree parent_;
 		private BoostInfoTree lastChild_;

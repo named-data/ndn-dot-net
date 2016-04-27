@@ -285,5 +285,5 @@ public class DelegationSet {
     wireDecode(input.buf());
   }
 
-  private final ArrayList<Delegation> delegations_ = new ArrayList();
+  private final ArrayList<Delegation> delegations_ = new ArrayList<Delegation>();
 }

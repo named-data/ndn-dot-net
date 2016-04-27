@@ -93,7 +93,7 @@ namespace net.named_data.jndn.util {
 		///
 		/// <param name="s">The input string to split.</param>
 		/// <param name="result"></param>
-		private static void shlex_split(String s, ArrayList result) {
+		private static void shlex_split(String s, ArrayList<String> result) {
 			if (s.Length == 0)
 				return;
 			String whiteSpace = " \t\n\r";
@@ -188,7 +188,7 @@ namespace net.named_data.jndn.util {
 	
 			// Usually we are expecting key and optional value.
 			// Use ArrayList without generics so it works with older Java compilers.
-			ArrayList strings = new ArrayList();
+			ArrayList<String> strings = new ArrayList<String>();
 			shlex_split(line, strings);
 			bool isSectionStart = false;
 			bool isSectionEnd = false;
@@ -198,10 +198,10 @@ namespace net.named_data.jndn.util {
 			}
 	
 			if (!isSectionStart && !isSectionEnd) {
-				String key = (String) strings[0];
+				String key = strings[0];
 				String val = "";
 				if (strings.Count > 1)
-					val = (String) strings[1];
+					val = strings[1];
 	
 				// If it is an "#include", load the new file instead of inserting keys.
 				if ("#include".equals(key)) {

@@ -37,11 +37,12 @@ namespace net.named_data.jndn.util {
 		/// <param name="cleanupIntervalMilliseconds">large number, then effectively the stale content will not be removed from the cache.</param>
 		public MemoryContentCache(Face face, double cleanupIntervalMilliseconds) {
 			this.onDataNotFoundForPrefix_ = new Hashtable();
-			this.registeredPrefixIdList_ = new ArrayList();
-			this.noStaleTimeCache_ = new ArrayList();
-			this.staleTimeCache_ = new ArrayList();
+			this.interestFilterIdList_ = new ArrayList<Int64>();
+			this.registeredPrefixIdList_ = new ArrayList<Int64>();
+			this.noStaleTimeCache_ = new ArrayList<Content>();
+			this.staleTimeCache_ = new ArrayList<StaleTimeContent>();
 			this.emptyComponent_ = new Name.Component();
-			this.pendingInterestTable_ = new ArrayList();
+			this.pendingInterestTable_ = new ArrayList<PendingInterest>();
 			face_ = face;
 			cleanupIntervalMilliseconds_ = cleanupIntervalMilliseconds;
 			construct();
@@ -55,11 +56,12 @@ namespace net.named_data.jndn.util {
 		/// <param name="face"></param>
 		public MemoryContentCache(Face face) {
 			this.onDataNotFoundForPrefix_ = new Hashtable();
-			this.registeredPrefixIdList_ = new ArrayList();
-			this.noStaleTimeCache_ = new ArrayList();
-			this.staleTimeCache_ = new ArrayList();
+			this.interestFilterIdList_ = new ArrayList<Int64>();
+			this.registeredPrefixIdList_ = new ArrayList<Int64>();
+			this.noStaleTimeCache_ = new ArrayList<Content>();
+			this.staleTimeCache_ = new ArrayList<StaleTimeContent>();
 			this.emptyComponent_ = new Name.Component();
-			this.pendingInterestTable_ = new ArrayList();
+			this.pendingInterestTable_ = new ArrayList<PendingInterest>();
 			face_ = face;
 			cleanupIntervalMilliseconds_ = 1000.0d;
 			construct();
@@ -75,6 +77,8 @@ namespace net.named_data.jndn.util {
 		/// <summary>
 		/// Call registerPrefix on the Face given to the constructor so that this
 		/// MemoryContentCache will answer interests whose name has the prefix.
+		/// Alternatively, if the Face's registerPrefix has already been called, then
+		/// you can call this object's setInterestFilter.
 		/// </summary>
 		///
 		/// <param name="prefix">The Name for the prefix to register. This copies the Name.</param>
@@ -100,6 +104,8 @@ namespace net.named_data.jndn.util {
 		/// <summary>
 		/// Call registerPrefix on the Face given to the constructor so that this
 		/// MemoryContentCache will answer interests whose name has the prefix.
+		/// Alternatively, if the Face's registerPrefix has already been called, then
+		/// you can call this object's setInterestFilter.
 		/// This uses the default WireFormat.getDefaultWireFormat().
 		/// </summary>
 		///
@@ -121,6 +127,8 @@ namespace net.named_data.jndn.util {
 		/// <summary>
 		/// Call registerPrefix on the Face given to the constructor so that this
 		/// MemoryContentCache will answer interests whose name has the prefix.
+		/// Alternatively, if the Face's registerPrefix has already been called, then
+		/// you can call this object's setInterestFilter.
 		/// This uses the default WireFormat.getDefaultWireFormat().
 		/// Use default ForwardingFlags.
 		/// </summary>
@@ -128,7 +136,7 @@ namespace net.named_data.jndn.util {
 		/// <param name="prefix">The Name for the prefix to register. This copies the Name.</param>
 		/// <param name="onRegisterFailed">NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
 		/// <param name="onRegisterSuccess">receives a success message from the forwarder. If onRegisterSuccess is null, this does not use it. NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
-		/// <param name="onDataNotFound">onInterest.onInterest(prefix, interest, face, interestFilterId, filter). Your callback can find the Data packet for the interest and call face.putData(data).  If your callback cannot find the Data packet, it can optionally call storePendingInterest(interest, face) to store the pending interest in this object to be satisfied by a later call to add(data). If you want to automatically store all pending interests, you can simply use getStorePendingInterest() for onDataNotFound. If onDataNotFound is null, this does not use it. NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
+		/// <param name="onDataNotFound">onDataNotFound.onInterest(prefix, interest, face, interestFilterId, filter). Your callback can find the Data packet for the interest and call face.putData(data).  If your callback cannot find the Data packet, it can optionally call storePendingInterest(interest, face) to store the pending interest in this object to be satisfied by a later call to add(data). If you want to automatically store all pending interests, you can simply use getStorePendingInterest() for onDataNotFound. If onDataNotFound is null, this does not use it. NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
 		/// <exception cref="IOException">For I/O error in sending the registration request.</exception>
 		/// <exception cref="System.Security.SecurityException">If signing a command interest for NFD and cannotfind the private key for the certificateName.</exception>
 		public void registerPrefix(Name prefix,
@@ -143,6 +151,8 @@ namespace net.named_data.jndn.util {
 		/// <summary>
 		/// Call registerPrefix on the Face given to the constructor so that this
 		/// MemoryContentCache will answer interests whose name has the prefix.
+		/// Alternatively, if the Face's registerPrefix has already been called, then
+		/// you can call this object's setInterestFilter.
 		/// Do not call a callback if a data packet is not found in the cache.
 		/// This uses the default WireFormat.getDefaultWireFormat().
 		/// Use default ForwardingFlags.
@@ -163,6 +173,8 @@ namespace net.named_data.jndn.util {
 		/// <summary>
 		/// Call registerPrefix on the Face given to the constructor so that this
 		/// MemoryContentCache will answer interests whose name has the prefix.
+		/// Alternatively, if the Face's registerPrefix has already been called, then
+		/// you can call this object's setInterestFilter.
 		/// </summary>
 		///
 		/// <param name="prefix">The Name for the prefix to register. This copies the Name.</param>
@@ -183,12 +195,14 @@ namespace net.named_data.jndn.util {
 		/// <summary>
 		/// Call registerPrefix on the Face given to the constructor so that this
 		/// MemoryContentCache will answer interests whose name has the prefix.
+		/// Alternatively, if the Face's registerPrefix has already been called, then
+		/// you can call this object's setInterestFilter.
 		/// This uses the default WireFormat.getDefaultWireFormat().
 		/// </summary>
 		///
 		/// <param name="prefix">The Name for the prefix to register. This copies the Name.</param>
 		/// <param name="onRegisterFailed">NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
-		/// <param name="onDataNotFound">onInterest.onInterest(prefix, interest, face, interestFilterId, filter). Your callback can find the Data packet for the interest and call face.putData(data).  If your callback cannot find the Data packet, it can optionally call storePendingInterest(interest, face) to store the pending interest in this object to be satisfied by a later call to add(data). If you want to automatically store all pending interests, you can simply use getStorePendingInterest() for onDataNotFound. If onDataNotFound is null, this does not use it.</param>
+		/// <param name="onDataNotFound">onDataNotFound.onInterest(prefix, interest, face, interestFilterId, filter). Your callback can find the Data packet for the interest and call face.putData(data).  If your callback cannot find the Data packet, it can optionally call storePendingInterest(interest, face) to store the pending interest in this object to be satisfied by a later call to add(data). If you want to automatically store all pending interests, you can simply use getStorePendingInterest() for onDataNotFound. If onDataNotFound is null, this does not use it.</param>
 		/// <param name="flags">See Face.registerPrefix.</param>
 		/// <exception cref="IOException">For I/O error in sending the registration request.</exception>
 		/// <exception cref="System.Security.SecurityException">If signing a command interest for NFD and cannotfind the private key for the certificateName.</exception>
@@ -202,13 +216,15 @@ namespace net.named_data.jndn.util {
 		/// <summary>
 		/// Call registerPrefix on the Face given to the constructor so that this
 		/// MemoryContentCache will answer interests whose name has the prefix.
+		/// Alternatively, if the Face's registerPrefix has already been called, then
+		/// you can call this object's setInterestFilter.
 		/// This uses the default WireFormat.getDefaultWireFormat().
 		/// Use default ForwardingFlags.
 		/// </summary>
 		///
 		/// <param name="prefix">The Name for the prefix to register. This copies the Name.</param>
 		/// <param name="onRegisterFailed">NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
-		/// <param name="onDataNotFound">onInterest.onInterest(prefix, interest, face, interestFilterId, filter). Your callback can find the Data packet for the interest and call face.putData(data).  If your callback cannot find the Data packet, it can optionally call storePendingInterest(interest, face) to store the pending interest in this object to be satisfied by a later call to add(data). If you want to automatically store all pending interests, you can simply use getStorePendingInterest() for onDataNotFound. If onDataNotFound is null, this does not use it. NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
+		/// <param name="onDataNotFound">onDataNotFound.onInterest(prefix, interest, face, interestFilterId, filter). Your callback can find the Data packet for the interest and call face.putData(data).  If your callback cannot find the Data packet, it can optionally call storePendingInterest(interest, face) to store the pending interest in this object to be satisfied by a later call to add(data). If you want to automatically store all pending interests, you can simply use getStorePendingInterest() for onDataNotFound. If onDataNotFound is null, this does not use it. NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
 		/// <exception cref="IOException">For I/O error in sending the registration request.</exception>
 		/// <exception cref="System.Security.SecurityException">If signing a command interest for NFD and cannotfind the private key for the certificateName.</exception>
 		public void registerPrefix(Name prefix,
@@ -219,7 +235,9 @@ namespace net.named_data.jndn.util {
 	
 		/// <summary>
 		/// Call registerPrefix on the Face given to the constructor so that this
-		/// MemoryContentCache will answer interests whose name has the prefix.
+		/// MemoryContentCache will answer interests whose name matches the filter.
+		/// Alternatively, if the Face's registerPrefix has already been called, then
+		/// you can call this object's setInterestFilter.
 		/// Do not call a callback if a data packet is not found in the cache.
 		/// This uses the default WireFormat.getDefaultWireFormat().
 		/// Use default ForwardingFlags.
@@ -236,15 +254,72 @@ namespace net.named_data.jndn.util {
 		}
 	
 		/// <summary>
-		/// Call Face.removeRegisteredPrefix for all the prefixes given to the
-		/// registerPrefix method on this MemoryContentCache object so that it will not
-		/// receive interests any more. You can call this if you want to "shut down"
-		/// this MemoryContentCache while your application is still running.
+		/// Call setInterestFilter on the Face given to the constructor so that this
+		/// MemoryContentCache will answer interests whose name matches the filter.
+		/// </summary>
+		///
+		/// <param name="filter"></param>
+		/// <param name="onDataNotFound">onDataNotFound.onInterest(prefix, interest, face, interestFilterId, filter). Your callback can find the Data packet for the interest and call face.putData(data).  Note: If you call setInterestFilter multiple times where filter.getPrefix() is the same, it is undetermined which onDataNotFound will be called. If your callback cannot find the Data packet, it can optionally call storePendingInterest(interest, face) to store the pending interest in this object to be satisfied by a later call to add(data). If you want to automatically store all pending interests, you can simply use getStorePendingInterest() for onDataNotFound. If onDataNotFound is null, this does not use it. NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
+		public void setInterestFilter(InterestFilter filter,
+				OnInterestCallback onDataNotFound) {
+			if (onDataNotFound != null)
+				ILOG.J2CsMapping.Collections.Collections.Put(onDataNotFoundForPrefix_,filter.getPrefix().toUri(),onDataNotFound);
+			long interestFilterId = face_.setInterestFilter(filter, this);
+			ILOG.J2CsMapping.Collections.Collections.Add(interestFilterIdList_,interestFilterId);
+		}
+	
+		/// <summary>
+		/// Call setInterestFilter on the Face given to the constructor so that this
+		/// MemoryContentCache will answer interests whose name has the prefix.
+		/// Do not call a callback if a data packet is not found in the cache.
+		/// </summary>
+		///
+		/// <param name="filter"></param>
+		public void setInterestFilter(InterestFilter filter) {
+			setInterestFilter(filter, null);
+		}
+	
+		/// <summary>
+		/// Call setInterestFilter on the Face given to the constructor so that this
+		/// MemoryContentCache will answer interests whose name has the prefix.
+		/// </summary>
+		///
+		/// <param name="prefix"></param>
+		/// <param name="onDataNotFound">onDataNotFound.onInterest(prefix, interest, face, interestFilterId, filter). Your callback can find the Data packet for the interest and call face.putData(data).  Note: If you call setInterestFilter multiple times where filter.getPrefix() is the same, it is undetermined which onDataNotFound will be called. If your callback cannot find the Data packet, it can optionally call storePendingInterest(interest, face) to store the pending interest in this object to be satisfied by a later call to add(data). If you want to automatically store all pending interests, you can simply use getStorePendingInterest() for onDataNotFound. If onDataNotFound is null, this does not use it. NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
+		public void setInterestFilter(Name prefix,
+				OnInterestCallback onDataNotFound) {
+			if (onDataNotFound != null)
+				ILOG.J2CsMapping.Collections.Collections.Put(onDataNotFoundForPrefix_,prefix.toUri(),onDataNotFound);
+			long interestFilterId = face_.setInterestFilter(prefix, this);
+			ILOG.J2CsMapping.Collections.Collections.Add(interestFilterIdList_,interestFilterId);
+		}
+	
+		/// <summary>
+		/// Call setInterestFilter on the Face given to the constructor so that this
+		/// MemoryContentCache will answer interests whose name has the prefix.
+		/// Do not call a callback if a data packet is not found in the cache.
+		/// </summary>
+		///
+		/// <param name="prefix"></param>
+		public void setInterestFilter(Name prefix) {
+			setInterestFilter(prefix, null);
+		}
+	
+		/// <summary>
+		/// Call Face.unsetInterestFilter and Face.removeRegisteredPrefix for all the
+		/// prefixes given to the setInterestFilter and registerPrefix method on this
+		/// MemoryContentCache object so that it will not receive interests any more.
+		/// You can call this if you want to "shut down" this MemoryContentCache while
+		/// your application is still running.
 		/// </summary>
 		///
 		public void unregisterAll() {
-			for (int i = 0; i < registeredPrefixIdList_.Count; ++i)
-				face_.removeRegisteredPrefix((long) (Int64) registeredPrefixIdList_[i]);
+			for (int i = 0; i < interestFilterIdList_.Count; ++i)
+				face_.unsetInterestFilter((long) interestFilterIdList_[i]);
+			ILOG.J2CsMapping.Collections.Collections.Clear(interestFilterIdList_);
+	
+			for (int i_0 = 0; i_0 < registeredPrefixIdList_.Count; ++i_0)
+				face_.removeRegisteredPrefix((long) registeredPrefixIdList_[i_0]);
 			ILOG.J2CsMapping.Collections.Collections.Clear(registeredPrefixIdList_);
 	
 			// Also clear each onDataNotFoundForPrefix given to registerPrefix.
@@ -275,8 +350,7 @@ namespace net.named_data.jndn.util {
 				// Search from the back since we expect it to go there.
 				int i = staleTimeCache_.Count - 1;
 				while (i >= 0) {
-					if (((MemoryContentCache.StaleTimeContent ) staleTimeCache_[i])
-							.getStaleTimeMilliseconds() <= content
+					if (staleTimeCache_[i].getStaleTimeMilliseconds() <= content
 							.getStaleTimeMilliseconds())
 						break;
 					--i;
@@ -293,7 +367,7 @@ namespace net.named_data.jndn.util {
 			// Go backwards through the list so we can erase entries.
 			double nowMilliseconds = net.named_data.jndn.util.Common.getNowMilliseconds();
 			for (int i_0 = pendingInterestTable_.Count - 1; i_0 >= 0; --i_0) {
-				MemoryContentCache.PendingInterest  pendingInterest = (MemoryContentCache.PendingInterest ) pendingInterestTable_[i_0];
+				MemoryContentCache.PendingInterest  pendingInterest = pendingInterestTable_[i_0];
 				if (pendingInterest.isTimedOut(nowMilliseconds)) {
 					ILOG.J2CsMapping.Collections.Collections.RemoveAt(pendingInterestTable_,i_0);
 					continue;
@@ -352,11 +426,10 @@ namespace net.named_data.jndn.util {
 			for (int i = 0; i < totalSize; ++i) {
 				MemoryContentCache.Content  content;
 				if (i < staleTimeCache_.Count)
-					content = (MemoryContentCache.Content ) staleTimeCache_[i];
+					content = staleTimeCache_[i];
 				else
 					// We have iterated over the first array. Get from the second.
-					content = (MemoryContentCache.Content ) noStaleTimeCache_[i
-											- staleTimeCache_.Count];
+					content = noStaleTimeCache_[i - staleTimeCache_.Count];
 	
 				if (interest.matchesName(content.getName())) {
 					if (interest.getChildSelector() < 0) {
@@ -581,7 +654,7 @@ namespace net.named_data.jndn.util {
 				// staleTimeCache_ is sorted on staleTimeMilliseconds_, so we only need to
 				// erase the stale entries at the front, then quit.
 				while (staleTimeCache_.Count > 0
-						&& ((MemoryContentCache.StaleTimeContent ) staleTimeCache_[0]).isStale(now))
+						&& staleTimeCache_[0].isStale(now))
 					ILOG.J2CsMapping.Collections.Collections.RemoveAt(staleTimeCache_,0);
 	
 				nextCleanupTime_ = now + cleanupIntervalMilliseconds_;
@@ -599,11 +672,12 @@ namespace net.named_data.jndn.util {
 		/// </summary>
 		///
 		// Use ArrayList without generics so it works with older Java compilers.
-		private readonly ArrayList registeredPrefixIdList_; // of long
-		private readonly ArrayList noStaleTimeCache_; // of Content
-		private readonly ArrayList staleTimeCache_; // of StaleTimeContent
+		private readonly ArrayList<Int64> interestFilterIdList_;
+		private readonly ArrayList<Int64> registeredPrefixIdList_;
+		private readonly ArrayList<Content> noStaleTimeCache_;
+		private readonly ArrayList<StaleTimeContent> staleTimeCache_;
 		private readonly Name.Component emptyComponent_;
-		private readonly ArrayList pendingInterestTable_; // of PendingInterest
+		private readonly ArrayList<PendingInterest> pendingInterestTable_;
 		private OnInterestCallback storePendingInterestCallback_;
 		private static readonly Logger logger_ = ILOG.J2CsMapping.Util.Logging.Logger
 				.getLogger(typeof(MemoryContentCache).FullName);
