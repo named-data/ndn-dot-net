@@ -18,6 +18,7 @@ namespace net.named_data.jndn {
 	using System.Runtime.CompilerServices;
 	using System.Text;
 	using net.named_data.jndn.encoding;
+	using net.named_data.jndn.lp;
 	using net.named_data.jndn.util;
 	
 	/// <summary>
@@ -44,7 +45,7 @@ namespace net.named_data.jndn {
 			this.interestLifetimeMilliseconds_ = -1;
 			this.nonce_ = new Blob();
 			this.getNonceChangeCount_ = 0;
-			this.localControlHeader_ = new LocalControlHeader();
+			this.lpPacket_ = null;
 			this.linkWireEncoding_ = new Blob();
 			this.linkWireEncodingFormat_ = null;
 			this.link_ = new ChangeCounter(null);
@@ -74,7 +75,7 @@ namespace net.named_data.jndn {
 			this.interestLifetimeMilliseconds_ = -1;
 			this.nonce_ = new Blob();
 			this.getNonceChangeCount_ = 0;
-			this.localControlHeader_ = new LocalControlHeader();
+			this.lpPacket_ = null;
 			this.linkWireEncoding_ = new Blob();
 			this.linkWireEncodingFormat_ = null;
 			this.link_ = new ChangeCounter(null);
@@ -103,7 +104,7 @@ namespace net.named_data.jndn {
 			this.interestLifetimeMilliseconds_ = -1;
 			this.nonce_ = new Blob();
 			this.getNonceChangeCount_ = 0;
-			this.localControlHeader_ = new LocalControlHeader();
+			this.lpPacket_ = null;
 			this.linkWireEncoding_ = new Blob();
 			this.linkWireEncodingFormat_ = null;
 			this.link_ = new ChangeCounter(null);
@@ -148,7 +149,7 @@ namespace net.named_data.jndn {
 			this.interestLifetimeMilliseconds_ = -1;
 			this.nonce_ = new Blob();
 			this.getNonceChangeCount_ = 0;
-			this.localControlHeader_ = new LocalControlHeader();
+			this.lpPacket_ = null;
 			this.linkWireEncoding_ = new Blob();
 			this.linkWireEncodingFormat_ = null;
 			this.link_ = new ChangeCounter(null);
@@ -440,21 +441,14 @@ namespace net.named_data.jndn {
 		}
 	
 		/// <summary>
-		/// Get the incoming face ID of the local control header.
+		/// Get the incoming face ID according to the incoming packet header.
 		/// </summary>
 		///
 		/// <returns>The incoming face ID. If not specified, return -1.</returns>
 		public long getIncomingFaceId() {
-			return localControlHeader_.getIncomingFaceId();
-		}
-	
-		/// <summary>
-		/// Get the next hop face ID.
-		/// </summary>
-		///
-		/// <returns>The next hop face ID. If not specified, return -1.</returns>
-		public long getNextHopFaceId() {
-			return localControlHeader_.getNextHopFaceId();
+			IncomingFaceId field = (lpPacket_ == null) ? null : net.named_data.jndn.lp.IncomingFaceId
+					.getFirstHeader(lpPacket_);
+			return (field == null) ? (long) (-1) : (long) (field.getFaceId());
 		}
 	
 		/// <summary>
@@ -622,17 +616,17 @@ namespace net.named_data.jndn {
 		}
 	
 		/// <summary>
-		/// An internal library method to set localControlHeader to a copy of the given
-		/// LocalControlHeader for an incoming packet. The application should not call
-		/// this.
+		/// An internal library method to set the LpPacket for an incoming packet. The
+		/// application should not call this.
 		/// </summary>
 		///
-		/// <param name="localControlHeader">The LocalControlHeader which is copied.</param>
+		/// <param name="lpPacket">The LpPacket. This does not make a copy.</param>
+		/// <returns>This Interest so that you can chain calls to update values.</returns>
 		/// @note This is an experimental feature. This API may change in the future.
-		internal void setLocalControlHeader(LocalControlHeader localControlHeader) {
-			localControlHeader_ = ((localControlHeader == null) ? new LocalControlHeader()
-					: new LocalControlHeader(localControlHeader));
+		internal Interest setLpPacket(LpPacket lpPacket) {
+			lpPacket_ = lpPacket;
 			// Don't update changeCount_ since this doesn't affect the wire encoding.
+			return this;
 		}
 	
 		/// <summary>
@@ -751,7 +745,7 @@ namespace net.named_data.jndn {
 		private double interestLifetimeMilliseconds_;
 		private Blob nonce_;
 		private long getNonceChangeCount_;
-		private LocalControlHeader localControlHeader_;
+		private LpPacket lpPacket_;
 		private Blob linkWireEncoding_;
 		private WireFormat linkWireEncodingFormat_;
 		private readonly ChangeCounter link_;
@@ -760,6 +754,6 @@ namespace net.named_data.jndn {
 		private WireFormat defaultWireEncodingFormat_;
 		private long getDefaultWireEncodingChangeCount_;
 		private long changeCount_;
-		private static readonly SecureRandom random_ = new SecureRandom();
+		private static readonly Random random_ = new Random();
 	}
 }

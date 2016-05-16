@@ -71,9 +71,19 @@ namespace net.named_data.jndn.security.identity {
 				SqlCommand statement = database_.CreateCommand();
 				// Use "try/finally instead of "try-with-resources" or "using" which are not supported before Java 7.
 				try {
-					//Check if the ID table exists.
+					// Check if the TpmInfo table exists.
 					SqlDataReader result = statement
-							.executeQuery(net.named_data.jndn.security.identity.Sqlite3IdentityStorageBase.SELECT_MASTER_ID_TABLE);
+							.executeQuery(net.named_data.jndn.security.identity.Sqlite3IdentityStorageBase.SELECT_MASTER_TPM_INFO_TABLE);
+					bool tpmInfoTableExists = false;
+					if (result.NextResult())
+						tpmInfoTableExists = true;
+					result.close();
+	
+					if (!tpmInfoTableExists)
+						statement.executeUpdate(net.named_data.jndn.security.identity.Sqlite3IdentityStorageBase.INIT_TPM_INFO_TABLE);
+	
+					// Check if the ID table exists.
+					result = statement.executeQuery(net.named_data.jndn.security.identity.Sqlite3IdentityStorageBase.SELECT_MASTER_ID_TABLE);
 					bool idTableExists = false;
 					if (result.NextResult())
 						idTableExists = true;
@@ -84,7 +94,7 @@ namespace net.named_data.jndn.security.identity {
 						statement.executeUpdate(net.named_data.jndn.security.identity.Sqlite3IdentityStorageBase.INIT_ID_TABLE2);
 					}
 	
-					//Check if the Key table exists.
+					// Check if the Key table exists.
 					result = statement.executeQuery(net.named_data.jndn.security.identity.Sqlite3IdentityStorageBase.SELECT_MASTER_KEY_TABLE);
 					idTableExists = false;
 					if (result.NextResult())
@@ -96,7 +106,7 @@ namespace net.named_data.jndn.security.identity {
 						statement.executeUpdate(net.named_data.jndn.security.identity.Sqlite3IdentityStorageBase.INIT_KEY_TABLE2);
 					}
 	
-					//Check if the Certificate table exists.
+					// Check if the Certificate table exists.
 					result = statement.executeQuery(net.named_data.jndn.security.identity.Sqlite3IdentityStorageBase.SELECT_MASTER_CERT_TABLE);
 					idTableExists = false;
 					if (result.NextResult())
@@ -434,6 +444,32 @@ namespace net.named_data.jndn.security.identity {
 				}
 	
 				return certificate;
+			} catch (SQLException exception) {
+				throw new SecurityException("BasicIdentityStorage: SQLite error: "
+						+ exception);
+			}
+		}
+	
+		/// <summary>
+		/// Get the TPM locator associated with this storage.
+		/// </summary>
+		///
+		/// <returns>The TPM locator.</returns>
+		/// <exception cref="System.Security.SecurityException">if the TPM locator doesn't exist.</exception>
+		public sealed override String getTpmLocator() {
+			try {
+				SqlCommand statement = database_.CreateCommand();
+				try {
+					SqlDataReader result = statement.executeQuery(net.named_data.jndn.security.identity.Sqlite3IdentityStorageBase.SELECT_getTpmLocator);
+	
+					if (result.NextResult())
+						return (string)result["tpm_locator"];
+					else
+						throw new SecurityException(
+								"BasicIdentityStorage::getTpmLocator: TPM info does not exist");
+				} finally {
+					statement.close();
+				}
 			} catch (SQLException exception) {
 				throw new SecurityException("BasicIdentityStorage: SQLite error: "
 						+ exception);

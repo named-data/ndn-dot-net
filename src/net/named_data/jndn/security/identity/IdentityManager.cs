@@ -42,6 +42,7 @@ namespace net.named_data.jndn.security.identity {
 				PrivateKeyStorage privateKeyStorage) {
 			identityStorage_ = identityStorage;
 			privateKeyStorage_ = privateKeyStorage;
+			// Don't call checkTpm() when using a custom PrivateKeyStorage.
 		}
 	
 #if false
@@ -53,13 +54,19 @@ namespace net.named_data.jndn.security.identity {
 		///
 		/// <param name="identityStorage">An object of a subclass of IdentityStorage.</param>
 		public IdentityManager(IdentityStorage identityStorage) {
-			identityStorage_ = identityStorage;
+			ConfigFile config;
+			try {
+				config = new ConfigFile();
+			} catch (IOException ex) {
+				throw new SecurityException("IOException " + ex.Message);
+			}
 	
-			if (System.Environment.GetEnvironmentVariable("os.name").equals("Mac OS X"))
-				throw new SecurityException(
-						"OSXPrivateKeyStorage is not implemented yet. You must create an IdentityManager with a different PrivateKeyStorage.");
-			else
-				privateKeyStorage_ = new FilePrivateKeyStorage();
+			String[] canonicalTpmLocator = new String[] { null };
+			identityStorage_ = identityStorage;
+			privateKeyStorage_ = getDefaultPrivateKeyStorage(config,
+					canonicalTpmLocator);
+	
+			checkTpm(canonicalTpmLocator[0]);
 		}
 	
 		/// <summary>
@@ -69,13 +76,19 @@ namespace net.named_data.jndn.security.identity {
 		/// </summary>
 		///
 		public IdentityManager() {
-			identityStorage_ = new BasicIdentityStorage();
+			ConfigFile config;
+			try {
+				config = new ConfigFile();
+			} catch (IOException ex) {
+				throw new SecurityException("IOException " + ex.Message);
+			}
 	
-			if (System.Environment.GetEnvironmentVariable("os.name").equals("Mac OS X"))
-				throw new SecurityException(
-						"OSXPrivateKeyStorage is not implemented yet. You must create an IdentityManager with a different PrivateKeyStorage.");
-			else
-				privateKeyStorage_ = new FilePrivateKeyStorage();
+			String[] canonicalTpmLocator = new String[] { null };
+			identityStorage_ = getDefaultIdentityStorage(config);
+			privateKeyStorage_ = getDefaultPrivateKeyStorage(config,
+					canonicalTpmLocator);
+	
+			checkTpm(canonicalTpmLocator[0]);
 		}
 #endif
 	
@@ -1058,7 +1071,87 @@ namespace net.named_data.jndn.security.identity {
 				throw new SecurityException("Key type is not recognized");
 		}
 	
-		private IdentityStorage identityStorage_;
-		private PrivateKeyStorage privateKeyStorage_;
+#if false
+		/// <summary>
+		/// Get the IdentityStorage from the pib value in the configuration file if
+		/// supplied. Otherwise, get the default for this platform.
+		/// </summary>
+		///
+		/// <param name="config">The configuration file to check.</param>
+		/// <returns>A new IdentityStorage.</returns>
+		private static IdentityStorage getDefaultIdentityStorage(ConfigFile config) {
+			String pibLocator = config.get("pib", "");
+	
+			if (pibLocator.Length != 0) {
+				// Don't support non-default locations for now.
+				if (!pibLocator.equals("pib-sqlite3"))
+					throw new SecurityException("Invalid config file pib value: "
+							+ pibLocator);
+			}
+	
+			return new BasicIdentityStorage();
+		}
+	
+		/// <summary>
+		/// Get the PrivateKeyStorage from the tpm value in the configuration file if
+		/// supplied. Otherwise, get the default for this platform.
+		/// </summary>
+		///
+		/// <param name="config">The configuration file to check.</param>
+		/// <param name="canonicalTpmLocator"></param>
+		/// <returns>A new PrivateKeyStorage.</returns>
+		private static PrivateKeyStorage getDefaultPrivateKeyStorage(
+				ConfigFile config, String[] canonicalTpmLocator) {
+			String tpmLocator = config.get("tpm", "");
+	
+			if (tpmLocator.Length == 0) {
+				// Use the system default.
+				if (System.Environment.GetEnvironmentVariable("os.name").equals("Mac OS X")) {
+					canonicalTpmLocator[0] = "tpm-osxkeychain:";
+					throw new SecurityException(
+							"OSXPrivateKeyStorage is not implemented yet. You must create an IdentityManager with a different PrivateKeyStorage.");
+				} else {
+					canonicalTpmLocator[0] = "tpm-file:";
+					return new FilePrivateKeyStorage();
+				}
+			} else if (tpmLocator.equals("tpm-osxkeychain")) {
+				canonicalTpmLocator[0] = "tpm-osxkeychain:";
+				throw new SecurityException(
+						"OSXPrivateKeyStorage is not implemented yet. You must create an IdentityManager with a different PrivateKeyStorage.");
+			} else if (tpmLocator.equals("tpm-file")) {
+				// Don't support non-default locations for now.
+				canonicalTpmLocator[0] = "tpm-file:";
+				return new FilePrivateKeyStorage();
+			} else
+				throw new SecurityException("Invalid config file tpm value: "
+						+ tpmLocator);
+		}
+#endif
+	
+		/// <summary>
+		/// Check that identityStorage_.getTpmLocator() (if defined) matches the
+		/// canonicalTpmLocator.
+		/// </summary>
+		///
+		/// <param name="canonicalTpmLocator"></param>
+		/// <exception cref="System.Security.SecurityException">if the private key storage does not match.</exception>
+		private void checkTpm(String canonicalTpmLocator) {
+			String tpmLocator;
+			try {
+				tpmLocator = identityStorage_.getTpmLocator();
+			} catch (SecurityException ex) {
+				// The TPM locator is not set in PIB yet.
+				return;
+			}
+	
+			// Just check. If a PIB reset is required, expect ndn-cxx/NFD to do it.
+			if (tpmLocator.Length != 0 && !tpmLocator.equals(canonicalTpmLocator))
+				throw new SecurityException(
+						"The TPM locator supplied does not match the TPM locator in the PIB: "
+								+ tpmLocator + " != " + canonicalTpmLocator);
+		}
+	
+		private readonly IdentityStorage identityStorage_;
+		private readonly PrivateKeyStorage privateKeyStorage_;
 	}
 }

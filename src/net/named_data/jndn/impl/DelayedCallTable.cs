@@ -25,7 +25,7 @@ namespace net.named_data.jndn.impl {
 	///
 	public class DelayedCallTable {
 		public DelayedCallTable() {
-			this.table_ = new ArrayList();
+			this.table_ = new ArrayList<Entry>();
 		}
 	
 		/// <summary>
@@ -43,7 +43,7 @@ namespace net.named_data.jndn.impl {
 			// Search from the back since we expect it to go there.
 			int i = table_.Count - 1;
 			while (i >= 0) {
-				if (((DelayedCallTable.Entry ) table_[i]).getCallTime() <= entry.getCallTime())
+				if ((table_[i]).getCallTime() <= entry.getCallTime())
 					break;
 				--i;
 			}
@@ -68,7 +68,7 @@ namespace net.named_data.jndn.impl {
 				 lock (this) {
 								if ((table_.Count==0))
 									break;
-								entry = (DelayedCallTable.Entry ) table_[0];
+								entry = table_[0];
 								if (entry.getCallTime() > now)
 									// It is not time to call the entry at the front of the list, so finish.
 									break;
@@ -121,8 +121,7 @@ namespace net.named_data.jndn.impl {
 			private readonly double callTime_;
 		}
 	
-		// Use ArrayList without generics so it works with older Java compilers.
-		private readonly IList table_; // Entry
+    private readonly ArrayList<Entry> table_;
 		// This is to force an import of net.named_data.jndn.util.
 		private static Common dummyCommon_ = new Common();
 	}

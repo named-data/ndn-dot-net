@@ -81,7 +81,290 @@ public class Face {
 
   /**
    * Send the Interest through the transport, read the entire response and call
-   * onData(interest, data).
+   * onData, onTimeout or onNetworkNack as described below.
+   * @param interest The Interest to send.  This copies the Interest.
+   * @param onData  When a matching data packet is received, this calls
+   * onData.onData(interest, data) where interest is the interest given to
+   * expressInterest and data is the received Data object. NOTE: You must not
+   * change the interest object - if you need to change it then make a copy.
+   * NOTE: The library will log any exceptions thrown by this callback, but for
+   * better error handling the callback should catch and properly handle any
+   * exceptions.
+   * @param onTimeout If the interest times out according to the interest
+   * lifetime, this calls onTimeout.onTimeout(interest) where interest is the
+   * interest given to expressInterest. If onTimeout is null, this does not use
+   * it.
+   * NOTE: The library will log any exceptions thrown by this callback, but for
+   * better error handling the callback should catch and properly handle any
+   * exceptions.
+   * @param onNetworkNack When a network Nack packet for the interest is
+   * received and onNetworkNack is not null, this calls
+   * onNetworkNack.onNetworkNack(interest, networkNack) and does not call
+   * onTimeout. However, if a network Nack is received and onNetworkNack is null,
+   * do nothing and wait for the interest to time out. (Therefore, an
+   * application which does not yet process a network Nack reason treats a
+   * Nack the same as a timeout.)
+   * NOTE: The library will log any exceptions thrown by this callback, but for
+   * better error handling the callback should catch and properly handle any
+   * exceptions.
+   * @param wireFormat A WireFormat object used to encode the message.
+   * @return The pending interest ID which can be used with
+   * removePendingInterest.
+   * @throws IOException For I/O error in sending the interest.
+   * @throws Error If the encoded interest size exceeds getMaxNdnPacketSize().
+   */
+  public long
+  expressInterest
+    (Interest interest, OnData onData, OnTimeout onTimeout,
+     OnNetworkNack onNetworkNack, WireFormat wireFormat) throws IOException
+  {
+    long pendingInterestId = node_.getNextEntryId();
+
+    // This copies the interest as required by Node.expressInterest.
+    node_.expressInterest
+      (pendingInterestId, interest, onData, onTimeout, onNetworkNack,
+       wireFormat, this);
+
+    return pendingInterestId;
+  }
+
+  /**
+   * Send the Interest through the transport, read the entire response and call
+   * onData, onTimeout or onNetworkNack as described below.
+   * This uses the default WireFormat.getDefaultWireFormat().
+   * @param interest The Interest to send.  This copies the Interest.
+   * @param onData  When a matching data packet is received, this calls
+   * onData.onData(interest, data) where interest is the interest given to
+   * expressInterest and data is the received Data object. NOTE: You must not
+   * change the interest object - if you need to change it then make a copy.
+   * NOTE: The library will log any exceptions thrown by this callback, but for
+   * better error handling the callback should catch and properly handle any
+   * exceptions.
+   * @param onTimeout If the interest times out according to the interest
+   * lifetime, this calls onTimeout.onTimeout(interest) where interest is the
+   * interest given to expressInterest. If onTimeout is null, this does not use
+   * it.
+   * NOTE: The library will log any exceptions thrown by this callback, but for
+   * better error handling the callback should catch and properly handle any
+   * exceptions.
+   * @param onNetworkNack When a network Nack packet for the interest is
+   * received and onNetworkNack is not null, this calls
+   * onNetworkNack.onNetworkNack(interest, networkNack) and does not call
+   * onTimeout. However, if a network Nack is received and onNetworkNack is null,
+   * do nothing and wait for the interest to time out. (Therefore, an
+   * application which does not yet process a network Nack reason treats a
+   * Nack the same as a timeout.)
+   * NOTE: The library will log any exceptions thrown by this callback, but for
+   * better error handling the callback should catch and properly handle any
+   * exceptions.
+   * @return The pending interest ID which can be used with
+   * removePendingInterest.
+   * @throws IOException For I/O error in sending the interest.
+   * @throws Error If the encoded interest size exceeds getMaxNdnPacketSize().
+   */
+  public long
+  expressInterest
+    (Interest interest, OnData onData, OnTimeout onTimeout,
+     OnNetworkNack onNetworkNack) throws IOException
+  {
+    return expressInterest
+      (interest, onData, onTimeout, onNetworkNack,
+       WireFormat.getDefaultWireFormat());
+  }
+
+  /**
+   * Encode name as an Interest. If interestTemplate is not null, use its
+   * interest selectors.
+   * Send the Interest through the transport, read the entire response and call
+   * onData, onTimeout or onNetworkNack as described below.
+   * @param name A Name for the interest. This copies the Name.
+   * @param interestTemplate If not null, copy interest selectors from the
+   * template. This does not keep a pointer to the Interest object.
+   * @param onData  When a matching data packet is received, this calls
+   * onData.onData(interest, data) where interest is the interest given to
+   * expressInterest and data is the received Data object. NOTE: You must not
+   * change the interest object - if you need to change it then make a copy.
+   * NOTE: The library will log any exceptions thrown by this callback, but for
+   * better error handling the callback should catch and properly handle any
+   * exceptions.
+   * @param onTimeout If the interest times out according to the interest
+   * lifetime, this calls onTimeout.onTimeout(interest) where interest is the
+   * interest given to expressInterest. If onTimeout is null, this does not use
+   * it.
+   * NOTE: The library will log any exceptions thrown by this callback, but for
+   * better error handling the callback should catch and properly handle any
+   * exceptions.
+   * @param onNetworkNack When a network Nack packet for the interest is
+   * received and onNetworkNack is not null, this calls
+   * onNetworkNack.onNetworkNack(interest, networkNack) and does not call
+   * onTimeout. However, if a network Nack is received and onNetworkNack is null,
+   * do nothing and wait for the interest to time out. (Therefore, an
+   * application which does not yet process a network Nack reason treats a
+   * Nack the same as a timeout.)
+   * NOTE: The library will log any exceptions thrown by this callback, but for
+   * better error handling the callback should catch and properly handle any
+   * exceptions.
+   * @param wireFormat A WireFormat object used to encode the message.
+   * @return The pending interest ID which can be used with
+   * removePendingInterest.
+   * @throws IOException For I/O error in sending the interest.
+   * @throws Error If the encoded interest size exceeds getMaxNdnPacketSize().
+   */
+  public long
+  expressInterest
+    (Name name, Interest interestTemplate, OnData onData, OnTimeout onTimeout,
+     OnNetworkNack onNetworkNack, WireFormat wireFormat) throws IOException
+  {
+    long pendingInterestId = node_.getNextEntryId();
+
+    // This copies the name object as required by Node.expressInterest.
+    node_.expressInterest
+      (pendingInterestId, getInterestCopy(name, interestTemplate), onData,
+       onTimeout, onNetworkNack, wireFormat, this);
+
+    return pendingInterestId;
+  }
+
+  /**
+   * Encode name as an Interest. If interestTemplate is not null, use its
+   * interest selectors.
+   * Send the Interest through the transport, read the entire response and call
+   * onData, onTimeout or onNetworkNack as described below.
+   * This uses the default WireFormat.getDefaultWireFormat().
+   * @param name A Name for the interest. This copies the Name.
+   * @param interestTemplate If not null, copy interest selectors from the
+   * template. This does not keep a pointer to the Interest object.
+   * @param onData  When a matching data packet is received, this calls
+   * onData.onData(interest, data) where interest is the interest given to
+   * expressInterest and data is the received Data object. NOTE: You must not
+   * change the interest object - if you need to change it then make a copy.
+   * NOTE: The library will log any exceptions thrown by this callback, but for
+   * better error handling the callback should catch and properly handle any
+   * exceptions.
+   * @param onTimeout If the interest times out according to the interest
+   * lifetime, this calls onTimeout.onTimeout(interest) where interest is the
+   * interest given to expressInterest. If onTimeout is null, this does not use
+   * it.
+   * NOTE: The library will log any exceptions thrown by this callback, but for
+   * better error handling the callback should catch and properly handle any
+   * exceptions.
+   * @param onNetworkNack When a network Nack packet for the interest is
+   * received and onNetworkNack is not null, this calls
+   * onNetworkNack.onNetworkNack(interest, networkNack) and does not call
+   * onTimeout. However, if a network Nack is received and onNetworkNack is null,
+   * do nothing and wait for the interest to time out. (Therefore, an
+   * application which does not yet process a network Nack reason treats a
+   * Nack the same as a timeout.)
+   * NOTE: The library will log any exceptions thrown by this callback, but for
+   * better error handling the callback should catch and properly handle any
+   * exceptions.
+   * @return The pending interest ID which can be used with
+   * removePendingInterest.
+   * @throws IOException For I/O error in sending the interest.
+   * @throws Error If the encoded interest size exceeds getMaxNdnPacketSize().
+   */
+  public long
+  expressInterest
+    (Name name, Interest interestTemplate, OnData onData, OnTimeout onTimeout,
+     OnNetworkNack onNetworkNack) throws IOException
+  {
+    return expressInterest
+      (name, interestTemplate, onData, onTimeout, onNetworkNack,
+       WireFormat.getDefaultWireFormat());
+  }
+
+  /**
+   * Encode name as an Interest, using a default interest lifetime.
+   * Send the Interest through the transport, read the entire response and call
+   * onData, onTimeout or onNetworkNack as described below.
+   * @param name A Name for the interest. This copies the Name.
+   * @param onData  When a matching data packet is received, this calls
+   * onData.onData(interest, data) where interest is the interest given to
+   * expressInterest and data is the received Data object. NOTE: You must not
+   * change the interest object - if you need to change it then make a copy.
+   * NOTE: The library will log any exceptions thrown by this callback, but for
+   * better error handling the callback should catch and properly handle any
+   * exceptions.
+   * @param onTimeout If the interest times out according to the interest
+   * lifetime, this calls onTimeout.onTimeout(interest) where interest is the
+   * interest given to expressInterest. If onTimeout is null, this does not use
+   * it.
+   * NOTE: The library will log any exceptions thrown by this callback, but for
+   * better error handling the callback should catch and properly handle any
+   * exceptions.
+   * @param onNetworkNack When a network Nack packet for the interest is
+   * received and onNetworkNack is not null, this calls
+   * onNetworkNack.onNetworkNack(interest, networkNack) and does not call
+   * onTimeout. However, if a network Nack is received and onNetworkNack is null,
+   * do nothing and wait for the interest to time out. (Therefore, an
+   * application which does not yet process a network Nack reason treats a
+   * Nack the same as a timeout.)
+   * NOTE: The library will log any exceptions thrown by this callback, but for
+   * better error handling the callback should catch and properly handle any
+   * exceptions.
+   * @param wireFormat A WireFormat object used to encode the message.
+   * @return The pending interest ID which can be used with
+   * removePendingInterest.
+   * @throws IOException For I/O error in sending the interest.
+   * @throws Error If the encoded interest size exceeds getMaxNdnPacketSize().
+   */
+  public long
+  expressInterest
+    (Name name, OnData onData, OnTimeout onTimeout, OnNetworkNack onNetworkNack,
+     WireFormat wireFormat) throws IOException
+  {
+    return expressInterest
+      (name, null, onData, onTimeout, onNetworkNack, wireFormat);
+  }
+
+  /**
+   * Encode name as an Interest, using a default interest lifetime.
+   * Send the Interest through the transport, read the entire response and call
+   * onData, onTimeout or onNetworkNack as described below.
+   * This uses the default WireFormat.getDefaultWireFormat().
+   * @param name A Name for the interest. This copies the Name.
+   * @param onData  When a matching data packet is received, this calls
+   * onData.onData(interest, data) where interest is the interest given to
+   * expressInterest and data is the received Data object. NOTE: You must not
+   * change the interest object - if you need to change it then make a copy.
+   * NOTE: The library will log any exceptions thrown by this callback, but for
+   * better error handling the callback should catch and properly handle any
+   * exceptions.
+   * @param onTimeout If the interest times out according to the interest
+   * lifetime, this calls onTimeout.onTimeout(interest) where interest is the
+   * interest given to expressInterest. If onTimeout is null, this does not use
+   * it.
+   * NOTE: The library will log any exceptions thrown by this callback, but for
+   * better error handling the callback should catch and properly handle any
+   * exceptions.
+   * @param onNetworkNack When a network Nack packet for the interest is
+   * received and onNetworkNack is not null, this calls
+   * onNetworkNack.onNetworkNack(interest, networkNack) and does not call
+   * onTimeout. However, if a network Nack is received and onNetworkNack is null,
+   * do nothing and wait for the interest to time out. (Therefore, an
+   * application which does not yet process a network Nack reason treats a
+   * Nack the same as a timeout.)
+   * NOTE: The library will log any exceptions thrown by this callback, but for
+   * better error handling the callback should catch and properly handle any
+   * exceptions.
+   * @return The pending interest ID which can be used with
+   * removePendingInterest.
+   * @throws IOException For I/O error in sending the interest.
+   * @throws Error If the encoded interest size exceeds getMaxNdnPacketSize().
+   */
+  public long
+  expressInterest
+    (Name name, OnData onData, OnTimeout onTimeout, OnNetworkNack onNetworkNack)
+      throws IOException
+  {
+    return expressInterest
+      (name, null, onData, onTimeout, onNetworkNack, 
+       WireFormat.getDefaultWireFormat());
+  }
+
+  /**
+   * Send the Interest through the transport, read the entire response and call
+   * onData or onTimeout as described below.
    * @param interest The Interest to send.  This copies the Interest.
    * @param onData  When a matching data packet is received, this calls
    * onData.onData(interest, data) where interest is the interest given to
@@ -108,17 +391,12 @@ public class Face {
     (Interest interest, OnData onData, OnTimeout onTimeout,
      WireFormat wireFormat) throws IOException
   {
-    long pendingInterestId = node_.getNextEntryId();
-
-    node_.expressInterest
-      (pendingInterestId, interest, onData, onTimeout, wireFormat, this);
-
-    return pendingInterestId;
+    return expressInterest(interest, onData, onTimeout, null, wireFormat);
   }
 
   /**
    * Send the Interest through the transport, read the entire response and call
-   * onData(interest, data).
+   * onData or onTimeout as described below.
    * This uses the default WireFormat.getDefaultWireFormat().
    * @param interest The Interest to send.  This copies the Interest.
    * @param onData  When a matching data packet is received, this calls
@@ -150,7 +428,8 @@ public class Face {
 
   /**
    * Send the Interest through the transport, read the entire response and call
-   * onData(interest, data).  Ignore if the interest times out.
+   * onData as described below.
+   * Ignore if the interest times out.
    * @param interest The Interest to send.  This copies the Interest.
    * @param onData  When a matching data packet is received, this calls
    * onData.onData(interest, data) where interest is the interest given to
@@ -174,7 +453,8 @@ public class Face {
 
   /**
    * Send the Interest through the transport, read the entire response and call
-   * onData(interest, data).  Ignore if the interest times out.
+   * onData as described below.
+   * Ignore if the interest times out.
    * This uses the default WireFormat.getDefaultWireFormat().
    * @param interest The Interest to send.  This copies the Interest.
    * @param onData  When a matching data packet is received, this calls
@@ -198,8 +478,9 @@ public class Face {
 
   /**
    * Encode name as an Interest. If interestTemplate is not null, use its
-   * interest selectors. Send the interest through the transport, read the
-   * entire response and call onData(interest, data).
+   * interest selectors.
+   * Send the Interest through the transport, read the entire response and call
+   * onData or onTimeout as described below.
    * @param name A Name for the interest. This copies the Name.
    * @param interestTemplate If not null, copy interest selectors from the
    * template. This does not keep a pointer to the Interest object.
@@ -228,25 +509,14 @@ public class Face {
     (Name name, Interest interestTemplate, OnData onData, OnTimeout onTimeout,
      WireFormat wireFormat) throws IOException
   {
-    Interest interest;
-    if (interestTemplate != null) {
-      // Copy the interestTemplate.
-      interest = new Interest(interestTemplate);
-      interest.setName(name);
-    }
-    else {
-      interest = new Interest(name);
-      interest.setInterestLifetimeMilliseconds(4000.0);
-    }
-
-    return expressInterest(interest, onData, onTimeout, wireFormat);
+    return expressInterest
+      (name, interestTemplate, onData, onTimeout, null, wireFormat);
   }
 
   /**
-   * Encode name as an Interest. If interestTemplate is not null, use its
-   * interest selectors. Send the interest through the transport, read the
-   * entire response and call onData(interest, data).
-   * Use a default interest lifetime.
+   * Encode name as an Interest, using a default interest lifetime.
+   * Send the Interest through the transport, read the entire response and call
+   * onData or onTimeout as described below.
    * @param name A Name for the interest. This copies the Name.
    * @param onData  When a matching data packet is received, this calls
    * onData.onData(interest, data) where interest is the interest given to
@@ -278,8 +548,9 @@ public class Face {
 
   /**
    * Encode name as an Interest. If interestTemplate is not null, use its
-   * interest selectors. Send the interest through the transport, read the
-   * entire response and call onData(interest, data).
+   * interest selectors.
+   * Send the Interest through the transport, read the entire response and call
+   * onData as described below.
    * Ignore if the interest times out.
    * @param name A Name for the interest. This copies the Name.
    * @param interestTemplate If not null, copy interest selectors from the
@@ -307,8 +578,9 @@ public class Face {
 
   /**
    * Encode name as an Interest. If interestTemplate is not null, use its
-   * interest selectors. Send the interest through the transport, read the
-   * entire response and call onData(interest, data).
+   * interest selectors.
+   * Send the Interest through the transport, read the entire response and call
+   * onData or onTimeout as described below.
    * This uses the default WireFormat.getDefaultWireFormat().
    * @param name A Name for the interest. This copies the Name.
    * @param interestTemplate If not null, copy interest selectors from the
@@ -344,8 +616,9 @@ public class Face {
 
   /**
    * Encode name as an Interest. If interestTemplate is not null, use its
-   * interest selectors. Send the interest through the transport, read the
-   * entire response and call onData(interest, data).
+   * interest selectors.
+   * Send the Interest through the transport, read the entire response and call
+   * onData as described below.
    * Ignore if the interest times out.
    * This uses the default WireFormat.getDefaultWireFormat().
    * @param name A Name for the interest. This copies the Name.
@@ -372,10 +645,9 @@ public class Face {
   }
 
   /**
-   * Encode name as an Interest. If interestTemplate is not null, use its
-   * interest selectors. Send the interest through the transport, read the
-   * entire response and call onData(interest, data).
-   * Use a default interest lifetime.
+   * Encode name as an Interest, using a default interest lifetime.
+   * Send the Interest through the transport, read the entire response and call
+   * onData or onTimeout as described below.
    * This uses the default WireFormat.getDefaultWireFormat().
    * @param name A Name for the interest. This copies the Name.
    * @param onData  When a matching data packet is received, this calls
@@ -406,10 +678,9 @@ public class Face {
   }
 
   /**
-   * Encode name as an Interest. If interestTemplate is not null, use its
-   * interest selectors. Send the interest through the transport, read the
-   * entire response and call onData(interest, data).
-   * Use a default interest lifetime.
+   * Encode name as an Interest, using a default interest lifetime.
+   * Send the Interest through the transport, read the entire response and call
+   * onData as described below.
    * Ignore if the interest times out.
    * @param name A Name for the interest. This copies the Name.
    * @param onData  When a matching data packet is received, this calls
@@ -433,10 +704,9 @@ public class Face {
   }
 
   /**
-   * Encode name as an Interest. If interestTemplate is not null, use its
-   * interest selectors. Send the interest through the transport, read the
-   * entire response and call onData(interest, data).
-   * Use a default interest lifetime.
+   * Encode name as an Interest, using a default interest lifetime.
+   * Send the Interest through the transport, read the entire response and call
+   * onData as described below.
    * Ignore if the interest times out.
    * This uses the default WireFormat.getDefaultWireFormat().
    * @param name A Name for the interest. This copies the Name.
@@ -1207,7 +1477,31 @@ public class Face {
     node_.callLater(delayMilliseconds, callback);
   }
 
+  /**
+   * Do the work of expressInterest to make an Interest based on name and
+   * interestTemplate.
+   * @param name A Name for the interest.  This copies the Name.
+   * @param interestTemplate if not null, copy interest selectors from the
+   * template. This does not keep a pointer to the Interest object.
+   * @return The Interest, suitable for Node.expressInterest.
+   */
+  static protected Interest
+  getInterestCopy(Name name, Interest interestTemplate)
+  {
+    if (interestTemplate != null) {
+      // Copy the interestTemplate.
+      Interest interestCopy = new Interest(interestTemplate);
+      interestCopy.setName(name);
+      return interestCopy;
+    }
+    else {
+      Interest interestCopy = new Interest(name);
+      interestCopy.setInterestLifetimeMilliseconds(4000.0);
+      return interestCopy;
+    }
+  }
+
   protected final Node node_;
-  private KeyChain commandKeyChain_ = null;
-  private Name commandCertificateName_ = new Name();
+  protected KeyChain commandKeyChain_ = null;
+  protected Name commandCertificateName_ = new Name();
 }

@@ -412,7 +412,37 @@ namespace net.named_data.jndn.security.identity {
 		}
 	
 		/// <summary>
-		/// Write to a key file
+		/// Use nameTransform to get the file path for keyName (without the extension)
+		/// and also add to the mapping.txt file.
+		/// </summary>
+		///
+		/// <param name="keyName">The key name which is transformed to a file path.</param>
+		/// <returns>The key file path without the extension.</returns>
+		private String maintainMapping(String keyName) {
+			String keyFilePathNoExtension = System.IO.Path.GetFullPath(nameTransform(keyName, "").Name);
+	
+			FileInfo mappingFilePath = new FileInfo(System.IO.Path.Combine(keyStorePath_.FullName,"mapping.txt"));
+	
+			try {
+				BufferedStream writer = new BufferedStream(new StreamWriter(
+						mappingFilePath, true));
+				try {
+					writer.write(keyName + ' ' + keyFilePathNoExtension + '\n');
+					writer.flush();
+				} finally {
+					writer.close();
+				}
+			} catch (IOException e) {
+				throw new SecurityException(
+						"FilePrivateKeyStorage: Failed to write to mapping.txt: "
+								+ e.Message);
+			}
+	
+			return keyFilePathNoExtension;
+		}
+	
+		/// <summary>
+		/// Write to a key file. If keyClass is PRIVATE, then also update mapping.txt.
 		/// </summary>
 		///
 		/// <param name="keyName"></param>
@@ -423,7 +453,13 @@ namespace net.named_data.jndn.security.identity {
 		private void write(Name keyName, KeyClass keyClass, byte[] data) {
 			String extension = (String) ILOG.J2CsMapping.Collections.Collections.Get(keyTypeMap_,keyClass);
 			try {
-				BufferedStream writer = new BufferedStream(new System.IO.StreamWriter(nameTransform(keyName.toUri(), extension).OpenRead()));
+				String filePath;
+				if (keyClass == net.named_data.jndn.security.KeyClass.PRIVATE)
+					filePath = maintainMapping(keyName.toUri()) + extension;
+				else
+					filePath = System.IO.Path.GetFullPath(nameTransform(keyName.toUri(), extension).Name);
+	
+				BufferedStream writer = new BufferedStream(new StreamWriter(filePath));
 				try {
 					String base64Data = net.named_data.jndn.util.Common.base64Encode(data);
 					writer.Write(base64Data,0,base64Data.Substring(0,base64Data.Length));

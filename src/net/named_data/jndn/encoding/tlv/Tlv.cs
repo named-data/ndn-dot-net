@@ -84,11 +84,19 @@ namespace net.named_data.jndn.encoding.tlv {
 		public const int ControlParameters_Strategy = 107;
 		public const int ControlParameters_ExpirationPeriod = 109;
 	
-		public const int LocalControlHeader_LocalControlHeader = 80;
-		public const int LocalControlHeader_IncomingFaceId = 81;
-		public const int LocalControlHeader_NextHopFaceId = 82;
-		public const int LocalControlHeader_CachingPolicy = 83;
-		public const int LocalControlHeader_NoCache = 96;
+		public const int LpPacket_LpPacket = 100;
+		public const int LpPacket_Fragment = 80;
+		public const int LpPacket_Sequence = 81;
+		public const int LpPacket_FragIndex = 82;
+		public const int LpPacket_FragCount = 83;
+		public const int LpPacket_Nack = 800;
+		public const int LpPacket_NackReason = 801;
+		public const int LpPacket_NextHopFaceId = 816;
+		public const int LpPacket_IncomingFaceId = 817;
+		public const int LpPacket_CachePolicy = 820;
+		public const int LpPacket_CachePolicyType = 821;
+		public const int LpPacket_IGNORE_MIN = 800;
+		public const int LpPacket_IGNORE_MAX = 959;
 	
 		public const int Link_Preference = 30;
 		public const int Link_Delegation = 31;

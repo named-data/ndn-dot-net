@@ -22,6 +22,7 @@ namespace net.named_data.jndn {
 	using net.named_data.jndn.encoding;
 	using net.named_data.jndn.encoding.tlv;
 	using net.named_data.jndn.impl;
+	using net.named_data.jndn.lp;
 	using net.named_data.jndn.security;
 	using net.named_data.jndn.transport;
 	using net.named_data.jndn.util;
@@ -56,26 +57,30 @@ namespace net.named_data.jndn {
 	
 		/// <summary>
 		/// Send the Interest through the transport, read the entire response and call
-		/// onData(interest, data).
+		/// onData, onTimeout or onNetworkNack as described below.
 		/// </summary>
 		///
 		/// <param name="pendingInterestId"></param>
-		/// <param name="interest">The Interest to send.  This copies the Interest.</param>
-		/// <param name="onData"></param>
-		/// <param name="onTimeout"></param>
+		/// <param name="interestCopy">to use.</param>
+		/// <param name="onData">expressInterest and data is the received Data object.</param>
+		/// <param name="onTimeout">interest given to expressInterest. If onTimeout is null, this does not use it.</param>
+		/// <param name="onNetworkNack">onNetworkNack.onNetworkNack(interest, networkNack) and does not call onTimeout. However, if a network Nack is received and onNetworkNack is null, do nothing and wait for the interest to time out.</param>
 		/// <param name="wireFormat">A WireFormat object used to encode the message.</param>
 		/// <param name="face"></param>
 		/// <exception cref="IOException">For I/O error in sending the interest.</exception>
 		/// <exception cref="System.Exception">If the encoded interest size exceeds getMaxNdnPacketSize().</exception>
 		public void expressInterest(long pendingInterestId,
-				Interest interest, OnData onData, OnTimeout onTimeout,
+				Interest interestCopy, OnData onData,
+				OnTimeout onTimeout, OnNetworkNack onNetworkNack,
 				WireFormat wireFormat, Face face) {
-			Interest interestCopy = new Interest(interest);
+			// Set the nonce in our copy of the Interest so it is saved in the PIT.
+			interestCopy.setNonce(nonceTemplate_);
+			interestCopy.refreshNonce();
 	
 			if (connectStatus_ == net.named_data.jndn.Node.ConnectStatus.CONNECT_COMPLETE) {
 				// We are connected. Simply send the interest without synchronizing.
 				expressInterestHelper(pendingInterestId, interestCopy, onData,
-						onTimeout, wireFormat, face);
+						onTimeout, onNetworkNack, wireFormat, face);
 				return;
 			}
 	
@@ -85,7 +90,7 @@ namespace net.named_data.jndn {
 							// The simple case: Just do a blocking connect and express.
 							transport_.connect(connectionInfo_, this, null);
 							expressInterestHelper(pendingInterestId, interestCopy, onData,
-									onTimeout, wireFormat, face);
+									onTimeout, onNetworkNack, wireFormat, face);
 							// Make future calls to expressInterest send directly to the Transport.
 							connectStatus_ = net.named_data.jndn.Node.ConnectStatus.CONNECT_COMPLETE;
 			
@@ -97,21 +102,21 @@ namespace net.named_data.jndn {
 							connectStatus_ = net.named_data.jndn.Node.ConnectStatus.CONNECT_REQUESTED;
 			
 							// expressInterestHelper will be called by onConnected.
-							ILOG.J2CsMapping.Collections.Collections.Add(onConnectedCallbacks_,new Node.Anonymous_C3 (this, face, interestCopy, pendingInterestId,
-													wireFormat, onTimeout, onData));
+							ILOG.J2CsMapping.Collections.Collections.Add(onConnectedCallbacks_,new Node.Anonymous_C3 (this, onNetworkNack, pendingInterestId,
+													wireFormat, onTimeout, interestCopy, face, onData));
 			
 							IRunnable onConnected = new Node.Anonymous_C2 (this);
 							transport_.connect(connectionInfo_, this, onConnected);
 						} else if (connectStatus_ == net.named_data.jndn.Node.ConnectStatus.CONNECT_REQUESTED) {
 							// Still connecting. add to the interests to express by onConnected.
-							ILOG.J2CsMapping.Collections.Collections.Add(onConnectedCallbacks_,new Node.Anonymous_C1 (this, interestCopy, wireFormat, onData, face,
-													onTimeout, pendingInterestId));
+							ILOG.J2CsMapping.Collections.Collections.Add(onConnectedCallbacks_,new Node.Anonymous_C1 (this, onTimeout, wireFormat, onNetworkNack,
+													face, onData, pendingInterestId, interestCopy));
 						} else if (connectStatus_ == net.named_data.jndn.Node.ConnectStatus.CONNECT_COMPLETE)
 							// We have to repeat this check for CONNECT_COMPLETE in case the
 							// onConnected callback was called while we were waiting to enter this
 							// synchronized block.
 							expressInterestHelper(pendingInterestId, interestCopy, onData,
-									onTimeout, wireFormat, face);
+									onTimeout, onNetworkNack, wireFormat, face);
 						else
 							// Don't expect this to happen.
 							throw new Exception("Node: Unrecognized _connectStatus "
@@ -281,12 +286,12 @@ namespace net.named_data.jndn {
 		}
 	
 		public void onReceivedElement(ByteBuffer element) {
-			LocalControlHeader localControlHeader = null;
-			if (element.get(0) == net.named_data.jndn.encoding.tlv.Tlv.LocalControlHeader_LocalControlHeader) {
-				// Decode the LocalControlHeader and replace element with the payload.
-				localControlHeader = new LocalControlHeader();
-				localControlHeader.wireDecode(element, net.named_data.jndn.encoding.TlvWireFormat.get());
-				element = localControlHeader.getPayloadWireEncoding().buf();
+			LpPacket lpPacket = null;
+			if (element.get(0) == net.named_data.jndn.encoding.tlv.Tlv.LpPacket_LpPacket) {
+				// Decode the LpPacket and replace element with the fragment.
+				lpPacket = new LpPacket();
+				net.named_data.jndn.encoding.TlvWireFormat.get().decodeLpPacket(lpPacket, element);
+				element = lpPacket.getFragmentWireEncoding().buf();
 			}
 	
 			// First, decode as Interest or Data.
@@ -298,14 +303,42 @@ namespace net.named_data.jndn {
 					interest = new Interest();
 					interest.wireDecode(element, net.named_data.jndn.encoding.TlvWireFormat.get());
 	
-					if (localControlHeader != null)
-						interest.setLocalControlHeader(localControlHeader);
+					if (lpPacket != null)
+						interest.setLpPacket(lpPacket);
 				} else if (decoder.peekType(net.named_data.jndn.encoding.tlv.Tlv.Data, element.remaining())) {
 					data = new Data();
 					data.wireDecode(element, net.named_data.jndn.encoding.TlvWireFormat.get());
 	
-					if (localControlHeader != null)
-						data.setLocalControlHeader(localControlHeader);
+					if (lpPacket != null)
+						data.setLpPacket(lpPacket);
+				}
+			}
+	
+			if (lpPacket != null) {
+				// We have decoded the fragment, so remove the wire encoding to save memory.
+				lpPacket.setFragmentWireEncoding(new Blob());
+	
+				NetworkNack networkNack = net.named_data.jndn.NetworkNack.getFirstHeader(lpPacket);
+				if (networkNack != null) {
+					if (interest == null)
+						// We got a Nack but not for an Interest, so drop the packet.
+						return;
+	
+					ArrayList<PendingInterestTable.Entry> pitEntries = new ArrayList<PendingInterestTable.Entry>();
+					pendingInterestTable_.extractEntriesForNackInterest(interest,
+							pitEntries);
+					for (int i = 0; i < pitEntries.Count; ++i) {
+						PendingInterestTable.Entry pendingInterest = pitEntries[i];
+						try {
+							pendingInterest.getOnNetworkNack().onNetworkNack(
+									pendingInterest.getInterest(), networkNack);
+						} catch (Exception ex) {
+							logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in onNack", ex);
+						}
+					}
+	
+					// We have process the network Nack packet.
+					return;
 				}
 			}
 	
@@ -316,28 +349,28 @@ namespace net.named_data.jndn {
 				interestFilterTable_.getMatchedFilters(interest, matchedFilters);
 	
 				// The lock on interestFilterTable_ is released, so call the callbacks.
-				for (int i = 0; i < matchedFilters.Count; ++i) {
-					InterestFilterTable.Entry entry = (InterestFilterTable.Entry) matchedFilters[i];
+				for (int i_0 = 0; i_0 < matchedFilters.Count; ++i_0) {
+					InterestFilterTable.Entry entry = (InterestFilterTable.Entry) matchedFilters[i_0];
 					try {
 						entry.getOnInterest().onInterest(
 								entry.getFilter().getPrefix(), interest,
 								entry.getFace(), entry.getInterestFilterId(),
 								entry.getFilter());
-					} catch (Exception ex) {
-						logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in onInterest", ex);
+					} catch (Exception ex_1) {
+						logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in onInterest", ex_1);
 					}
 				}
 			} else if (data != null) {
-				ArrayList pitEntries = new ArrayList();
+				ArrayList<PendingInterestTable.Entry> pitEntries_2 = new ArrayList<PendingInterestTable.Entry>();
 				pendingInterestTable_.extractEntriesForExpressedInterest(
-						data.getName(), pitEntries);
-				for (int i_0 = 0; i_0 < pitEntries.Count; ++i_0) {
-					PendingInterestTable.Entry pendingInterest = (PendingInterestTable.Entry) pitEntries[i_0];
+						data.getName(), pitEntries_2);
+				for (int i_3 = 0; i_3 < pitEntries_2.Count; ++i_3) {
+					PendingInterestTable.Entry pendingInterest_4 = pitEntries_2[i_3];
 					try {
-						pendingInterest.getOnData().onData(
-								pendingInterest.getInterest(), data);
-					} catch (Exception ex_1) {
-						logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in onData", ex_1);
+						pendingInterest_4.getOnData().onData(
+								pendingInterest_4.getInterest(), data);
+					} catch (Exception ex_5) {
+						logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in onData", ex_5);
 					}
 				}
 			}
@@ -423,15 +456,21 @@ namespace net.named_data.jndn {
 		/// <param name="interestCopy"></param>
 		/// <param name="onData"></param>
 		/// <param name="onTimeout"></param>
+		/// <param name="onNetworkNack"></param>
 		/// <param name="wireFormat">A WireFormat object used to encode the message.</param>
 		/// <param name="face"></param>
 		/// <exception cref="IOException">For I/O error in sending the interest.</exception>
 		/// <exception cref="System.Exception">If the encoded interest size exceeds getMaxNdnPacketSize().</exception>
 		internal void expressInterestHelper(long pendingInterestId,
 				Interest interestCopy, OnData onData, OnTimeout onTimeout,
-				WireFormat wireFormat, Face face) {
+				OnNetworkNack onNetworkNack, WireFormat wireFormat, Face face) {
 			PendingInterestTable.Entry pendingInterest = pendingInterestTable_
-					.add(pendingInterestId, interestCopy, onData, onTimeout);
+					.add(pendingInterestId, interestCopy, onData, onTimeout,
+							onNetworkNack);
+			if (pendingInterest == null)
+				// removePendingInterest was already called with the pendingInterestId.
+				return;
+	
 			if (onTimeout != null
 					|| interestCopy.getInterestLifetimeMilliseconds() >= 0.0d) {
 				// Set up the timeout.
@@ -456,22 +495,25 @@ namespace net.named_data.jndn {
 	
 		public sealed class Anonymous_C3 : IRunnable {
 				private readonly Node outer_Node;
-				private readonly Face face;
-				private readonly Interest interestCopy;
+				private readonly OnNetworkNack onNetworkNack;
 				private readonly long pendingInterestId;
 				private readonly WireFormat wireFormat;
 				private readonly OnTimeout onTimeout;
+				private readonly Interest interestCopy;
+				private readonly Face face;
 				private readonly OnData onData;
 		
-				public Anonymous_C3(Node paramouter_Node, Face face_0,
-						Interest interestCopy_1, long pendingInterestId_2,
-						WireFormat wireFormat_3, OnTimeout onTimeout_4, OnData onData_5) {
-					this.face = face_0;
-					this.interestCopy = interestCopy_1;
-					this.pendingInterestId = pendingInterestId_2;
-					this.wireFormat = wireFormat_3;
-					this.onTimeout = onTimeout_4;
-					this.onData = onData_5;
+				public Anonymous_C3(Node paramouter_Node, OnNetworkNack onNetworkNack_0,
+						long pendingInterestId_1, WireFormat wireFormat_2,
+						OnTimeout onTimeout_3, Interest interestCopy_4, Face face_5,
+						OnData onData_6) {
+					this.onNetworkNack = onNetworkNack_0;
+					this.pendingInterestId = pendingInterestId_1;
+					this.wireFormat = wireFormat_2;
+					this.onTimeout = onTimeout_3;
+					this.interestCopy = interestCopy_4;
+					this.face = face_5;
+					this.onData = onData_6;
 					this.outer_Node = paramouter_Node;
 				}
 		
@@ -479,7 +521,7 @@ namespace net.named_data.jndn {
 					try {
 						outer_Node.expressInterestHelper(pendingInterestId,
 								interestCopy, onData, onTimeout,
-								wireFormat, face);
+								onNetworkNack, wireFormat, face);
 					} catch (IOException ex) {
 						net.named_data.jndn.Node.logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, null, ex);
 					}
@@ -507,22 +549,24 @@ namespace net.named_data.jndn {
 			}
 		public sealed class Anonymous_C1 : IRunnable {
 				private readonly Node outer_Node;
-				private readonly Interest interestCopy;
-				private readonly WireFormat wireFormat;
-				private readonly OnData onData;
-				private readonly Face face;
 				private readonly OnTimeout onTimeout;
+				private readonly WireFormat wireFormat;
+				private readonly OnNetworkNack onNetworkNack;
+				private readonly Face face;
+				private readonly OnData onData;
 				private readonly long pendingInterestId;
+				private readonly Interest interestCopy;
 		
-				public Anonymous_C1(Node paramouter_Node, Interest interestCopy_0,
-						WireFormat wireFormat_1, OnData onData_2, Face face_3,
-						OnTimeout onTimeout_4, long pendingInterestId_5) {
-					this.interestCopy = interestCopy_0;
+				public Anonymous_C1(Node paramouter_Node, OnTimeout onTimeout_0,
+						WireFormat wireFormat_1, OnNetworkNack onNetworkNack_2, Face face_3,
+						OnData onData_4, long pendingInterestId_5, Interest interestCopy_6) {
+					this.onTimeout = onTimeout_0;
 					this.wireFormat = wireFormat_1;
-					this.onData = onData_2;
+					this.onNetworkNack = onNetworkNack_2;
 					this.face = face_3;
-					this.onTimeout = onTimeout_4;
+					this.onData = onData_4;
 					this.pendingInterestId = pendingInterestId_5;
+					this.interestCopy = interestCopy_6;
 					this.outer_Node = paramouter_Node;
 				}
 		
@@ -530,7 +574,7 @@ namespace net.named_data.jndn {
 					try {
 						outer_Node.expressInterestHelper(pendingInterestId,
 								interestCopy, onData, onTimeout,
-								wireFormat, face);
+								onNetworkNack, wireFormat, face);
 					} catch (IOException ex) {
 						net.named_data.jndn.Node.logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, null, ex);
 					}
@@ -554,8 +598,9 @@ namespace net.named_data.jndn {
 		}
 	
 		private class RegisterResponse : OnData, OnTimeout {
-			public RegisterResponse(net.named_data.jndn.Node.RegisterResponse.Info  info) {
+			public RegisterResponse(net.named_data.jndn.Node.RegisterResponse.Info  info, Node parent) {
 				info_ = info;
+				parent_ = parent;
 			}
 	
 			/// <summary>
@@ -598,6 +643,30 @@ namespace net.named_data.jndn {
 					return;
 				}
 	
+				// Success, so we can add to the registered prefix table.
+				if (info_.registeredPrefixId_ != 0) {
+					long interestFilterId = 0;
+					if (info_.onInterest_ != null) {
+						// registerPrefix was called with the "combined" form that includes the
+						// callback, so add an InterestFilterEntry.
+						interestFilterId = parent_.getNextEntryId();
+						parent_.setInterestFilter(interestFilterId,
+								new InterestFilter(info_.prefix_),
+								info_.onInterest_, info_.face_);
+					}
+	
+					if (!parent_.registeredPrefixTable_.add(
+							info_.registeredPrefixId_, info_.prefix_,
+							interestFilterId)) {
+						// removeRegisteredPrefix was already called with the registeredPrefixId.
+						if (interestFilterId > 0)
+							// Remove the related interest filter we just added.
+							parent_.unsetInterestFilter(interestFilterId);
+	
+						return;
+					}
+				}
+	
 				net.named_data.jndn.Node.logger_.log(
 						ILOG.J2CsMapping.Util.Logging.Level.INFO,
 						"Register prefix succeeded with the NFD forwarder for prefix {0}",
@@ -632,21 +701,30 @@ namespace net.named_data.jndn {
 				/// <param name="onRegisterFailed"></param>
 				/// <param name="onRegisterSuccess"></param>
 				/// <param name="registeredPrefixId"></param>
+				/// <param name="onInterest">The callback to add if register succeeds.</param>
+				/// <param name="face_0"></param>
 				public Info(Name prefix, OnRegisterFailed onRegisterFailed,
-						OnRegisterSuccess onRegisterSuccess, long registeredPrefixId) {
+						OnRegisterSuccess onRegisterSuccess,
+						long registeredPrefixId, OnInterestCallback onInterest,
+						Face face_0) {
 					prefix_ = prefix;
 					onRegisterFailed_ = onRegisterFailed;
 					onRegisterSuccess_ = onRegisterSuccess;
 					registeredPrefixId_ = registeredPrefixId;
+					onInterest_ = onInterest;
+					face_ = face_0;
 				}
 	
 				public readonly Name prefix_;
 				public readonly OnRegisterFailed onRegisterFailed_;
 				public readonly OnRegisterSuccess onRegisterSuccess_;
 				public readonly long registeredPrefixId_;
+				public readonly OnInterestCallback onInterest_;
+				public readonly Face face_;
 			}
 	
 			private readonly net.named_data.jndn.Node.RegisterResponse.Info  info_;
+			private readonly Node parent_;
 		}
 	
 		/// <summary>
@@ -716,27 +794,14 @@ namespace net.named_data.jndn {
 			makeCommandInterest(commandInterest, commandKeyChain,
 					commandCertificateName, net.named_data.jndn.encoding.TlvWireFormat.get());
 	
-			if (registeredPrefixId != 0) {
-				long interestFilterId = 0;
-				if (onInterest != null) {
-					// registerPrefix was called with the "combined" form that includes the
-					// callback, so add an InterestFilterEntry.
-					interestFilterId = getNextEntryId();
-					setInterestFilter(interestFilterId, new InterestFilter(prefix),
-							onInterest, face_1);
-				}
-	
-				registeredPrefixTable_.add(registeredPrefixId, prefix,
-						interestFilterId);
-			}
-	
 			// Send the registration interest.
 			Node.RegisterResponse  response = new Node.RegisterResponse (
 					new RegisterResponse.Info(prefix, onRegisterFailed,
-							onRegisterSuccess, registeredPrefixId));
+							onRegisterSuccess, registeredPrefixId, onInterest, face_1),
+					this);
 			try {
 				expressInterest(getNextEntryId(), commandInterest, response,
-						response, wireFormat_0, face_1);
+						response, null, wireFormat_0, face_1);
 			} catch (IOException ex_2) {
 				// Can't send the interest. Call onRegisterFailed.
 				logger_.log(
@@ -765,6 +830,7 @@ namespace net.named_data.jndn {
 		private long lastEntryId_;
 		private readonly Object lastEntryIdLock_;
 		internal Node.ConnectStatus  connectStatus_;
+		private static Blob nonceTemplate_ = new Blob(new byte[] { 0, 0, 0, 0 });
 		static internal readonly Logger logger_ = ILOG.J2CsMapping.Util.Logging.Logger
 				.getLogger(typeof(Node).FullName);
 	}

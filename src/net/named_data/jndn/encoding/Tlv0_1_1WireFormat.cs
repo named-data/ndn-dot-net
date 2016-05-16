@@ -20,6 +20,7 @@ namespace net.named_data.jndn.encoding {
 	using net.named_data.jndn.encoding.tlv;
 	using net.named_data.jndn.encrypt;
 	using net.named_data.jndn.encrypt.algo;
+	using net.named_data.jndn.lp;
 	using net.named_data.jndn.util;
 	
 	/// <summary>
@@ -392,70 +393,79 @@ namespace net.named_data.jndn.encoding {
 		}
 	
 		/// <summary>
-		/// Encode the LocalControlHeader in NDN-TLV and return the encoding.
+		/// Decode input as an NDN-TLV LpPacket and set the fields of the lpPacket object.
 		/// </summary>
 		///
-		/// <param name="localControlHeader">The LocalControlHeader object to encode.</param>
-		/// <returns>A Blob containing the encoding.</returns>
-		public override Blob encodeLocalControlHeader(LocalControlHeader localControlHeader) {
-			TlvEncoder encoder = new TlvEncoder(256);
-			int saveLength = encoder.getLength();
-	
-			// Encode backwards.
-			// Encode the entire payload as is.
-			encoder.writeBuffer(localControlHeader.getPayloadWireEncoding().buf());
-	
-			// TODO: Encode CachingPolicy when we want to include it for an outgoing Data.
-			encoder.writeOptionalNonNegativeIntegerTlv(
-					net.named_data.jndn.encoding.tlv.Tlv.LocalControlHeader_NextHopFaceId,
-					localControlHeader.getNextHopFaceId());
-			encoder.writeOptionalNonNegativeIntegerTlv(
-					net.named_data.jndn.encoding.tlv.Tlv.LocalControlHeader_IncomingFaceId,
-					localControlHeader.getIncomingFaceId());
-	
-			encoder.writeTypeAndLength(net.named_data.jndn.encoding.tlv.Tlv.LocalControlHeader_LocalControlHeader,
-					encoder.getLength() - saveLength);
-	
-			return new Blob(encoder.getOutput(), false);
-		}
-	
-		/// <summary>
-		/// Decode input as a LocalControlHeader in NDN-TLV and set the fields of the
-		/// localControlHeader object.
-		/// </summary>
-		///
-		/// <param name="localControlHeader"></param>
+		/// <param name="lpPacket">The LpPacket object whose fields are updated.</param>
 		/// <param name="input"></param>
-		/// <exception cref="EncodingException">For invalid encoding</exception>
-		public override void decodeLocalControlHeader(LocalControlHeader localControlHeader,
-				ByteBuffer input) {
+		/// <exception cref="EncodingException">For invalid encoding.</exception>
+		public override void decodeLpPacket(LpPacket lpPacket, ByteBuffer input) {
+			lpPacket.clear();
+	
 			TlvDecoder decoder = new TlvDecoder(input);
-			int endOffset = decoder
-					.readNestedTlvsStart(net.named_data.jndn.encoding.tlv.Tlv.LocalControlHeader_LocalControlHeader);
+			int endOffset = decoder.readNestedTlvsStart(net.named_data.jndn.encoding.tlv.Tlv.LpPacket_LpPacket);
 	
-			localControlHeader.setIncomingFaceId(decoder
-					.readOptionalNonNegativeIntegerTlv(
-							net.named_data.jndn.encoding.tlv.Tlv.LocalControlHeader_IncomingFaceId, endOffset));
-			localControlHeader.setNextHopFaceId(decoder
-					.readOptionalNonNegativeIntegerTlv(
-							net.named_data.jndn.encoding.tlv.Tlv.LocalControlHeader_NextHopFaceId, endOffset));
+			while (decoder.getOffset() < endOffset) {
+				// Imitate TlvDecoder.readTypeAndLength.
+				int fieldType = decoder.readVarNumber();
+				int fieldLength = decoder.readVarNumber();
+				int fieldEndOffset = decoder.getOffset() + fieldLength;
+				if (fieldEndOffset > input.limit())
+					throw new EncodingException(
+							"TLV length exceeds the buffer length");
 	
-			// Ignore CachingPolicy. // TODO: Process CachingPolicy when we want the
-			// client library to receive it for an incoming Data.
-			if (decoder.peekType(net.named_data.jndn.encoding.tlv.Tlv.LocalControlHeader_CachingPolicy, endOffset)) {
-				int cachingPolicyEndOffset = decoder
-						.readNestedTlvsStart(net.named_data.jndn.encoding.tlv.Tlv.LocalControlHeader_CachingPolicy);
-				decoder.finishNestedTlvs(cachingPolicyEndOffset);
+				if (fieldType == net.named_data.jndn.encoding.tlv.Tlv.LpPacket_Fragment) {
+					// Set the fragment to the bytes of the TLV value.
+					lpPacket.setFragmentWireEncoding(new Blob(decoder.getSlice(
+							decoder.getOffset(), fieldEndOffset), true));
+					decoder.seek(fieldEndOffset);
+	
+					// The fragment is supposed to be the last field.
+					break;
+				} else if (fieldType == net.named_data.jndn.encoding.tlv.Tlv.LpPacket_Nack) {
+					NetworkNack networkNack = new NetworkNack();
+					int code = (int) decoder.readOptionalNonNegativeIntegerTlv(
+							net.named_data.jndn.encoding.tlv.Tlv.LpPacket_NackReason, fieldEndOffset);
+					// The enum numeric values are the same as this wire format, so use as is.
+					if (code < 0
+							|| code == net.named_data.jndn.NetworkNack.Reason.NONE.getNumericType())
+						// This includes an omitted NackReason.
+						networkNack.setReason(net.named_data.jndn.NetworkNack.Reason.NONE);
+					else if (code == net.named_data.jndn.NetworkNack.Reason.CONGESTION.getNumericType())
+						networkNack.setReason(net.named_data.jndn.NetworkNack.Reason.CONGESTION);
+					else if (code == net.named_data.jndn.NetworkNack.Reason.DUPLICATE.getNumericType())
+						networkNack.setReason(net.named_data.jndn.NetworkNack.Reason.DUPLICATE);
+					else if (code == net.named_data.jndn.NetworkNack.Reason.NO_ROUTE.getNumericType())
+						networkNack.setReason(net.named_data.jndn.NetworkNack.Reason.NO_ROUTE);
+					else {
+						// Unrecognized reason.
+						networkNack.setReason(net.named_data.jndn.NetworkNack.Reason.OTHER_CODE);
+						networkNack.setOtherReasonCode(code);
+					}
+	
+					lpPacket.addHeaderField(networkNack);
+				} else if (fieldType == net.named_data.jndn.encoding.tlv.Tlv.LpPacket_IncomingFaceId) {
+					IncomingFaceId incomingFaceId = new IncomingFaceId();
+					incomingFaceId.setFaceId(decoder
+							.readNonNegativeInteger(fieldLength));
+					lpPacket.addHeaderField(incomingFaceId);
+				} else {
+					// Unrecognized field type. The conditions for ignoring are here:
+					// http://redmine.named-data.net/projects/nfd/wiki/NDNLPv2
+					bool canIgnore = (fieldType >= net.named_data.jndn.encoding.tlv.Tlv.LpPacket_IGNORE_MIN
+							&& fieldType <= net.named_data.jndn.encoding.tlv.Tlv.LpPacket_IGNORE_MAX && (fieldType & 0x01) == 1);
+					if (!canIgnore)
+						throw new EncodingException(
+								"Did not get the expected TLV type");
+	
+					// Ignore.
+					decoder.seek(fieldEndOffset);
+				}
+	
+				decoder.finishNestedTlvs(fieldEndOffset);
 			}
 	
-			// Set the payload to a slice of the remaining input.
-			ByteBuffer payload = input.duplicate();
-			payload.limit(endOffset);
-			payload.position(decoder.getOffset());
-			localControlHeader.setPayloadWireEncoding(new Blob(payload, false));
-	
-			// Don't call finishNestedTlvs since we got the payload and don't want to
-			// decode any of it now.
+			decoder.finishNestedTlvs(endOffset);
 		}
 	
 		/// <summary>
@@ -545,7 +555,7 @@ namespace net.named_data.jndn.encoding {
 	
 		/// <summary>
 		/// Decode input as a EncryptedContent in NDN-TLV and set the fields of the
-		/// localControlHeader object.
+		/// encryptedContent object.
 		/// </summary>
 		///
 		/// <param name="encryptedContent"></param>
@@ -927,7 +937,11 @@ namespace net.named_data.jndn.encoding {
 					// each NDN-TLV ContentType.
 					encoder.writeNonNegativeIntegerTlv(net.named_data.jndn.encoding.tlv.Tlv.ContentType, metaInfo
 							.getType().getNumericType());
+				else if (metaInfo.getType() == net.named_data.jndn.ContentType.OTHER_CODE)
+					encoder.writeNonNegativeIntegerTlv(net.named_data.jndn.encoding.tlv.Tlv.ContentType,
+							metaInfo.getOtherTypeCode());
 				else
+					// We don't expect this to happen.
 					throw new Exception("unrecognized TLV ContentType");
 			}
 	
@@ -939,19 +953,23 @@ namespace net.named_data.jndn.encoding {
 			int endOffset = decoder.readNestedTlvsStart(net.named_data.jndn.encoding.tlv.Tlv.MetaInfo);
 	
 			// The ContentType enum is set up with the correct integer for each
-			// NDN-TLV ContentType.  If readOptionalNonNegativeIntegerTlv returns
-			// None, then setType will convert it to BLOB.
+			// NDN-TLV ContentType.
 			int type = (int) decoder.readOptionalNonNegativeIntegerTlv(
 					net.named_data.jndn.encoding.tlv.Tlv.ContentType, endOffset);
-			if (type == net.named_data.jndn.ContentType.LINK.getNumericType())
+			if (type < 0 || type == net.named_data.jndn.ContentType.BLOB.getNumericType())
+				// Default to BLOB if the value is omitted.
+				metaInfo.setType(net.named_data.jndn.ContentType.BLOB);
+			else if (type == net.named_data.jndn.ContentType.LINK.getNumericType())
 				metaInfo.setType(net.named_data.jndn.ContentType.LINK);
 			else if (type == net.named_data.jndn.ContentType.KEY.getNumericType())
 				metaInfo.setType(net.named_data.jndn.ContentType.KEY);
 			else if (type == net.named_data.jndn.ContentType.NACK.getNumericType())
 				metaInfo.setType(net.named_data.jndn.ContentType.NACK);
-			else
-				// Default to BLOB.
-				metaInfo.setType(net.named_data.jndn.ContentType.BLOB);
+			else {
+				// Unrecognized content type.
+				metaInfo.setType(net.named_data.jndn.ContentType.OTHER_CODE);
+				metaInfo.setOtherTypeCode(type);
+			}
 	
 			metaInfo.setFreshnessPeriod(decoder.readOptionalNonNegativeIntegerTlv(
 					net.named_data.jndn.encoding.tlv.Tlv.FreshnessPeriod, endOffset));
@@ -1082,7 +1100,7 @@ namespace net.named_data.jndn.encoding {
 			decoder.finishNestedTlvs(endOffset);
 		}
 	
-		private static readonly SecureRandom random_ = new SecureRandom();
+		private static readonly Random random_ = new Random();
 		private static Tlv0_1_1WireFormat instance_ = new Tlv0_1_1WireFormat();
 	}
 }

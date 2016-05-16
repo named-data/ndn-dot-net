@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2014-2016 Regents of the University of California.
+ * Copyright (C) 2016 Regents of the University of California.
  * @author: Jeff Thompson <jefft0@remap.ucla.edu>
  *
  * This program is free software: you can redistribute it and/or modify
@@ -20,26 +20,15 @@
 package net.named_data.jndn;
 
 /**
- * A ContentType specifies the content type in a MetaInfo object. If the
- * content type in the packet is not a recognized enum value, then we use
- * ContentType.OTHER_CODE and you can call MetaInfo.getOtherTypeCode(). We do
- * this to keep the recognized content type values independent of packet
- * encoding formats.
+ * A class implements OnNetworkNack if it has onNetworkNack, used to pass a
+ * callback to Face.expressInterest.
  */
-public enum ContentType {
-  BLOB(0),
-  LINK(1),
-  KEY (2),
-  NACK(3),
-  OTHER_CODE(0x7fff);
-
-  ContentType (int type)
-  {
-    type_ = type;
-  }
-
-  public final int
-  getNumericType() { return type_; }
-
-  private final int type_;
+public interface OnNetworkNack {
+  /**
+   * When a network Nack packet is received, onNetworkNack is called.
+   * @param interest The interest given to Face.expressInterest. NOTE: You must
+   * not change the interest object - if you need to change it then make a copy.
+   * @param networkNack The received NetworkNack object.
+   */
+  void onNetworkNack(Interest interest, NetworkNack networkNack);
 }

@@ -17,6 +17,7 @@ namespace net.named_data.jndn {
 	using System.IO;
 	using System.Runtime.CompilerServices;
 	using net.named_data.jndn.encoding;
+	using net.named_data.jndn.lp;
 	using net.named_data.jndn.util;
 	
 	public class Data : ChangeCountable, SignatureHolder {
@@ -31,7 +32,7 @@ namespace net.named_data.jndn {
 			this.name_ = new ChangeCounter(new Name());
 			this.metaInfo_ = new ChangeCounter(new MetaInfo());
 			this.content_ = new Blob();
-			this.localControlHeader_ = new LocalControlHeader();
+			this.lpPacket_ = null;
 			this.defaultWireEncoding_ = new SignedBlob();
 			this.getDefaultWireEncodingChangeCount_ = 0;
 			this.changeCount_ = 0;
@@ -49,7 +50,7 @@ namespace net.named_data.jndn {
 			this.name_ = new ChangeCounter(new Name());
 			this.metaInfo_ = new ChangeCounter(new MetaInfo());
 			this.content_ = new Blob();
-			this.localControlHeader_ = new LocalControlHeader();
+			this.lpPacket_ = null;
 			this.defaultWireEncoding_ = new SignedBlob();
 			this.getDefaultWireEncodingChangeCount_ = 0;
 			this.changeCount_ = 0;
@@ -68,7 +69,7 @@ namespace net.named_data.jndn {
 			this.name_ = new ChangeCounter(new Name());
 			this.metaInfo_ = new ChangeCounter(new MetaInfo());
 			this.content_ = new Blob();
-			this.localControlHeader_ = new LocalControlHeader();
+			this.lpPacket_ = null;
 			this.defaultWireEncoding_ = new SignedBlob();
 			this.getDefaultWireEncodingChangeCount_ = 0;
 			this.changeCount_ = 0;
@@ -206,12 +207,14 @@ namespace net.named_data.jndn {
 		}
 	
 		/// <summary>
-		/// Get the incoming face ID of the local control header.
+		/// Get the incoming face ID according to the incoming packet header.
 		/// </summary>
 		///
 		/// <returns>The incoming face ID. If not specified, return -1.</returns>
 		public long getIncomingFaceId() {
-			return localControlHeader_.getIncomingFaceId();
+			IncomingFaceId field = (lpPacket_ == null) ? null : net.named_data.jndn.lp.IncomingFaceId
+					.getFirstHeader(lpPacket_);
+			return (field == null) ? (long) (-1) : (long) (field.getFaceId());
 		}
 	
 		/// <summary>
@@ -296,17 +299,15 @@ namespace net.named_data.jndn {
 		}
 	
 		/// <summary>
-		/// An internal library method to set localControlHeader to a copy of the given
-		/// LocalControlHeader for an incoming packet. The application should not call
-		/// this.
+		/// An internal library method to set the LpPacket for an incoming packet. The
+		/// application should not call this.
 		/// </summary>
 		///
-		/// <param name="localControlHeader">The LocalControlHeader which is copied.</param>
+		/// <param name="lpPacket">The LpPacket. This does not make a copy.</param>
 		/// <returns>This Data so that you can chain calls to update values.</returns>
 		/// @note This is an experimental feature. This API may change in the future.
-		internal Data setLocalControlHeader(LocalControlHeader localControlHeader) {
-			localControlHeader_ = ((localControlHeader == null) ? new LocalControlHeader()
-					: new LocalControlHeader(localControlHeader));
+		internal Data setLpPacket(LpPacket lpPacket) {
+			lpPacket_ = lpPacket;
 			// Don't update changeCount_ since this doesn't affect the wire encoding.
 			return this;
 		}
@@ -342,7 +343,7 @@ namespace net.named_data.jndn {
 		private readonly ChangeCounter name_;
 		private readonly ChangeCounter metaInfo_;
 		private Blob content_;
-		private LocalControlHeader localControlHeader_;
+		private LpPacket lpPacket_;
 		private SignedBlob defaultWireEncoding_;
 		private WireFormat defaultWireEncodingFormat_;
 		private long getDefaultWireEncodingChangeCount_;

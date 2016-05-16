@@ -18,6 +18,7 @@ namespace net.named_data.jndn.encoding {
 	using System.Runtime.CompilerServices;
 	using net.named_data.jndn;
 	using net.named_data.jndn.encrypt;
+	using net.named_data.jndn.lp;
 	using net.named_data.jndn.util;
 	
 	public class WireFormat {
@@ -258,31 +259,17 @@ namespace net.named_data.jndn.encoding {
 		}
 	
 		/// <summary>
-		/// Encode the LocalControlHeader and return the encoding. Your
+		/// Decode input as an LpPacket and set the fields of the lpPacket object. Your
 		/// derived class should override.
 		/// </summary>
 		///
-		/// <param name="localControlHeader">The LocalControlHeader object to encode.</param>
-		/// <returns>A Blob containing the encoding.</returns>
-		/// <exception cref="System.NotSupportedException">for unimplemented if the derivedclass does not override.</exception>
-		public virtual Blob encodeLocalControlHeader(LocalControlHeader localControlHeader) {
-			throw new NotSupportedException(
-					"encodeLocalControlHeader is not implemented");
-		}
-	
-		/// <summary>
-		/// Decode input as a LocalControlHeader and set the fields of the
-		/// localControlHeader object. Your derived class should override.
-		/// </summary>
-		///
-		/// <param name="localControlHeader"></param>
+		/// <param name="lpPacket">The LpPacket object whose fields are updated.</param>
 		/// <param name="input"></param>
-		/// <exception cref="EncodingException">For invalid encoding</exception>
+		/// <exception cref="EncodingException">For invalid encoding.</exception>
 		/// <exception cref="System.NotSupportedException">for unimplemented if the derivedclass does not override.</exception>
-		public virtual void decodeLocalControlHeader(LocalControlHeader localControlHeader,
-				ByteBuffer input) {
+		public virtual void decodeLpPacket(LpPacket lpPacket, ByteBuffer input) {
 			throw new NotSupportedException(
-					"decodeLocalControlHeader is not implemented");
+					"decodeLpPacket is not implemented");
 		}
 	
 		/// <summary>

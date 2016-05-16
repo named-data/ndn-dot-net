@@ -150,6 +150,14 @@ namespace net.named_data.jndn.security.identity {
 		/// <exception cref="System.Security.SecurityException">if the certificate doesn't exist.</exception>
 		public abstract IdentityCertificate getCertificate(Name certificateName);
 	
+		/// <summary>
+		/// Get the TPM locator associated with this storage.
+		/// </summary>
+		///
+		/// <returns>The TPM locator.</returns>
+		/// <exception cref="System.Security.SecurityException">if the TPM locator doesn't exist.</exception>
+		public abstract String getTpmLocator();
+	
 		/*****************************************
 		 *           Get/Set Default             *
 		 *****************************************/

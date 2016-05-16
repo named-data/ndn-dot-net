@@ -17,6 +17,7 @@ namespace net.named_data.jndn.impl {
 	using System.IO;
 	using System.Runtime.CompilerServices;
 	using net.named_data.jndn;
+	using net.named_data.jndn.util;
 	
 	/// <summary>
 	/// A PendingInterestTable is an internal class to hold a list of pending
@@ -25,7 +26,8 @@ namespace net.named_data.jndn.impl {
 	///
 	public class PendingInterestTable {
 		public PendingInterestTable() {
-			this.table_ = new ArrayList();
+			this.table_ = new ArrayList<Entry>();
+			this.removeRequests_ = new ArrayList<Int64>();
 		}
 		/// <summary>
 		/// Entry holds the callbacks and other fields for an entry in the pending
@@ -39,12 +41,13 @@ namespace net.named_data.jndn.impl {
 			/// </summary>
 			///
 			public Entry(long pendingInterestId, Interest interest, OnData onData,
-					OnTimeout onTimeout) {
+					OnTimeout onTimeout, OnNetworkNack onNetworkNack) {
 				this.isRemoved_ = false;
 				pendingInterestId_ = pendingInterestId;
 				interest_ = interest;
 				onData_ = onData;
 				onTimeout_ = onTimeout;
+				onNetworkNack_ = onNetworkNack;
 			}
 	
 			/// <summary>
@@ -73,6 +76,15 @@ namespace net.named_data.jndn.impl {
 			/// <returns>The OnData callback.</returns>
 			public OnData getOnData() {
 				return onData_;
+			}
+	
+			/// <summary>
+			/// Get the OnNetworkNack callback given to the constructor.
+			/// </summary>
+			///
+			/// <returns>The OnNetworkNack callback.</returns>
+			public OnNetworkNack getOnNetworkNack() {
+				return onNetworkNack_;
 			}
 	
 			/// <summary>
@@ -115,23 +127,37 @@ namespace net.named_data.jndn.impl {
 			///
 			private readonly OnData onData_;
 			private readonly OnTimeout onTimeout_;
+			private readonly OnNetworkNack onNetworkNack_;
 			private bool isRemoved_;
 		}
 	
 		/// <summary>
-		/// Add a new entry to the pending interest table.
+		/// Add a new entry to the pending interest table. However, if
+		/// removePendingInterest was already called with the pendingInterestId, don't
+		/// add an entry and return null.
 		/// </summary>
 		///
 		/// <param name="pendingInterestId"></param>
 		/// <param name="interestCopy"></param>
 		/// <param name="onData"></param>
 		/// <param name="onTimeout"></param>
-		/// <returns>The new PendingInterestTable.Entry.</returns>
+		/// <param name="onNetworkNack"></param>
+		/// <returns>The new PendingInterestTable.Entry, or null if
+		/// removePendingInterest was already called with the pendingInterestId.</returns>
 		[MethodImpl(MethodImplOptions.Synchronized)]
 		public PendingInterestTable.Entry  add(long pendingInterestId,
-				Interest interestCopy, OnData onData, OnTimeout onTimeout) {
+				Interest interestCopy, OnData onData, OnTimeout onTimeout,
+				OnNetworkNack onNetworkNack) {
+			int removeRequestIndex = removeRequests_.indexOf(pendingInterestId);
+			if (removeRequestIndex >= 0) {
+				// removePendingInterest was called with the pendingInterestId returned by
+				//   expressInterest before we got here, so don't add a PIT entry.
+				ILOG.J2CsMapping.Collections.Collections.RemoveAt(removeRequests_,removeRequestIndex);
+				return null;
+			}
+	
 			PendingInterestTable.Entry  entry = new PendingInterestTable.Entry (pendingInterestId, interestCopy, onData,
-					onTimeout);
+					onTimeout, onNetworkNack);
 			ILOG.J2CsMapping.Collections.Collections.Add(table_,entry);
 			return entry;
 		}
@@ -146,12 +172,47 @@ namespace net.named_data.jndn.impl {
 		/// <param name="entries"></param>
 		[MethodImpl(MethodImplOptions.Synchronized)]
 		public void extractEntriesForExpressedInterest(
-				Name name, ArrayList entries) {
+				Name name, ArrayList<Entry> entries) {
 			// Go backwards through the list so we can remove entries.
 			for (int i = table_.Count - 1; i >= 0; --i) {
-				PendingInterestTable.Entry  pendingInterest = (PendingInterestTable.Entry ) table_[i];
+				PendingInterestTable.Entry  pendingInterest = table_[i];
 	
 				if (pendingInterest.getInterest().matchesName(name)) {
+					ILOG.J2CsMapping.Collections.Collections.Add(entries,table_[i]);
+					// We let the callback from callLater call _processInterestTimeout, but
+					// for efficiency, mark this as removed so that it returns right away.
+					ILOG.J2CsMapping.Collections.Collections.RemoveAt(table_,i);
+					pendingInterest.setIsRemoved();
+				}
+			}
+		}
+	
+		/// <summary>
+		/// Find all entries from the pending interest table where the OnNetworkNack
+		/// callback is not null and the entry's interest is the same as the given
+		/// interest, remove the entries from the table, set each entry's isRemoved
+		/// flag, and add to the entries list. (We don't remove the entry if the
+		/// OnNetworkNack callback is null so that OnTimeout will be called later.) The
+		/// interests are the same if their default wire encoding is the same (which
+		/// has everything including the name, nonce, link object and selectors).
+		/// </summary>
+		///
+		/// <param name="interest">The Interest to search for (typically from a Nack packet).</param>
+		/// <param name="entries"></param>
+		[MethodImpl(MethodImplOptions.Synchronized)]
+		public void extractEntriesForNackInterest(
+				Interest interest, ArrayList<Entry> entries) {
+			SignedBlob encoding = interest.wireEncode();
+	
+			// Go backwards through the list so we can remove entries.
+			for (int i = table_.Count - 1; i >= 0; --i) {
+				PendingInterestTable.Entry  pendingInterest = table_[i];
+				if (pendingInterest.getOnNetworkNack() == null)
+					continue;
+	
+				// wireEncode returns the encoding cached when the interest was sent (if
+				// it was the default wire encoding).
+				if (pendingInterest.getInterest().wireEncode().equals(encoding)) {
 					ILOG.J2CsMapping.Collections.Collections.Add(entries,table_[i]);
 					// We let the callback from callLater call _processInterestTimeout, but
 					// for efficiency, mark this as removed so that it returns right away.
@@ -176,11 +237,11 @@ namespace net.named_data.jndn.impl {
 			// Go backwards through the list so we can remove entries.
 			// Remove all entries even though pendingInterestId should be unique.
 			for (int i = table_.Count - 1; i >= 0; --i) {
-				if (((PendingInterestTable.Entry ) table_[i]).getPendingInterestId() == pendingInterestId) {
+				if ((table_[i]).getPendingInterestId() == pendingInterestId) {
 					++count;
 					// For efficiency, mark this as removed so that
 					// processInterestTimeout doesn't look for it.
-					((PendingInterestTable.Entry ) table_[i]).setIsRemoved();
+					(table_[i]).setIsRemoved();
 					ILOG.J2CsMapping.Collections.Collections.RemoveAt(table_,i);
 				}
 			}
@@ -189,6 +250,15 @@ namespace net.named_data.jndn.impl {
 				logger_.log(ILOG.J2CsMapping.Util.Logging.Level.WARNING,
 						"removePendingInterest: Didn't find pendingInterestId {0}",
 						pendingInterestId);
+	
+			if (count == 0) {
+				// The pendingInterestId was not found. Perhaps this has been called before
+				//   the callback in expressInterest can add to the PIT. Add this
+				//   removal request which will be checked before adding to the PIT.
+				if (removeRequests_.indexOf(pendingInterestId) < 0)
+					// Not already requested, so add the request.
+					ILOG.J2CsMapping.Collections.Collections.Add(removeRequests_,pendingInterestId);
+			}
 		}
 	
 		/// <summary>
@@ -214,8 +284,8 @@ namespace net.named_data.jndn.impl {
 				return false;
 		}
 	
-		// Use ArrayList without generics so it works with older Java compilers.
-		private readonly IList table_; // Entry
+    private readonly ArrayList<Entry> table_;
+    private readonly ArrayList<Int64> removeRequests_;
 		private static readonly Logger logger_ = ILOG.J2CsMapping.Util.Logging.Logger
 				.getLogger(typeof(PendingInterestTable).FullName);
 	}

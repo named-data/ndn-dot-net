@@ -72,9 +72,16 @@ namespace net.named_data.jndn.security.identity {
 						"The specified identity name does not match the key name");
 		}
 	
+		protected internal const String SELECT_MASTER_TPM_INFO_TABLE = "SELECT name FROM sqlite_master WHERE type='table' And name='TpmInfo'";
 		protected internal const String SELECT_MASTER_ID_TABLE = "SELECT name FROM sqlite_master WHERE type='table' And name='Identity'";
 		protected internal const String SELECT_MASTER_KEY_TABLE = "SELECT name FROM sqlite_master WHERE type='table' And name='Key'";
 		protected internal const String SELECT_MASTER_CERT_TABLE = "SELECT name FROM sqlite_master WHERE type='table' And name='Certificate'";
+	
+		protected internal const String INIT_TPM_INFO_TABLE = "CREATE TABLE IF NOT EXISTS                                           \n"
+				+ "  TpmInfo(                                                           \n"
+				+ "      tpm_locator BLOB NOT NULL,                                     \n"
+				+ "      PRIMARY KEY (tpm_locator)                                      \n"
+				+ "  );                                                                 \n";
 	
 		protected internal const String INIT_ID_TABLE1 = "CREATE TABLE IF NOT EXISTS                                           \n"
 				+ "  Identity(                                                          \n"
@@ -134,6 +141,7 @@ namespace net.named_data.jndn.security.identity {
 				+ "  WHERE default_cert=1 and identity_name=? and key_identifier=?";
 		protected internal const String SELECT_getAllCertificateNamesOfKey_default_false = "SELECT cert_name FROM Certificate"
 				+ "  WHERE default_cert=0 and identity_name=? and key_identifier=?";
+		protected internal const String SELECT_getTpmLocator = "SELECT tpm_locator FROM TpmInfo";
 	
 		protected internal const String WHERE_updateKeyStatus = "identity_name=? AND key_identifier=?";
 		protected internal const String WHERE_setDefaultIdentity_reset = "default_identity=1";

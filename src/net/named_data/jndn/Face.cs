@@ -94,7 +94,148 @@ namespace net.named_data.jndn {
 	
 		/// <summary>
 		/// Send the Interest through the transport, read the entire response and call
-		/// onData(interest, data).
+		/// onData, onTimeout or onNetworkNack as described below.
+		/// </summary>
+		///
+		/// <param name="interest">The Interest to send.  This copies the Interest.</param>
+		/// <param name="onData">expressInterest and data is the received Data object. NOTE: You must not change the interest object - if you need to change it then make a copy. NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
+		/// <param name="onTimeout">interest given to expressInterest. If onTimeout is null, this does not use it. NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
+		/// <param name="onNetworkNack">onNetworkNack.onNetworkNack(interest, networkNack) and does not call onTimeout. However, if a network Nack is received and onNetworkNack is null, do nothing and wait for the interest to time out. (Therefore, an application which does not yet process a network Nack reason treats a Nack the same as a timeout.) NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
+		/// <param name="wireFormat">A WireFormat object used to encode the message.</param>
+		/// <returns>The pending interest ID which can be used with
+		/// removePendingInterest.</returns>
+		/// <exception cref="IOException">For I/O error in sending the interest.</exception>
+		/// <exception cref="System.Exception">If the encoded interest size exceeds getMaxNdnPacketSize().</exception>
+		public virtual long expressInterest(Interest interest, OnData onData,
+				OnTimeout onTimeout, OnNetworkNack onNetworkNack,
+				WireFormat wireFormat) {
+			long pendingInterestId = node_.getNextEntryId();
+	
+			// This copies the interest as required by Node.expressInterest.
+			node_.expressInterest(pendingInterestId, interest, onData, onTimeout,
+					onNetworkNack, wireFormat, this);
+	
+			return pendingInterestId;
+		}
+	
+		/// <summary>
+		/// Send the Interest through the transport, read the entire response and call
+		/// onData, onTimeout or onNetworkNack as described below.
+		/// This uses the default WireFormat.getDefaultWireFormat().
+		/// </summary>
+		///
+		/// <param name="interest">The Interest to send.  This copies the Interest.</param>
+		/// <param name="onData">expressInterest and data is the received Data object. NOTE: You must not change the interest object - if you need to change it then make a copy. NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
+		/// <param name="onTimeout">interest given to expressInterest. If onTimeout is null, this does not use it. NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
+		/// <param name="onNetworkNack">onNetworkNack.onNetworkNack(interest, networkNack) and does not call onTimeout. However, if a network Nack is received and onNetworkNack is null, do nothing and wait for the interest to time out. (Therefore, an application which does not yet process a network Nack reason treats a Nack the same as a timeout.) NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
+		/// <returns>The pending interest ID which can be used with
+		/// removePendingInterest.</returns>
+		/// <exception cref="IOException">For I/O error in sending the interest.</exception>
+		/// <exception cref="System.Exception">If the encoded interest size exceeds getMaxNdnPacketSize().</exception>
+		public long expressInterest(Interest interest, OnData onData,
+				OnTimeout onTimeout, OnNetworkNack onNetworkNack) {
+			return expressInterest(interest, onData, onTimeout, onNetworkNack,
+					net.named_data.jndn.encoding.WireFormat.getDefaultWireFormat());
+		}
+	
+		/// <summary>
+		/// Encode name as an Interest. If interestTemplate is not null, use its
+		/// interest selectors.
+		/// Send the Interest through the transport, read the entire response and call
+		/// onData, onTimeout or onNetworkNack as described below.
+		/// </summary>
+		///
+		/// <param name="name">A Name for the interest. This copies the Name.</param>
+		/// <param name="interestTemplate"></param>
+		/// <param name="onData">expressInterest and data is the received Data object. NOTE: You must not change the interest object - if you need to change it then make a copy. NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
+		/// <param name="onTimeout">interest given to expressInterest. If onTimeout is null, this does not use it. NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
+		/// <param name="onNetworkNack">onNetworkNack.onNetworkNack(interest, networkNack) and does not call onTimeout. However, if a network Nack is received and onNetworkNack is null, do nothing and wait for the interest to time out. (Therefore, an application which does not yet process a network Nack reason treats a Nack the same as a timeout.) NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
+		/// <param name="wireFormat">A WireFormat object used to encode the message.</param>
+		/// <returns>The pending interest ID which can be used with
+		/// removePendingInterest.</returns>
+		/// <exception cref="IOException">For I/O error in sending the interest.</exception>
+		/// <exception cref="System.Exception">If the encoded interest size exceeds getMaxNdnPacketSize().</exception>
+		public virtual long expressInterest(Name name, Interest interestTemplate,
+				OnData onData, OnTimeout onTimeout, OnNetworkNack onNetworkNack,
+				WireFormat wireFormat) {
+			long pendingInterestId = node_.getNextEntryId();
+	
+			// This copies the name object as required by Node.expressInterest.
+			node_.expressInterest(pendingInterestId,
+					getInterestCopy(name, interestTemplate), onData, onTimeout,
+					onNetworkNack, wireFormat, this);
+	
+			return pendingInterestId;
+		}
+	
+		/// <summary>
+		/// Encode name as an Interest. If interestTemplate is not null, use its
+		/// interest selectors.
+		/// Send the Interest through the transport, read the entire response and call
+		/// onData, onTimeout or onNetworkNack as described below.
+		/// This uses the default WireFormat.getDefaultWireFormat().
+		/// </summary>
+		///
+		/// <param name="name">A Name for the interest. This copies the Name.</param>
+		/// <param name="interestTemplate"></param>
+		/// <param name="onData">expressInterest and data is the received Data object. NOTE: You must not change the interest object - if you need to change it then make a copy. NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
+		/// <param name="onTimeout">interest given to expressInterest. If onTimeout is null, this does not use it. NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
+		/// <param name="onNetworkNack">onNetworkNack.onNetworkNack(interest, networkNack) and does not call onTimeout. However, if a network Nack is received and onNetworkNack is null, do nothing and wait for the interest to time out. (Therefore, an application which does not yet process a network Nack reason treats a Nack the same as a timeout.) NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
+		/// <returns>The pending interest ID which can be used with
+		/// removePendingInterest.</returns>
+		/// <exception cref="IOException">For I/O error in sending the interest.</exception>
+		/// <exception cref="System.Exception">If the encoded interest size exceeds getMaxNdnPacketSize().</exception>
+		public long expressInterest(Name name, Interest interestTemplate,
+				OnData onData, OnTimeout onTimeout, OnNetworkNack onNetworkNack) {
+			return expressInterest(name, interestTemplate, onData, onTimeout,
+					onNetworkNack, net.named_data.jndn.encoding.WireFormat.getDefaultWireFormat());
+		}
+	
+		/// <summary>
+		/// Encode name as an Interest, using a default interest lifetime.
+		/// Send the Interest through the transport, read the entire response and call
+		/// onData, onTimeout or onNetworkNack as described below.
+		/// </summary>
+		///
+		/// <param name="name">A Name for the interest. This copies the Name.</param>
+		/// <param name="onData">expressInterest and data is the received Data object. NOTE: You must not change the interest object - if you need to change it then make a copy. NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
+		/// <param name="onTimeout">interest given to expressInterest. If onTimeout is null, this does not use it. NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
+		/// <param name="onNetworkNack">onNetworkNack.onNetworkNack(interest, networkNack) and does not call onTimeout. However, if a network Nack is received and onNetworkNack is null, do nothing and wait for the interest to time out. (Therefore, an application which does not yet process a network Nack reason treats a Nack the same as a timeout.) NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
+		/// <param name="wireFormat">A WireFormat object used to encode the message.</param>
+		/// <returns>The pending interest ID which can be used with
+		/// removePendingInterest.</returns>
+		/// <exception cref="IOException">For I/O error in sending the interest.</exception>
+		/// <exception cref="System.Exception">If the encoded interest size exceeds getMaxNdnPacketSize().</exception>
+		public long expressInterest(Name name, OnData onData, OnTimeout onTimeout,
+				OnNetworkNack onNetworkNack, WireFormat wireFormat) {
+			return expressInterest(name, null, onData, onTimeout, onNetworkNack,
+					wireFormat);
+		}
+	
+		/// <summary>
+		/// Encode name as an Interest, using a default interest lifetime.
+		/// Send the Interest through the transport, read the entire response and call
+		/// onData, onTimeout or onNetworkNack as described below.
+		/// This uses the default WireFormat.getDefaultWireFormat().
+		/// </summary>
+		///
+		/// <param name="name">A Name for the interest. This copies the Name.</param>
+		/// <param name="onData">expressInterest and data is the received Data object. NOTE: You must not change the interest object - if you need to change it then make a copy. NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
+		/// <param name="onTimeout">interest given to expressInterest. If onTimeout is null, this does not use it. NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
+		/// <param name="onNetworkNack">onNetworkNack.onNetworkNack(interest, networkNack) and does not call onTimeout. However, if a network Nack is received and onNetworkNack is null, do nothing and wait for the interest to time out. (Therefore, an application which does not yet process a network Nack reason treats a Nack the same as a timeout.) NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
+		/// <returns>The pending interest ID which can be used with
+		/// removePendingInterest.</returns>
+		/// <exception cref="IOException">For I/O error in sending the interest.</exception>
+		/// <exception cref="System.Exception">If the encoded interest size exceeds getMaxNdnPacketSize().</exception>
+		public long expressInterest(Name name, OnData onData, OnTimeout onTimeout,
+				OnNetworkNack onNetworkNack) {
+			return expressInterest(name, null, onData, onTimeout, onNetworkNack,
+					net.named_data.jndn.encoding.WireFormat.getDefaultWireFormat());
+		}
+	
+		/// <summary>
+		/// Send the Interest through the transport, read the entire response and call
+		/// onData or onTimeout as described below.
 		/// </summary>
 		///
 		/// <param name="interest">The Interest to send.  This copies the Interest.</param>
@@ -105,19 +246,14 @@ namespace net.named_data.jndn {
 		/// removePendingInterest.</returns>
 		/// <exception cref="IOException">For I/O error in sending the interest.</exception>
 		/// <exception cref="System.Exception">If the encoded interest size exceeds getMaxNdnPacketSize().</exception>
-		public virtual long expressInterest(Interest interest, OnData onData,
+		public long expressInterest(Interest interest, OnData onData,
 				OnTimeout onTimeout, WireFormat wireFormat) {
-			long pendingInterestId = node_.getNextEntryId();
-	
-			node_.expressInterest(pendingInterestId, interest, onData, onTimeout,
-					wireFormat, this);
-	
-			return pendingInterestId;
+			return expressInterest(interest, onData, onTimeout, null, wireFormat);
 		}
 	
 		/// <summary>
 		/// Send the Interest through the transport, read the entire response and call
-		/// onData(interest, data).
+		/// onData or onTimeout as described below.
 		/// This uses the default WireFormat.getDefaultWireFormat().
 		/// </summary>
 		///
@@ -136,7 +272,8 @@ namespace net.named_data.jndn {
 	
 		/// <summary>
 		/// Send the Interest through the transport, read the entire response and call
-		/// onData(interest, data).  Ignore if the interest times out.
+		/// onData as described below.
+		/// Ignore if the interest times out.
 		/// </summary>
 		///
 		/// <param name="interest">The Interest to send.  This copies the Interest.</param>
@@ -153,7 +290,8 @@ namespace net.named_data.jndn {
 	
 		/// <summary>
 		/// Send the Interest through the transport, read the entire response and call
-		/// onData(interest, data).  Ignore if the interest times out.
+		/// onData as described below.
+		/// Ignore if the interest times out.
 		/// This uses the default WireFormat.getDefaultWireFormat().
 		/// </summary>
 		///
@@ -170,8 +308,9 @@ namespace net.named_data.jndn {
 	
 		/// <summary>
 		/// Encode name as an Interest. If interestTemplate is not null, use its
-		/// interest selectors. Send the interest through the transport, read the
-		/// entire response and call onData(interest, data).
+		/// interest selectors.
+		/// Send the Interest through the transport, read the entire response and call
+		/// onData or onTimeout as described below.
 		/// </summary>
 		///
 		/// <param name="name">A Name for the interest. This copies the Name.</param>
@@ -185,24 +324,14 @@ namespace net.named_data.jndn {
 		/// <exception cref="System.Exception">If the encoded interest size exceeds getMaxNdnPacketSize().</exception>
 		public long expressInterest(Name name, Interest interestTemplate,
 				OnData onData, OnTimeout onTimeout, WireFormat wireFormat) {
-			Interest interest;
-			if (interestTemplate != null) {
-				// Copy the interestTemplate.
-				interest = new Interest(interestTemplate);
-				interest.setName(name);
-			} else {
-				interest = new Interest(name);
-				interest.setInterestLifetimeMilliseconds(4000.0d);
-			}
-	
-			return expressInterest(interest, onData, onTimeout, wireFormat);
+			return expressInterest(name, interestTemplate, onData, onTimeout, null,
+					wireFormat);
 		}
 	
 		/// <summary>
-		/// Encode name as an Interest. If interestTemplate is not null, use its
-		/// interest selectors. Send the interest through the transport, read the
-		/// entire response and call onData(interest, data).
-		/// Use a default interest lifetime.
+		/// Encode name as an Interest, using a default interest lifetime.
+		/// Send the Interest through the transport, read the entire response and call
+		/// onData or onTimeout as described below.
 		/// </summary>
 		///
 		/// <param name="name">A Name for the interest. This copies the Name.</param>
@@ -220,8 +349,9 @@ namespace net.named_data.jndn {
 	
 		/// <summary>
 		/// Encode name as an Interest. If interestTemplate is not null, use its
-		/// interest selectors. Send the interest through the transport, read the
-		/// entire response and call onData(interest, data).
+		/// interest selectors.
+		/// Send the Interest through the transport, read the entire response and call
+		/// onData as described below.
 		/// Ignore if the interest times out.
 		/// </summary>
 		///
@@ -240,8 +370,9 @@ namespace net.named_data.jndn {
 	
 		/// <summary>
 		/// Encode name as an Interest. If interestTemplate is not null, use its
-		/// interest selectors. Send the interest through the transport, read the
-		/// entire response and call onData(interest, data).
+		/// interest selectors.
+		/// Send the Interest through the transport, read the entire response and call
+		/// onData or onTimeout as described below.
 		/// This uses the default WireFormat.getDefaultWireFormat().
 		/// </summary>
 		///
@@ -261,8 +392,9 @@ namespace net.named_data.jndn {
 	
 		/// <summary>
 		/// Encode name as an Interest. If interestTemplate is not null, use its
-		/// interest selectors. Send the interest through the transport, read the
-		/// entire response and call onData(interest, data).
+		/// interest selectors.
+		/// Send the Interest through the transport, read the entire response and call
+		/// onData as described below.
 		/// Ignore if the interest times out.
 		/// This uses the default WireFormat.getDefaultWireFormat().
 		/// </summary>
@@ -281,10 +413,9 @@ namespace net.named_data.jndn {
 		}
 	
 		/// <summary>
-		/// Encode name as an Interest. If interestTemplate is not null, use its
-		/// interest selectors. Send the interest through the transport, read the
-		/// entire response and call onData(interest, data).
-		/// Use a default interest lifetime.
+		/// Encode name as an Interest, using a default interest lifetime.
+		/// Send the Interest through the transport, read the entire response and call
+		/// onData or onTimeout as described below.
 		/// This uses the default WireFormat.getDefaultWireFormat().
 		/// </summary>
 		///
@@ -301,10 +432,9 @@ namespace net.named_data.jndn {
 		}
 	
 		/// <summary>
-		/// Encode name as an Interest. If interestTemplate is not null, use its
-		/// interest selectors. Send the interest through the transport, read the
-		/// entire response and call onData(interest, data).
-		/// Use a default interest lifetime.
+		/// Encode name as an Interest, using a default interest lifetime.
+		/// Send the Interest through the transport, read the entire response and call
+		/// onData as described below.
 		/// Ignore if the interest times out.
 		/// </summary>
 		///
@@ -320,10 +450,9 @@ namespace net.named_data.jndn {
 		}
 	
 		/// <summary>
-		/// Encode name as an Interest. If interestTemplate is not null, use its
-		/// interest selectors. Send the interest through the transport, read the
-		/// entire response and call onData(interest, data).
-		/// Use a default interest lifetime.
+		/// Encode name as an Interest, using a default interest lifetime.
+		/// Send the Interest through the transport, read the entire response and call
+		/// onData as described below.
 		/// Ignore if the interest times out.
 		/// This uses the default WireFormat.getDefaultWireFormat().
 		/// </summary>
@@ -421,7 +550,7 @@ namespace net.named_data.jndn {
 		/// removeRegisteredPrefix.</returns>
 		/// <exception cref="IOException">For I/O error in sending the registration request.</exception>
 		/// <exception cref="System.Security.SecurityException">If signing a command interest for NFD and cannotfind the private key for the certificateName.</exception>
-		public long registerPrefix(Name prefix, OnInterestCallback onInterest,
+		public virtual long registerPrefix(Name prefix, OnInterestCallback onInterest,
 				OnRegisterFailed onRegisterFailed,
 				OnRegisterSuccess onRegisterSuccess, ForwardingFlags flags,
 				WireFormat wireFormat) {
@@ -670,7 +799,7 @@ namespace net.named_data.jndn {
 		/// <param name="filter"></param>
 		/// <param name="onInterest">onInterest.onInterest(prefix, interest, face, interestFilterId, filter). NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
 		/// <returns>The interest filter ID which can be used with unsetInterestFilter.</returns>
-		public long setInterestFilter(InterestFilter filter,
+		public virtual long setInterestFilter(InterestFilter filter,
 				OnInterestCallback onInterest) {
 			long interestFilterId = node_.getNextEntryId();
 	
@@ -811,8 +940,30 @@ namespace net.named_data.jndn {
 			node_.callLater(delayMilliseconds, callback);
 		}
 	
+		/// <summary>
+		/// Do the work of expressInterest to make an Interest based on name and
+		/// interestTemplate.
+		/// </summary>
+		///
+		/// <param name="name">A Name for the interest.  This copies the Name.</param>
+		/// <param name="interestTemplate"></param>
+		/// <returns>The Interest, suitable for Node.expressInterest.</returns>
+		static protected internal Interest getInterestCopy(Name name,
+				Interest interestTemplate) {
+			if (interestTemplate != null) {
+				// Copy the interestTemplate.
+				Interest interestCopy = new Interest(interestTemplate);
+				interestCopy.setName(name);
+				return interestCopy;
+			} else {
+				Interest interestCopy_0 = new Interest(name);
+				interestCopy_0.setInterestLifetimeMilliseconds(4000.0d);
+				return interestCopy_0;
+			}
+		}
+	
 		protected internal readonly Node node_;
-		private KeyChain commandKeyChain_;
-		private Name commandCertificateName_;
+		protected internal KeyChain commandKeyChain_;
+		protected internal Name commandCertificateName_;
 	}
 }

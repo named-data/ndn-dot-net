@@ -200,6 +200,16 @@ namespace net.named_data.jndn.security.identity {
 			return certificate;
 		}
 	
+		/// <summary>
+		/// Get the TPM locator associated with this storage.
+		/// </summary>
+		///
+		/// <returns>The TPM locator.</returns>
+		/// <exception cref="System.Security.SecurityException">if the TPM locator doesn't exist.</exception>
+		public sealed override String getTpmLocator() {
+			return "tpm-memory:";
+		}
+	
 		/*****************************************
 		 *           Get/Set Default             *
 		 *****************************************/

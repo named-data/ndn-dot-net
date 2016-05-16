@@ -16,7 +16,8 @@ namespace net.named_data.jndn.impl {
 	using System.ComponentModel;
 	using System.IO;
 	using System.Runtime.CompilerServices;
-	using net.named_data.jndn;
+  using net.named_data.jndn;
+  using net.named_data.jndn.util;
 	
 	/// <summary>
 	/// A RegisteredPrefixTable is an internal class to hold a list of registered
@@ -30,22 +31,36 @@ namespace net.named_data.jndn.impl {
 		///
 		/// <param name="interestFilterTable"></param>
 		public RegisteredPrefixTable(InterestFilterTable interestFilterTable) {
-			this.table_ = new ArrayList();
+			this.table_ = new ArrayList<Entry>();
+			this.removeRequests_ = new ArrayList<Int64>();
 			interestFilterTable_ = interestFilterTable;
 		}
 	
 		/// <summary>
-		/// Add a new entry to the table.
+		/// Add a new entry to the table. However, if removeRegisteredPrefix was already
+		/// called with the registeredPrefixId, don't add an entry and return false.
 		/// </summary>
 		///
 		/// <param name="registeredPrefixId">The ID from Node.getNextEntryId().</param>
 		/// <param name="prefix">The name prefix.</param>
 		/// <param name="relatedInterestFilterId">to 0.</param>
+		/// <returns>True if added an entry, false if removeRegisteredPrefix was already
+		/// called with the registeredPrefixId.</returns>
 		[MethodImpl(MethodImplOptions.Synchronized)]
-		public void add(long registeredPrefixId, Name prefix,
+		public bool add(long registeredPrefixId, Name prefix,
 				long relatedInterestFilterId) {
+			int removeRequestIndex = removeRequests_.indexOf(registeredPrefixId);
+			if (removeRequestIndex >= 0) {
+				// removeRegisteredPrefix was called with the registeredPrefixId returned 
+				//   by registerPrefix before we got here, so don't add a registered
+				//   prefix table entry.
+				ILOG.J2CsMapping.Collections.Collections.RemoveAt(removeRequests_,removeRequestIndex);
+				return false;
+			}
+	
 			ILOG.J2CsMapping.Collections.Collections.Add(table_,new RegisteredPrefixTable.Entry (registeredPrefixId, prefix,
 							relatedInterestFilterId));
+			return true;
 		}
 	
 		/// <summary>
@@ -65,7 +80,7 @@ namespace net.named_data.jndn.impl {
 			// Go backwards through the list so we can remove entries.
 			// Remove all entries even though registeredPrefixId should be unique.
 			for (int i = table_.Count - 1; i >= 0; --i) {
-				RegisteredPrefixTable.Entry  entry = (RegisteredPrefixTable.Entry ) table_[i];
+				RegisteredPrefixTable.Entry  entry = table_[i];
 	
 				if (entry.getRegisteredPrefixId() == registeredPrefixId) {
 					++count;
@@ -84,6 +99,16 @@ namespace net.named_data.jndn.impl {
 						ILOG.J2CsMapping.Util.Logging.Level.WARNING,
 						"removeRegisteredPrefix: Didn't find registeredPrefixId {0}",
 						registeredPrefixId);
+	
+			if (count == 0) {
+				// The registeredPrefixId was not found. Perhaps this has been called before
+				//   the callback in registerPrefix can add to the registered prefix table.
+				//   Add this removal request which will be checked before adding to the
+				//   registered prefix table.
+				if (removeRequests_.indexOf(registeredPrefixId) < 0)
+					// Not already requested, so add the request.
+					ILOG.J2CsMapping.Collections.Collections.Add(removeRequests_,registeredPrefixId);
+			}
 		}
 	
 		/// <summary>
@@ -144,9 +169,9 @@ namespace net.named_data.jndn.impl {
 			private readonly long relatedInterestFilterId_;
 		}
 	
-		// Use ArrayList without generics so it works with older Java compilers.
-		private readonly IList table_; // Entry
+		private readonly ArrayList<Entry> table_;
 		private readonly InterestFilterTable interestFilterTable_;
+    private readonly ArrayList<Int64> removeRequests_;
 		private static readonly Logger logger_ = ILOG.J2CsMapping.Util.Logging.Logger
 				.getLogger(typeof(RegisteredPrefixTable).FullName);
 	}

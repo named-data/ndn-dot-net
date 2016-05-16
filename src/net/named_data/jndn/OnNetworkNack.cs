@@ -5,7 +5,7 @@
 // ${CustomMessageForDisclaimer}                                                                             
 // --------------------------------------------------------------------------------------------------
  /// <summary>
-/// Copyright (C) 2014-2016 Regents of the University of California.
+/// Copyright (C) 2016 Regents of the University of California.
 /// </summary>
 ///
 namespace net.named_data.jndn {
@@ -17,13 +17,17 @@ namespace net.named_data.jndn {
 	using System.Runtime.CompilerServices;
 	
 	/// <summary>
-	/// A ContentType specifies the content type in a MetaInfo object. If the
-	/// content type in the packet is not a recognized enum value, then we use
-	/// ContentType.OTHER_CODE and you can call MetaInfo.getOtherTypeCode(). We do
-	/// this to keep the recognized content type values independent of packet
-	/// encoding formats.
+	/// A class implements OnNetworkNack if it has onNetworkNack, used to pass a
+	/// callback to Face.expressInterest.
 	/// </summary>
 	///
-	public enum ContentType {
-		BLOB, LINK, KEY, NACK, OTHER_CODE}
+	public interface OnNetworkNack {
+		/// <summary>
+		/// When a network Nack packet is received, onNetworkNack is called.
+		/// </summary>
+		///
+		/// <param name="interest"></param>
+		/// <param name="networkNack">The received NetworkNack object.</param>
+		void onNetworkNack(Interest interest, NetworkNack networkNack);
+	}
 }

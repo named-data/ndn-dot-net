@@ -26,7 +26,7 @@ namespace net.named_data.jndn.impl {
 	///
 	public class InterestFilterTable {
 		public InterestFilterTable() {
-			this.table_ = new ArrayList();
+			this.table_ = new ArrayList<Entry>();
 		}
 		/// <summary>
 		/// An Entry holds an interestFilterId, an InterestFilter and the
@@ -121,7 +121,7 @@ namespace net.named_data.jndn.impl {
 		public void getMatchedFilters(Interest interest,
 				ArrayList matchedFilters) {
 			for (int i = 0; i < table_.Count; ++i) {
-				InterestFilterTable.Entry  entry = (InterestFilterTable.Entry ) table_[i];
+				InterestFilterTable.Entry  entry = table_[i];
 				if (entry.getFilter().doesMatch(interest.getName()))
 					ILOG.J2CsMapping.Collections.Collections.Add(matchedFilters,entry);
 			}
@@ -141,7 +141,7 @@ namespace net.named_data.jndn.impl {
 			// Go backwards through the list so we can remove entries.
 			// Remove all entries even though interestFilterId should be unique.
 			for (int i = table_.Count - 1; i >= 0; --i) {
-				if (((InterestFilterTable.Entry ) table_[i]).getInterestFilterId() == interestFilterId) {
+				if ((table_[i]).getInterestFilterId() == interestFilterId) {
 					++count;
 					ILOG.J2CsMapping.Collections.Collections.RemoveAt(table_,i);
 				}
@@ -153,8 +153,7 @@ namespace net.named_data.jndn.impl {
 						interestFilterId);
 		}
 	
-		// Use ArrayList without generics so it works with older Java compilers.
-		private readonly IList table_; // Entry
+    private readonly ArrayList<Entry> table_;
 		private static readonly Logger logger_ = ILOG.J2CsMapping.Util.Logging.Logger
 				.getLogger(typeof(InterestFilterTable).FullName);
 		// This is to force an import of net.named_data.jndn.util.

@@ -26,7 +26,9 @@ import java.util.logging.Logger;
 import net.named_data.jndn.Interest;
 import net.named_data.jndn.Name;
 import net.named_data.jndn.OnData;
+import net.named_data.jndn.OnNetworkNack;
 import net.named_data.jndn.OnTimeout;
+import net.named_data.jndn.util.SignedBlob;
 
 /**
  * A PendingInterestTable is an internal class to hold a list of pending
@@ -44,12 +46,13 @@ public class PendingInterestTable {
      */
     public Entry
       (long pendingInterestId, Interest interest, OnData onData,
-       OnTimeout onTimeout)
+       OnTimeout onTimeout, OnNetworkNack onNetworkNack)
     {
       pendingInterestId_ = pendingInterestId;
       interest_ = interest;
       onData_ = onData;
       onTimeout_ = onTimeout;
+      onNetworkNack_ = onNetworkNack;
     }
 
     /**
@@ -73,6 +76,13 @@ public class PendingInterestTable {
      */
     public final OnData
     getOnData() { return onData_; }
+
+    /**
+     * Get the OnNetworkNack callback given to the constructor.
+     * @return The OnNetworkNack callback.
+     */
+    public final OnNetworkNack
+    getOnNetworkNack() { return onNetworkNack_; }
 
     /**
      * Set the isRemoved flag which is returned by getIsRemoved().
@@ -107,26 +117,41 @@ public class PendingInterestTable {
     private final long pendingInterestId_; /**< A unique identifier for this entry so it can be deleted */
     private final OnData onData_;
     private final OnTimeout onTimeout_;
+    private final OnNetworkNack onNetworkNack_;
     private boolean isRemoved_ = false;
   }
 
   /**
-   * Add a new entry to the pending interest table.
+   * Add a new entry to the pending interest table. However, if
+   * removePendingInterest was already called with the pendingInterestId, don't
+   * add an entry and return null.
    * @param pendingInterestId The getNextEntryId() for the pending interest ID
    * which Face got so it could return it to the caller.
    * @param interestCopy The Interest which was sent, which has already been
    * copied by expressInterest.
-   * @param onData  This calls onData.onData when a matching data packet is
+   * @param onData Call onData.onData when a matching data packet is
    * received.
    * @param onTimeout This calls onTimeout.onTimeout if the interest times out.
    * If onTimeout is null, this does not use it.
-   * @return The new PendingInterestTable.Entry.
+   * @param onNetworkNack Call onNetworkNack.onNetworkNack when a network Nack
+   * packet is received.
+   * @return The new PendingInterestTable.Entry, or null if
+   * removePendingInterest was already called with the pendingInterestId.
    */
   public synchronized final Entry
   add(long pendingInterestId, Interest interestCopy, OnData onData,
-       OnTimeout onTimeout)
+       OnTimeout onTimeout, OnNetworkNack onNetworkNack)
   {
-    Entry entry = new Entry(pendingInterestId, interestCopy, onData, onTimeout);
+    int removeRequestIndex = removeRequests_.indexOf(pendingInterestId);
+    if (removeRequestIndex >= 0) {
+      // removePendingInterest was called with the pendingInterestId returned by
+      //   expressInterest before we got here, so don't add a PIT entry.
+      removeRequests_.remove(removeRequestIndex);
+      return null;
+    }
+
+    Entry entry = new Entry
+      (pendingInterestId, interestCopy, onData, onTimeout, onNetworkNack);
     table_.add(entry);
     return entry;
   }
@@ -141,13 +166,48 @@ public class PendingInterestTable {
    * interest table.  The caller should pass in an empty ArrayList.
    */
   public synchronized final void
-  extractEntriesForExpressedInterest(Name name, ArrayList entries)
+  extractEntriesForExpressedInterest(Name name, ArrayList<Entry> entries)
   {
     // Go backwards through the list so we can remove entries.
     for (int i = table_.size() - 1; i >= 0; --i) {
-      Entry pendingInterest = (Entry)table_.get(i);
+      Entry pendingInterest = table_.get(i);
 
       if (pendingInterest.getInterest().matchesName(name)) {
+        entries.add(table_.get(i));
+        // We let the callback from callLater call _processInterestTimeout, but
+        // for efficiency, mark this as removed so that it returns right away.
+        table_.remove(i);
+        pendingInterest.setIsRemoved();
+      }
+    }
+  }
+
+  /**
+   * Find all entries from the pending interest table where the OnNetworkNack
+   * callback is not null and the entry's interest is the same as the given
+   * interest, remove the entries from the table, set each entry's isRemoved
+   * flag, and add to the entries list. (We don't remove the entry if the
+   * OnNetworkNack callback is null so that OnTimeout will be called later.) The
+   * interests are the same if their default wire encoding is the same (which
+   * has everything including the name, nonce, link object and selectors).
+   * @param interest The Interest to search for (typically from a Nack packet).
+   * @param entries Add matching PendingInterestTable.Entry from the pending
+   * interest table. The caller should pass in an empty ArrayList.
+   */
+  public synchronized final void
+  extractEntriesForNackInterest(Interest interest, ArrayList<Entry> entries)
+  {
+    SignedBlob encoding = interest.wireEncode();
+
+    // Go backwards through the list so we can remove entries.
+    for (int i = table_.size() - 1; i >= 0; --i) {
+      Entry pendingInterest = table_.get(i);
+      if (pendingInterest.getOnNetworkNack() == null)
+        continue;
+
+      // wireEncode returns the encoding cached when the interest was sent (if
+      // it was the default wire encoding).
+      if (pendingInterest.getInterest().wireEncode().equals(encoding)) {
         entries.add(table_.get(i));
         // We let the callback from callLater call _processInterestTimeout, but
         // for efficiency, mark this as removed so that it returns right away.
@@ -172,11 +232,11 @@ public class PendingInterestTable {
     // Go backwards through the list so we can remove entries.
     // Remove all entries even though pendingInterestId should be unique.
     for (int i = table_.size() - 1; i >= 0; --i) {
-      if (((Entry)table_.get(i)).getPendingInterestId() == pendingInterestId) {
+      if ((table_.get(i)).getPendingInterestId() == pendingInterestId) {
         ++count;
         // For efficiency, mark this as removed so that
         // processInterestTimeout doesn't look for it.
-        ((Entry)table_.get(i)).setIsRemoved();
+        (table_.get(i)).setIsRemoved();
         table_.remove(i);
       }
     }
@@ -185,6 +245,15 @@ public class PendingInterestTable {
       logger_.log
         (Level.WARNING, "removePendingInterest: Didn't find pendingInterestId {0}",
          pendingInterestId);
+
+    if (count == 0) {
+      // The pendingInterestId was not found. Perhaps this has been called before
+      //   the callback in expressInterest can add to the PIT. Add this
+      //   removal request which will be checked before adding to the PIT.
+      if (removeRequests_.indexOf(pendingInterestId) < 0)
+        // Not already requested, so add the request.
+        removeRequests_.add(pendingInterestId);
+    }
   }
 
   /**
@@ -211,8 +280,8 @@ public class PendingInterestTable {
       return false;
   }
 
-  // Use ArrayList without generics so it works with older Java compilers.
-  private final List table_ = new ArrayList();  // Entry
+  private final List<Entry> table_ = new ArrayList<Entry>();
+  private final List<Long> removeRequests_ = new ArrayList<Long>();
   private static final Logger logger_ = Logger.getLogger
     (PendingInterestTable.class.getName());
 }

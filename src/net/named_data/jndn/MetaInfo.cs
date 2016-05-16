@@ -24,6 +24,7 @@ namespace net.named_data.jndn {
 		///
 		public MetaInfo() {
 			this.type_ = net.named_data.jndn.ContentType.BLOB;
+			this.otherTypeCode_ = -1;
 			this.freshnessPeriod_ = -1;
 			this.finalBlockId_ = new Name.Component();
 			this.changeCount_ = 0;
@@ -36,6 +37,7 @@ namespace net.named_data.jndn {
 		/// <param name="metaInfo">The MetaInfo to copy.</param>
 		public MetaInfo(MetaInfo metaInfo) {
 			this.type_ = net.named_data.jndn.ContentType.BLOB;
+			this.otherTypeCode_ = -1;
 			this.freshnessPeriod_ = -1;
 			this.finalBlockId_ = new Name.Component();
 			this.changeCount_ = 0;
@@ -45,8 +47,25 @@ namespace net.named_data.jndn {
 			finalBlockId_ = metaInfo.finalBlockId_;
 		}
 	
+		/// <summary>
+		/// Get the content type.
+		/// </summary>
+		///
+		/// <returns>The content type enum value. If this is ContentType.OTHER_CODE,
+		/// then call getOtherTypeCode() to get the unrecognized content type code.</returns>
 		public ContentType getType() {
 			return type_;
+		}
+	
+		/// <summary>
+		/// Get the content type code from the packet which is other than a recognized
+		/// ContentType enum value. This is only meaningful if getType() is
+		/// ContentType.OTHER_CODE.
+		/// </summary>
+		///
+		/// <returns>The type code.</returns>
+		public int getOtherTypeCode() {
+			return otherTypeCode_;
 		}
 	
 		public double getFreshnessPeriod() {
@@ -65,8 +84,28 @@ namespace net.named_data.jndn {
 			return getFinalBlockId();
 		}
 	
+		/// <summary>
+		/// Set the content type.
+		/// </summary>
+		///
+		/// <param name="type">call setOtherTypeCode().</param>
 		public void setType(ContentType type) {
 			type_ = type;
+			++changeCount_;
+		}
+	
+		/// <summary>
+		/// Set the packet's content type code to use when the content type enum is
+		/// ContentType.OTHER_CODE. If the packet's content type code is a recognized
+		/// enum value, just call setType().
+		/// </summary>
+		///
+		/// <param name="otherTypeCode"></param>
+		public void setOtherTypeCode(int otherTypeCode) {
+			if (otherTypeCode < 0)
+				throw new Exception("MetaInfo other type code must be non-negative");
+	
+			otherTypeCode_ = otherTypeCode;
 			++changeCount_;
 		}
 	
@@ -104,6 +143,7 @@ namespace net.named_data.jndn {
 		/// < default is ContentType.BLOB. 
 		/// </summary>
 		///
+		private int otherTypeCode_;
 		private double freshnessPeriod_;
 		/// <summary>
 		/// < -1 for none 

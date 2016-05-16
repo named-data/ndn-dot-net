@@ -72,7 +72,7 @@ namespace net.named_data.jndn.security {
 			policyManager_ = new NoVerifyPolicyManager();
 		}
 #endif
-	
+
 		/*****************************************
 		 *          Identity Management          *
 		 *****************************************/
