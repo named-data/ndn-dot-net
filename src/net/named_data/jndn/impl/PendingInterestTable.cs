@@ -284,8 +284,8 @@ namespace net.named_data.jndn.impl {
 				return false;
 		}
 	
-    private readonly ArrayList<Entry> table_;
-    private readonly ArrayList<Int64> removeRequests_;
+		private readonly ArrayList<Entry> table_;
+		private readonly ArrayList<Int64> removeRequests_;
 		private static readonly Logger logger_ = ILOG.J2CsMapping.Util.Logging.Logger
 				.getLogger(typeof(PendingInterestTable).FullName);
 	}

@@ -153,7 +153,7 @@ namespace net.named_data.jndn.impl {
 						interestFilterId);
 		}
 	
-    private readonly ArrayList<Entry> table_;
+		private readonly ArrayList<Entry> table_;
 		private static readonly Logger logger_ = ILOG.J2CsMapping.Util.Logging.Logger
 				.getLogger(typeof(InterestFilterTable).FullName);
 		// This is to force an import of net.named_data.jndn.util.

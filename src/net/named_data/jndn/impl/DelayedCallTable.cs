@@ -121,7 +121,7 @@ namespace net.named_data.jndn.impl {
 			private readonly double callTime_;
 		}
 	
-    private readonly ArrayList<Entry> table_;
+		private readonly ArrayList<Entry> table_;
 		// This is to force an import of net.named_data.jndn.util.
 		private static Common dummyCommon_ = new Common();
 	}

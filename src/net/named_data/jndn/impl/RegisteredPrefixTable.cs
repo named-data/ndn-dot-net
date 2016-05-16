@@ -16,8 +16,7 @@ namespace net.named_data.jndn.impl {
 	using System.ComponentModel;
 	using System.IO;
 	using System.Runtime.CompilerServices;
-  using net.named_data.jndn;
-  using net.named_data.jndn.util;
+	using net.named_data.jndn;
 	
 	/// <summary>
 	/// A RegisteredPrefixTable is an internal class to hold a list of registered
@@ -171,7 +170,7 @@ namespace net.named_data.jndn.impl {
 	
 		private readonly ArrayList<Entry> table_;
 		private readonly InterestFilterTable interestFilterTable_;
-    private readonly ArrayList<Int64> removeRequests_;
+		private readonly ArrayList<Int64> removeRequests_;
 		private static readonly Logger logger_ = ILOG.J2CsMapping.Util.Logging.Logger
 				.getLogger(typeof(RegisteredPrefixTable).FullName);
 	}
