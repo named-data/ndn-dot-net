@@ -192,6 +192,8 @@ namespace TestNdnDotNet {
           Console.Out.WriteLine("LINK");
         else if (data.getMetaInfo().getType() == ContentType.NACK)
           Console.Out.WriteLine("NACK");
+        else if (data.getMetaInfo().getType() == ContentType.OTHER_CODE)
+          Console.Out.WriteLine("other code " + data.getMetaInfo().getOtherTypeCode());
       }
       Console.Out.WriteLine("metaInfo.freshnessPeriod (milliseconds): " +
         (data.getMetaInfo().getFreshnessPeriod() >= 0 ?
@@ -227,6 +229,15 @@ namespace TestNdnDotNet {
         Console.Out.WriteLine("DigestSha256 signature.signature: " +
           (signature.getSignature().size() > 0 ?
             signature.getSignature().toHex() : "<none>"));
+      }
+      else if (data.getSignature() is GenericSignature) {
+        var signature = (GenericSignature)data.getSignature();
+        Console.Out.WriteLine("Generic signature.signature: " +
+          (signature.getSignature().size() > 0 ?
+            signature.getSignature().toHex() : "<none>"));
+        Console.Out.WriteLine("  Type code: " + signature.getTypeCode() + " signatureInfo: " +
+          (signature.getSignatureInfoEncoding().size() > 0 ?
+            signature.getSignatureInfoEncoding().toHex() : "<none>"));
       }
       if (keyLocator != null) {
         Console.Out.Write("signature.keyLocator: ");
