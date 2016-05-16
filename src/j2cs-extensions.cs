@@ -48,13 +48,32 @@ namespace net.named_data.jndn.util {
 
     // Enum extensions.
     public static int 
-    getNumericType(this ContentType contentType) { return (int)contentType; }
+    getNumericType(this ContentType contentType) 
+    { 
+      return contentType == ContentType.OTHER_CODE ? 0x7fff : (int)contentType; 
+    }
 
     public static int 
     getNumericType(this EncryptAlgorithmType algorithmType) { return (int)algorithmType; }
 
     public static int 
-    getNumericType(this NetworkNack.Reason algorithmType) { return (int)algorithmType; }
+    getNumericType(this NetworkNack.Reason reason) 
+    {
+      // The C# enum values are automatically assigned 0, 1, 2, etc. We must be explicit.
+      if (reason == NetworkNack.Reason.NONE)
+        return 0;
+      else if (reason == NetworkNack.Reason.CONGESTION)
+        return 50;
+      else if (reason == NetworkNack.Reason.DUPLICATE)
+        return 100;
+      else if (reason == NetworkNack.Reason.NO_ROUTE)
+        return 150;
+      else if (reason == NetworkNack.Reason.OTHER_CODE)
+        return 0x7fff;
+      else
+        throw new NotImplementedException
+          ("getNumericType: Unrecognized NetworkNack.Reason: " + reason);
+    }
 
     // Hashtable extensions.
     public static void 
