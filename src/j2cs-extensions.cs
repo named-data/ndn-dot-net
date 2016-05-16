@@ -42,6 +42,10 @@ namespace net.named_data.jndn.util {
     public static int 
     indexOf<T>(this ArrayList<T> array, T value) { return array.IndexOf(value); }
 
+    // Blob extensions.
+    public static string
+    toString(this Blob blob) { return blob.ToString(); }
+
     // Enum extensions.
     public static int 
     getNumericType(this ContentType contentType) { return (int)contentType; }

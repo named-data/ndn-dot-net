@@ -313,7 +313,7 @@ namespace net.named_data.jndn.encoding {
 					.readNonNegativeIntegerTlv(net.named_data.jndn.encoding.tlv.Tlv.NfdCommand_StatusCode));
 			Blob statusText = new Blob(
 					decoder.readBlobTlv(net.named_data.jndn.encoding.tlv.Tlv.NfdCommand_StatusText), true);
-			controlResponse.setStatusText(statusText.ToString());
+			controlResponse.setStatusText(statusText.toString());
 	
 			// Decode the body.
 			if (decoder
