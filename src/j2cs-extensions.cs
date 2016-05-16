@@ -62,7 +62,7 @@ namespace net.named_data.jndn.util {
 
     // Random extensions.
     public static void
-    nextBytes(this Random random, byte[] array) { random.nextBytes(array); }
+    nextBytes(this Random random, byte[] array) { random.NextBytes(array); }
 
     // String extensions.
     public static bool 
