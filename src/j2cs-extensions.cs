@@ -56,6 +56,10 @@ namespace net.named_data.jndn.util {
     public static void 
     clear(this Hashtable map) { map.Clear(); }
 
+    // Random extensions.
+    public static void
+    nextBytes(this Random random, byte[] array) { random.nextBytes(array); }
+
     // String extensions.
     public static bool 
     contains(this String str, string value) { return str.Contains(value); }
