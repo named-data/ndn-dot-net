@@ -38,12 +38,19 @@ namespace net.named_data.jndn.util {
   /// uncapitalized methods to call the capitalized ones.
   /// </summary>
   public static class J2CsExtensions {
+    // ArrayList extensions.
+    public static int 
+    indexOf<T>(this ArrayList<T> array, T value) { return array.IndexOf(value); }
+
     // Enum extensions.
     public static int 
     getNumericType(this ContentType contentType) { return (int)contentType; }
 
     public static int 
     getNumericType(this EncryptAlgorithmType algorithmType) { return (int)algorithmType; }
+
+    public static int 
+    getNumericType(this NetworkNack.Reason algorithmType) { return (int)algorithmType; }
 
     // Hashtable extensions.
     public static void 
