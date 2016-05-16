@@ -288,5 +288,7 @@ namespace net.named_data.jndn.impl {
 		private readonly ArrayList<Int64> removeRequests_;
 		private static readonly Logger logger_ = ILOG.J2CsMapping.Util.Logging.Logger
 				.getLogger(typeof(PendingInterestTable).FullName);
+		// This is to force an import of net.named_data.jndn.util.
+		private static Common dummyCommon_ = new Common();
 	}
 }
