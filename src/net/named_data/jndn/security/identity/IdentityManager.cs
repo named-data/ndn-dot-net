@@ -1082,7 +1082,7 @@ namespace net.named_data.jndn.security.identity {
 		private static IdentityStorage getDefaultIdentityStorage(ConfigFile config) {
 			String pibLocator = config.get("pib", "");
 	
-			if (pibLocator.Length != 0) {
+			if (!pibLocator.equals("")) {
 				// Don't support non-default locations for now.
 				if (!pibLocator.equals("pib-sqlite3"))
 					throw new SecurityException("Invalid config file pib value: "
@@ -1104,7 +1104,7 @@ namespace net.named_data.jndn.security.identity {
 				ConfigFile config, String[] canonicalTpmLocator) {
 			String tpmLocator = config.get("tpm", "");
 	
-			if (tpmLocator.Length == 0) {
+			if (tpmLocator.equals("")) {
 				// Use the system default.
 				if (System.Environment.GetEnvironmentVariable("os.name").equals("Mac OS X")) {
 					canonicalTpmLocator[0] = "tpm-osxkeychain:";
@@ -1145,7 +1145,7 @@ namespace net.named_data.jndn.security.identity {
 			}
 	
 			// Just check. If a PIB reset is required, expect ndn-cxx/NFD to do it.
-			if (tpmLocator.Length != 0 && !tpmLocator.equals(canonicalTpmLocator))
+			if (!tpmLocator.equals("") && !tpmLocator.equals(canonicalTpmLocator))
 				throw new SecurityException(
 						"The TPM locator supplied does not match the TPM locator in the PIB: "
 								+ tpmLocator + " != " + canonicalTpmLocator);
