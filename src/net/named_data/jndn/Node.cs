@@ -97,15 +97,15 @@ namespace net.named_data.jndn {
 							connectStatus_ = net.named_data.jndn.Node.ConnectStatus.CONNECT_REQUESTED;
 			
 							// expressInterestHelper will be called by onConnected.
-							ILOG.J2CsMapping.Collections.Collections.Add(onConnectedCallbacks_,new Node.Anonymous_C3 (this, onData, pendingInterestId, face,
-													wireFormat, interestCopy, onTimeout));
+							ILOG.J2CsMapping.Collections.Collections.Add(onConnectedCallbacks_,new Node.Anonymous_C3 (this, face, interestCopy, pendingInterestId,
+													wireFormat, onTimeout, onData));
 			
 							IRunnable onConnected = new Node.Anonymous_C2 (this);
 							transport_.connect(connectionInfo_, this, onConnected);
 						} else if (connectStatus_ == net.named_data.jndn.Node.ConnectStatus.CONNECT_REQUESTED) {
 							// Still connecting. add to the interests to express by onConnected.
-							ILOG.J2CsMapping.Collections.Collections.Add(onConnectedCallbacks_,new Node.Anonymous_C1 (this, pendingInterestId, interestCopy, face,
-													onTimeout, wireFormat, onData));
+							ILOG.J2CsMapping.Collections.Collections.Add(onConnectedCallbacks_,new Node.Anonymous_C1 (this, interestCopy, wireFormat, onData, face,
+													onTimeout, pendingInterestId));
 						} else if (connectStatus_ == net.named_data.jndn.Node.ConnectStatus.CONNECT_COMPLETE)
 							// We have to repeat this check for CONNECT_COMPLETE in case the
 							// onConnected callback was called while we were waiting to enter this
@@ -456,22 +456,22 @@ namespace net.named_data.jndn {
 	
 		public sealed class Anonymous_C3 : IRunnable {
 				private readonly Node outer_Node;
-				private readonly OnData onData;
-				private readonly long pendingInterestId;
 				private readonly Face face;
-				private readonly WireFormat wireFormat;
 				private readonly Interest interestCopy;
+				private readonly long pendingInterestId;
+				private readonly WireFormat wireFormat;
 				private readonly OnTimeout onTimeout;
+				private readonly OnData onData;
 		
-				public Anonymous_C3(Node paramouter_Node, OnData onData_0,
-						long pendingInterestId_1, Face face_2, WireFormat wireFormat_3,
-						Interest interestCopy_4, OnTimeout onTimeout_5) {
-					this.onData = onData_0;
-					this.pendingInterestId = pendingInterestId_1;
-					this.face = face_2;
+				public Anonymous_C3(Node paramouter_Node, Face face_0,
+						Interest interestCopy_1, long pendingInterestId_2,
+						WireFormat wireFormat_3, OnTimeout onTimeout_4, OnData onData_5) {
+					this.face = face_0;
+					this.interestCopy = interestCopy_1;
+					this.pendingInterestId = pendingInterestId_2;
 					this.wireFormat = wireFormat_3;
-					this.interestCopy = interestCopy_4;
-					this.onTimeout = onTimeout_5;
+					this.onTimeout = onTimeout_4;
+					this.onData = onData_5;
 					this.outer_Node = paramouter_Node;
 				}
 		
@@ -507,22 +507,22 @@ namespace net.named_data.jndn {
 			}
 		public sealed class Anonymous_C1 : IRunnable {
 				private readonly Node outer_Node;
-				private readonly long pendingInterestId;
 				private readonly Interest interestCopy;
-				private readonly Face face;
-				private readonly OnTimeout onTimeout;
 				private readonly WireFormat wireFormat;
 				private readonly OnData onData;
+				private readonly Face face;
+				private readonly OnTimeout onTimeout;
+				private readonly long pendingInterestId;
 		
-				public Anonymous_C1(Node paramouter_Node, long pendingInterestId_0,
-						Interest interestCopy_1, Face face_2, OnTimeout onTimeout_3,
-						WireFormat wireFormat_4, OnData onData_5) {
-					this.pendingInterestId = pendingInterestId_0;
-					this.interestCopy = interestCopy_1;
-					this.face = face_2;
-					this.onTimeout = onTimeout_3;
-					this.wireFormat = wireFormat_4;
-					this.onData = onData_5;
+				public Anonymous_C1(Node paramouter_Node, Interest interestCopy_0,
+						WireFormat wireFormat_1, OnData onData_2, Face face_3,
+						OnTimeout onTimeout_4, long pendingInterestId_5) {
+					this.interestCopy = interestCopy_0;
+					this.wireFormat = wireFormat_1;
+					this.onData = onData_2;
+					this.face = face_3;
+					this.onTimeout = onTimeout_4;
+					this.pendingInterestId = pendingInterestId_5;
 					this.outer_Node = paramouter_Node;
 				}
 		

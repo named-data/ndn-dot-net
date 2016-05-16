@@ -103,20 +103,20 @@ namespace net.named_data.jndn {
 			}
 		public sealed class Anonymous_C1 : IRunnable {
 				private readonly ThreadPoolFace outer_ThreadPoolFace;
+				private readonly OnTimeout onTimeoutSubmit;
 				private readonly OnData onDataSubmit;
+				private readonly WireFormat wireFormat;
 				private readonly Interest interest;
 				private readonly long pendingInterestId;
-				private readonly WireFormat wireFormat;
-				private readonly OnTimeout onTimeoutSubmit;
 		
 				public Anonymous_C1(ThreadPoolFace paramouter_ThreadPoolFace,
-						OnData onDataSubmit_0, Interest interest_1, long pendingInterestId_2,
-						WireFormat wireFormat_3, OnTimeout onTimeoutSubmit_4) {
-					this.onDataSubmit = onDataSubmit_0;
-					this.interest = interest_1;
-					this.pendingInterestId = pendingInterestId_2;
-					this.wireFormat = wireFormat_3;
-					this.onTimeoutSubmit = onTimeoutSubmit_4;
+						OnTimeout onTimeoutSubmit_0, OnData onDataSubmit_1,
+						WireFormat wireFormat_2, Interest interest_3, long pendingInterestId_4) {
+					this.onTimeoutSubmit = onTimeoutSubmit_0;
+					this.onDataSubmit = onDataSubmit_1;
+					this.wireFormat = wireFormat_2;
+					this.interest = interest_3;
+					this.pendingInterestId = pendingInterestId_4;
 					this.outer_ThreadPoolFace = paramouter_ThreadPoolFace;
 				}
 		
@@ -183,8 +183,8 @@ namespace net.named_data.jndn {
 			OnTimeout onTimeoutSubmit_6 = (onTimeout == null) ? null
 					: new ThreadPoolFace.Anonymous_C2 (this, finalOnTimeout_5);
 	
-			threadPool_.submit(new ThreadPoolFace.Anonymous_C1 (this, onDataSubmit_4, interest_0, pendingInterestId_2,
-					wireFormat_1, onTimeoutSubmit_6));
+			threadPool_.submit(new ThreadPoolFace.Anonymous_C1 (this, onTimeoutSubmit_6, onDataSubmit_4, wireFormat_1,
+					interest_0, pendingInterestId_2));
 	
 			return pendingInterestId_2;
 		}
