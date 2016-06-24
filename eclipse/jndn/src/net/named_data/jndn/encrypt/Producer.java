@@ -41,7 +41,9 @@ import net.named_data.jndn.Exclude;
 import net.named_data.jndn.Face;
 import net.named_data.jndn.Interest;
 import net.named_data.jndn.Name;
+import net.named_data.jndn.NetworkNack;
 import net.named_data.jndn.OnData;
+import net.named_data.jndn.OnNetworkNack;
 import net.named_data.jndn.OnTimeout;
 import net.named_data.jndn.encoding.EncodingException;
 import net.named_data.jndn.encrypt.EncryptError.ErrorCode;
@@ -62,7 +64,7 @@ import net.named_data.jndn.util.Blob;
  */
 public class Producer {
   public interface OnEncryptedKeys {
-    // List is a list of Data packets with the content key encrypted by E-KEYS.
+    // keys is a list of Data packets with the content key encrypted by E-KEYS.
     void onEncryptedKeys(List keys);
   }
 
@@ -260,7 +262,7 @@ public class Producer {
       InvalidAlgorithmParameterException, InvalidKeySpecException
   {
     // Get a content key.
-    Name contentKeyName = new Name(createContentKey(timeSlot, null, onError));
+    Name contentKeyName = createContentKey(timeSlot, null, onError);
     Blob contentKey = database_.getContentKey(timeSlot);
 
     // Produce data.
@@ -329,12 +331,12 @@ public class Producer {
 
   /**
    * Send an interest with the given name through the face with callbacks to
-   * handleCoveringKey and handleTimeout.
+   * handleCoveringKey, handleTimeout and handleNetworkNack.
    * @param interest The interest to send.
-   * @param timeSlot The time slot, passed to handleCoveringKey and
-   * handleTimeout.
+   * @param timeSlot The time slot, passed to handleCoveringKey, handleTimeout
+   * and handleNetworkNack.
    * @param onEncryptedKeys The OnEncryptedKeys callback, passed to
-   * handleCoveringKey and handleTimeout.
+   * handleCoveringKey, handleTimeout and handleNetworkNack.
    */
   private void
   sendKeyInterest
@@ -362,7 +364,13 @@ public class Producer {
       }
     };
 
-    face_.expressInterest(interest, onKey, onTimeout);
+    OnNetworkNack onNetworkNack = new OnNetworkNack() {
+      public void onNetworkNack(Interest interest, NetworkNack networkNack) {
+        handleNetworkNack(interest, networkNack, timeSlot, onEncryptedKeys);
+      }
+    };
+
+    face_.expressInterest(interest, onKey, onTimeout, onNetworkNack);
   }
 
   /**
@@ -395,6 +403,28 @@ public class Producer {
     else
       // No more retrials.
       updateKeyRequest(keyRequest, timeCount, onEncryptedKeys);
+  }
+
+  /**
+   * This is called from an expressInterest OnNetworkNack to handle a network
+   * Nack for the E-KEY requested through the Interest. Decrease the outstanding
+   * E-KEY interest count for the C-KEY corresponding to the timeSlot.
+   * @param interest The interest given to expressInterest.
+   * @param networkNack The returned NetworkNack (unused).
+   * @param timeSlot The time slot as milliseconds since Jan 1, 1970 UTC.
+   * @param onEncryptedKeys When there are no more interests to process, this
+   * calls onEncryptedKeys.onEncryptedKeys(keys) where keys is a list of
+   * encrypted content key Data packets. If onEncryptedKeys is null, this does
+   * not use it.
+   */
+  private void
+  handleNetworkNack
+    (Interest interest, NetworkNack networkNack, double timeSlot,
+     OnEncryptedKeys onEncryptedKeys)
+  {
+    double timeCount = Math.round(timeSlot);
+    updateKeyRequest
+      ((KeyRequest)keyRequests_.get(timeCount), timeCount, onEncryptedKeys);
   }
 
   /**
@@ -541,7 +571,8 @@ public class Producer {
    * @param exclude The Exclude object to read.
    * @return A new list of ExcludeEntry.
    */
-  private static ArrayList getExcludeEntries(Exclude exclude)
+  private static ArrayList
+  getExcludeEntries(Exclude exclude)
   {
     ArrayList entries = new ArrayList();
 
@@ -566,7 +597,8 @@ public class Producer {
    * @param exclude The Exclude object to update.
    * @param entries The list of ExcludeEntry.
    */
-  private static void setExcludeEntries(Exclude exclude, ArrayList entries)
+  private static void
+  setExcludeEntries(Exclude exclude, ArrayList entries)
   {
     exclude.clear();
 
@@ -592,8 +624,8 @@ public class Producer {
    * @param component The component to compare.
    * @return The index of the found entry, or -1 if not found.
    */
-  private static int findEntryBeforeOrAt
-    (ArrayList entries, Name.Component component)
+  private static int
+  findEntryBeforeOrAt(ArrayList entries, Name.Component component)
   {
     int i = entries.size() - 1;
     while (i >= 0) {
@@ -610,7 +642,8 @@ public class Producer {
    * @param exclude The Exclude object to update.
    * @param from The first component in the exclude range.
    */
-  private static void excludeAfter(Exclude exclude, Name.Component from)
+  private static void
+  excludeAfter(Exclude exclude, Name.Component from)
   {
     ArrayList entries = getExcludeEntries(exclude);
 
@@ -655,7 +688,8 @@ public class Producer {
    * @param exclude The Exclude object to update.
    * @param to The last component in the exclude range.
    */
-  private static void excludeBefore(Exclude exclude, Name.Component to)
+  private static void
+  excludeBefore(Exclude exclude, Name.Component to)
   {
     excludeRange(exclude, new Name.Component(), to);
   }
@@ -666,8 +700,8 @@ public class Producer {
    * @param from The first component in the exclude range.
    * @param to The last component in the exclude range.
    */
-  private static void excludeRange
-    (Exclude exclude, Name.Component from, Name.Component to)
+  private static void
+  excludeRange(Exclude exclude, Name.Component from, Name.Component to)
   {
     if (from.compare(to) >= 0) {
       if (from.compare(to) == 0)

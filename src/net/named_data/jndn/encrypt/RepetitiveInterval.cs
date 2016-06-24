@@ -306,40 +306,43 @@ namespace net.named_data.jndn.encrypt {
 		/// <param name="timePoint">The time point as milliseconds since Jan 1, 1970 UTC.</param>
 		/// <returns>True if the date of the time point is in any interval.</returns>
 		private bool hasIntervalOnDate(double timePoint) {
-			Calendar timePointDate = toCalendar(toDateOnlyMilliseconds(timePoint));
-			Calendar startDate = toCalendar(startDate_);
-			Calendar endDate = toCalendar(endDate_);
+			double timePointDateMilliseconds = toDateOnlyMilliseconds(timePoint);
 	
-			if (timePointDate.before(startDate) || timePointDate.after(endDate))
+			if (timePointDateMilliseconds < startDate_
+					|| timePointDateMilliseconds > endDate_)
 				return false;
 	
 			if (repeatUnit_ == net.named_data.jndn.encrypt.RepetitiveInterval.RepeatUnit.NONE)
 				return true;
-	
-			if (repeatUnit_ == net.named_data.jndn.encrypt.RepetitiveInterval.RepeatUnit.DAY) {
-				long durationDays = (timePointDate.getTimeInMillis() - startDate
-						.getTimeInMillis()) / MILLISECONDS_IN_DAY;
+			else if (repeatUnit_ == net.named_data.jndn.encrypt.RepetitiveInterval.RepeatUnit.DAY) {
+				long durationDays = (long) (timePointDateMilliseconds - startDate_)
+						/ MILLISECONDS_IN_DAY;
 				if (durationDays % nRepeats_ == 0)
 					return true;
-			} else if (repeatUnit_ == net.named_data.jndn.encrypt.RepetitiveInterval.RepeatUnit.MONTH
-					&& timePointDate.get(ILOG.J2CsMapping.Util.Calendar.DAY_OF_MONTH) == startDate
-							.get(ILOG.J2CsMapping.Util.Calendar.DAY_OF_MONTH)) {
-				int yearDifference = timePointDate.get(ILOG.J2CsMapping.Util.Calendar.YEAR)
-						- startDate.get(ILOG.J2CsMapping.Util.Calendar.YEAR);
-				int monthDifference = 12 * yearDifference
-						+ timePointDate.get(ILOG.J2CsMapping.Util.Calendar.MONTH)
-						- startDate.get(ILOG.J2CsMapping.Util.Calendar.MONTH);
-				if (monthDifference % nRepeats_ == 0)
-					return true;
-			} else if (repeatUnit_ == net.named_data.jndn.encrypt.RepetitiveInterval.RepeatUnit.YEAR
-					&& timePointDate.get(ILOG.J2CsMapping.Util.Calendar.DAY_OF_MONTH) == startDate
-							.get(ILOG.J2CsMapping.Util.Calendar.DAY_OF_MONTH)
-					&& timePointDate.get(ILOG.J2CsMapping.Util.Calendar.MONTH) == startDate
-							.get(ILOG.J2CsMapping.Util.Calendar.MONTH)) {
-				int difference = timePointDate.get(ILOG.J2CsMapping.Util.Calendar.YEAR)
-						- startDate.get(ILOG.J2CsMapping.Util.Calendar.YEAR);
-				if (difference % nRepeats_ == 0)
-					return true;
+			} else {
+				Calendar timePointDate = toCalendar(timePointDateMilliseconds);
+				Calendar startDate = toCalendar(startDate_);
+	
+				if (repeatUnit_ == net.named_data.jndn.encrypt.RepetitiveInterval.RepeatUnit.MONTH
+						&& timePointDate.get(ILOG.J2CsMapping.Util.Calendar.DAY_OF_MONTH) == startDate
+								.get(ILOG.J2CsMapping.Util.Calendar.DAY_OF_MONTH)) {
+					int yearDifference = timePointDate.get(ILOG.J2CsMapping.Util.Calendar.YEAR)
+							- startDate.get(ILOG.J2CsMapping.Util.Calendar.YEAR);
+					int monthDifference = 12 * yearDifference
+							+ timePointDate.get(ILOG.J2CsMapping.Util.Calendar.MONTH)
+							- startDate.get(ILOG.J2CsMapping.Util.Calendar.MONTH);
+					if (monthDifference % nRepeats_ == 0)
+						return true;
+				} else if (repeatUnit_ == net.named_data.jndn.encrypt.RepetitiveInterval.RepeatUnit.YEAR
+						&& timePointDate.get(ILOG.J2CsMapping.Util.Calendar.DAY_OF_MONTH) == startDate
+								.get(ILOG.J2CsMapping.Util.Calendar.DAY_OF_MONTH)
+						&& timePointDate.get(ILOG.J2CsMapping.Util.Calendar.MONTH) == startDate
+								.get(ILOG.J2CsMapping.Util.Calendar.MONTH)) {
+					int difference = timePointDate.get(ILOG.J2CsMapping.Util.Calendar.YEAR)
+							- startDate.get(ILOG.J2CsMapping.Util.Calendar.YEAR);
+					if (difference % nRepeats_ == 0)
+						return true;
+				}
 			}
 	
 			return false;

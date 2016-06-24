@@ -32,23 +32,24 @@ namespace net.named_data.jndn.encrypt {
 	///
 	/// @note This class is an experimental feature. The API may change.
 	public class Producer {
-		public sealed class Anonymous_C2 : net.named_data.jndn.encrypt.EncryptError.OnError  {
+		public sealed class Anonymous_C3 : net.named_data.jndn.encrypt.EncryptError.OnError  {
 			public void onError(net.named_data.jndn.encrypt.EncryptError.ErrorCode  errorCode, String message) {
 				// Do nothing.
 			}
 		}
 	
-		public sealed class Anonymous_C1 : OnData {
+		public sealed class Anonymous_C2 : OnData {
 				private readonly Producer outer_Producer;
-				private readonly net.named_data.jndn.encrypt.EncryptError.OnError  onError;
 				private readonly Producer.OnEncryptedKeys  onEncryptedKeys;
 				private readonly double timeSlot;
+				private readonly net.named_data.jndn.encrypt.EncryptError.OnError  onError;
 		
-				public Anonymous_C1(Producer paramouter_Producer, net.named_data.jndn.encrypt.EncryptError.OnError  onError_0,
-						Producer.OnEncryptedKeys  onEncryptedKeys_1, double timeSlot_2) {
-					this.onError = onError_0;
-					this.onEncryptedKeys = onEncryptedKeys_1;
-					this.timeSlot = timeSlot_2;
+				public Anonymous_C2(Producer paramouter_Producer,
+						Producer.OnEncryptedKeys  onEncryptedKeys_0, double timeSlot_1,
+						net.named_data.jndn.encrypt.EncryptError.OnError  onError_2) {
+					this.onEncryptedKeys = onEncryptedKeys_0;
+					this.timeSlot = timeSlot_1;
+					this.onError = onError_2;
 					this.outer_Producer = paramouter_Producer;
 				}
 		
@@ -62,17 +63,17 @@ namespace net.named_data.jndn.encrypt {
 				}
 			}
 	
-		public sealed class Anonymous_C0 : OnTimeout {
+		public sealed class Anonymous_C1 : OnTimeout {
 				private readonly Producer outer_Producer;
-				private readonly net.named_data.jndn.encrypt.EncryptError.OnError  onError;
 				private readonly double timeSlot;
 				private readonly Producer.OnEncryptedKeys  onEncryptedKeys;
+				private readonly net.named_data.jndn.encrypt.EncryptError.OnError  onError;
 		
-				public Anonymous_C0(Producer paramouter_Producer, net.named_data.jndn.encrypt.EncryptError.OnError  onError_0,
-						double timeSlot_1, Producer.OnEncryptedKeys  onEncryptedKeys_2) {
-					this.onError = onError_0;
-					this.timeSlot = timeSlot_1;
-					this.onEncryptedKeys = onEncryptedKeys_2;
+				public Anonymous_C1(Producer paramouter_Producer, double timeSlot_0,
+						Producer.OnEncryptedKeys  onEncryptedKeys_1, net.named_data.jndn.encrypt.EncryptError.OnError  onError_2) {
+					this.timeSlot = timeSlot_0;
+					this.onEncryptedKeys = onEncryptedKeys_1;
+					this.onError = onError_2;
 					this.outer_Producer = paramouter_Producer;
 				}
 		
@@ -85,8 +86,26 @@ namespace net.named_data.jndn.encrypt {
 				}
 			}
 	
+		public sealed class Anonymous_C0 : OnNetworkNack {
+				private readonly Producer outer_Producer;
+				private readonly double timeSlot;
+				private readonly Producer.OnEncryptedKeys  onEncryptedKeys;
+		
+				public Anonymous_C0(Producer paramouter_Producer, double timeSlot_0,
+						Producer.OnEncryptedKeys  onEncryptedKeys_1) {
+					this.timeSlot = timeSlot_0;
+					this.onEncryptedKeys = onEncryptedKeys_1;
+					this.outer_Producer = paramouter_Producer;
+				}
+		
+				public void onNetworkNack(Interest interest, NetworkNack networkNack) {
+					outer_Producer.handleNetworkNack(interest, networkNack, timeSlot,
+							onEncryptedKeys);
+				}
+			}
+	
 		public interface OnEncryptedKeys {
-			// List is a list of Data packets with the content key encrypted by E-KEYS.
+			// keys is a list of Data packets with the content key encrypted by E-KEYS.
 			void onEncryptedKeys(IList keys);
 		}
 	
@@ -260,8 +279,7 @@ namespace net.named_data.jndn.encrypt {
 		public void produce(Data data, double timeSlot_0, Blob content,
 				net.named_data.jndn.encrypt.EncryptError.OnError  onError_1) {
 			// Get a content key.
-			Name contentKeyName = new Name(
-					createContentKey(timeSlot_0, null, onError_1));
+			Name contentKeyName = createContentKey(timeSlot_0, null, onError_1);
 			Blob contentKey = database_.getContentKey(timeSlot_0);
 	
 			// Produce data.
@@ -288,7 +306,7 @@ namespace net.named_data.jndn.encrypt {
 		/// The default OnError callback which does nothing.
 		/// </summary>
 		///
-		public static readonly net.named_data.jndn.encrypt.EncryptError.OnError  defaultOnError = new Producer.Anonymous_C2 ();
+		public static readonly net.named_data.jndn.encrypt.EncryptError.OnError  defaultOnError = new Producer.Anonymous_C3 ();
 	
 		private class KeyInfo {
 			public double beginTimeSlot;
@@ -325,7 +343,7 @@ namespace net.named_data.jndn.encrypt {
 	
 		/// <summary>
 		/// Send an interest with the given name through the face with callbacks to
-		/// handleCoveringKey and handleTimeout.
+		/// handleCoveringKey, handleTimeout and handleNetworkNack.
 		/// </summary>
 		///
 		/// <param name="interest">The interest to send.</param>
@@ -333,11 +351,13 @@ namespace net.named_data.jndn.encrypt {
 		/// <param name="onEncryptedKeys_1"></param>
 		private void sendKeyInterest(Interest interest, double timeSlot_0,
 				Producer.OnEncryptedKeys  onEncryptedKeys_1, net.named_data.jndn.encrypt.EncryptError.OnError  onError_2) {
-			OnData onKey = new Producer.Anonymous_C1 (this, onError_2, onEncryptedKeys_1, timeSlot_0);
+			OnData onKey = new Producer.Anonymous_C2 (this, onEncryptedKeys_1, timeSlot_0, onError_2);
 	
-			OnTimeout onTimeout = new Producer.Anonymous_C0 (this, onError_2, timeSlot_0, onEncryptedKeys_1);
+			OnTimeout onTimeout = new Producer.Anonymous_C1 (this, timeSlot_0, onEncryptedKeys_1, onError_2);
 	
-			face_.expressInterest(interest, onKey, onTimeout);
+			OnNetworkNack onNetworkNack = new Producer.Anonymous_C0 (this, timeSlot_0, onEncryptedKeys_1);
+	
+			face_.expressInterest(interest, onKey, onTimeout, onNetworkNack);
 		}
 	
 		/// <summary>
@@ -362,6 +382,23 @@ namespace net.named_data.jndn.encrypt {
 			} else
 				// No more retrials.
 				updateKeyRequest(keyRequest, timeCount, onEncryptedKeys_1);
+		}
+	
+		/// <summary>
+		/// This is called from an expressInterest OnNetworkNack to handle a network
+		/// Nack for the E-KEY requested through the Interest. Decrease the outstanding
+		/// E-KEY interest count for the C-KEY corresponding to the timeSlot.
+		/// </summary>
+		///
+		/// <param name="interest">The interest given to expressInterest.</param>
+		/// <param name="networkNack">The returned NetworkNack (unused).</param>
+		/// <param name="timeSlot_0">The time slot as milliseconds since Jan 1, 1970 UTC.</param>
+		/// <param name="onEncryptedKeys_1">encrypted content key Data packets. If onEncryptedKeys is null, this does not use it.</param>
+		internal void handleNetworkNack(Interest interest, NetworkNack networkNack,
+				double timeSlot_0, Producer.OnEncryptedKeys  onEncryptedKeys_1) {
+			double timeCount = Math.Round(timeSlot_0,MidpointRounding.AwayFromZero);
+			updateKeyRequest((Producer.KeyRequest ) ILOG.J2CsMapping.Collections.Collections.Get(keyRequests_,timeCount), timeCount,
+					onEncryptedKeys_1);
 		}
 	
 		/// <summary>

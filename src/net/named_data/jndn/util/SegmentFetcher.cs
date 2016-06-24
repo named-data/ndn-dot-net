@@ -150,6 +150,7 @@ namespace net.named_data.jndn.util {
 			// Start with the original Interest to preserve any special selectors.
 			Interest interest = new Interest(originalInterest);
 			// Changing a field clears the nonce so that the library will generate a new one.
+			interest.setChildSelector(0);
 			interest.setMustBeFresh(false);
 			interest.setName(dataName.getPrefix(-1).appendSegment(segment));
 			try {
@@ -280,8 +281,7 @@ namespace net.named_data.jndn.util {
 		/// <param name="name">The name to check.</param>
 		/// <returns>True if the name ends with a segment number, otherwise false.</returns>
 		private static bool endsWithSegmentNumber(Name name) {
-			return name.size() >= 1 && name.get(-1).getValue().size() >= 1
-					&& name.get(-1).getValue().buf().get(0) == 0;
+			return name.size() >= 1 && name.get(-1).isSegment();
 		}
 	
 		// Use a non-template ArrayList so it works with older Java compilers.

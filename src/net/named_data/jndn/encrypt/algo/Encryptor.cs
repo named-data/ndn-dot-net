@@ -62,9 +62,7 @@ namespace net.named_data.jndn.encrypt.algo {
 		/// <param name="params">The parameters for encryption.</param>
 		public static void encryptData(Data data, Blob payload, Name keyName,
 				Blob key, EncryptParams paras) {
-			Name dataName = data.getName();
-			dataName.append(NAME_COMPONENT_FOR).append(keyName);
-			data.setName(dataName);
+			data.getName().append(NAME_COMPONENT_FOR).append(keyName);
 	
 			EncryptAlgorithmType algorithmType = paras.getAlgorithmType();
 	

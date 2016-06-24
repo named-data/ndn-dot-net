@@ -18,7 +18,7 @@ namespace net.named_data.jndn.encrypt {
 	using net.named_data.jndn.util;
 	
 	/// <summary>
-	/// ProducerDb is an abstract base class the storage of keys for the producer. It
+	/// ProducerDb is an abstract base class for the storage of keys for the producer. It
 	/// contains one table that maps time slots (to the nearest hour) to the content
 	/// key created for that time slot. A subclass must implement the methods. For
 	/// example, see Sqlite3ProducerDb.
@@ -27,7 +27,7 @@ namespace net.named_data.jndn.encrypt {
 	/// @note This class is an experimental feature. The API may change.
 	public abstract class ProducerDb {
 		/// <summary>
-		/// ConsumerDb.Error extends Exception for errors using ConsumerDb methods.
+		/// ProducerDb.Error extends Exception for errors using ProducerDb methods.
 		/// Note that even though this is called "Error" to be consistent with the
 		/// other libraries, it extends the Java Exception class, not Error.
 		/// </summary>

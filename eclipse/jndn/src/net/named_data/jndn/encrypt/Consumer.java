@@ -613,6 +613,7 @@ public class Consumer {
       } catch (Exception ex) {
         logger_.log(Level.SEVERE, "Error in onError", ex);
       }
+      return;
     }
 
     // Decrypt the D-KEY.
