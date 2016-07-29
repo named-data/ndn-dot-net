@@ -57,6 +57,19 @@ namespace net.named_data.jndn.util {
     getNumericType(this EncryptAlgorithmType algorithmType) { return (int)algorithmType; }
 
     public static int 
+    getNumericType(this Name.Component.ComponentType componentType) 
+    {
+      // The C# enum values are automatically assigned 0, 1, 2, etc. We must be explicit.
+      if (componentType == Name.Component.ComponentType.IMPLICIT_SHA256_DIGEST)
+        return 1;
+      else if (componentType ==  Name.Component.ComponentType.GENERIC)
+        return 8;
+      else
+        throw new NotImplementedException
+        ("getNumericType: Unrecognized Name.Component.ComponentType: " + componentType);
+    }
+
+    public static int 
     getNumericType(this NetworkNack.Reason reason) 
     {
       // The C# enum values are automatically assigned 0, 1, 2, etc. We must be explicit.
