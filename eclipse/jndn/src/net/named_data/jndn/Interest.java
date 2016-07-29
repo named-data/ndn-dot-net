@@ -491,7 +491,7 @@ public class Interest implements ChangeCountable {
 
   /**
    * Set this interest to use a copy of the given KeyLocator object.
-   * @note ou can also call getKeyLocator and change the key locator directly.
+   * @note You can also call getKeyLocator and change the key locator directly.
    * @param keyLocator The KeyLocator object. This makes a copy of the object.
    * If no key locator is specified, set to a new default KeyLocator(), or to a
    * KeyLocator with an unspecified type.
@@ -648,6 +648,102 @@ public class Interest implements ChangeCountable {
       return false;
 
     return true;
+  }
+
+  /**
+   * Check if the given Data packet can satisfy this Interest. This method
+   * considers the Name, MinSuffixComponents, MaxSuffixComponents,
+   * PublisherPublicKeyLocator, and Exclude. It does not consider the
+   * ChildSelector or MustBeFresh. This uses the given wireFormat to get the
+   * Data packet encoding for the full Name.
+   * @param data The Data packet to check.
+   * @param wireFormat A WireFormat object used to encode the Data packet to
+   * get its full Name.
+   * @return True if the given Data packet can satisfy this Interest.
+   */
+  public final boolean
+  matchesData(Data data, WireFormat wireFormat) throws EncodingException
+  {
+    // Imitate ndn-cxx Interest::matchesData.
+    int interestNameLength = getName().size();
+    Name dataName = data.getName();
+    int fullNameLength = dataName.size() + 1;
+
+    // Check MinSuffixComponents.
+    boolean hasMinSuffixComponents = getMinSuffixComponents() >= 0;
+    int minSuffixComponents = 
+      hasMinSuffixComponents ? getMinSuffixComponents() : 0;
+    if (!(interestNameLength + minSuffixComponents <= fullNameLength))
+      return false;
+
+    // Check MaxSuffixComponents.
+    boolean hasMaxSuffixComponents = getMaxSuffixComponents() >= 0;
+    if (hasMaxSuffixComponents &&
+        !(interestNameLength + getMaxSuffixComponents() >= fullNameLength))
+      return false;
+
+    // Check the prefix.
+    if (interestNameLength == fullNameLength) {
+      if (getName().get(-1).isImplicitSha256Digest()) {
+        if (!getName().equals(data.getFullName(wireFormat)))
+          return false;
+      }
+      else
+        // The Interest Name is the same length as the Data full Name, but the
+        //   last component isn't a digest so there's no possibility of matching.
+        return false;
+    }
+    else {
+      // The Interest Name should be a strict prefix of the Data full Name,
+      if (!getName().isPrefixOf(dataName))
+        return false;
+    }
+
+    // Check the Exclude.
+    // The Exclude won't be violated if the Interest Name is the same as the
+    //   Data full Name.
+    if (getExclude().size() > 0 && fullNameLength > interestNameLength) {
+      if (interestNameLength == fullNameLength - 1) {
+        // The component to exclude is the digest.
+        if (getExclude().matches
+            (data.getFullName(wireFormat).get(interestNameLength)))
+          return false;
+      }
+      else {
+        // The component to exclude is not the digest.
+        if (getExclude().matches(dataName.get(interestNameLength)))
+          return false;
+      }
+    }
+
+    // Check the KeyLocator.
+    KeyLocator publisherPublicKeyLocator = getKeyLocator();
+    if (publisherPublicKeyLocator.getType() != KeyLocatorType.NONE) {
+      Signature signature = data.getSignature();
+      if (!KeyLocator.canGetFromSignature(signature))
+        // No KeyLocator in the Data packet.
+        return false;
+      if (!publisherPublicKeyLocator.equals
+          (KeyLocator.getFromSignature(signature)))
+        return false;
+    }
+
+    return true;
+  }
+
+  /**
+   * Check if the given Data packet can satisfy this Interest. This method
+   * considers the Name, MinSuffixComponents, MaxSuffixComponents,
+   * PublisherPublicKeyLocator, and Exclude. It does not consider the
+   * ChildSelector or MustBeFresh. This uses the default WireFormat to get the
+   * Data packet encoding for the full Name.
+   * @param data The Data packet to check.
+   * @return True if the given Data packet can satisfy this Interest.
+   */
+  public final boolean
+  matchesData(Data data) throws EncodingException
+  {
+    return matchesData(data, WireFormat.getDefaultWireFormat());
   }
 
   /**
