@@ -32,15 +32,17 @@ namespace net.named_data.jndn {
 		///
 		public class Component : IComparable {
 			/// <summary>
-			/// Create a new Name.Component with a zero-length value.
+			/// Create a new GENERIC Name.Component with a zero-length value.
 			/// </summary>
 			///
 			public Component() {
 				value_ = new Blob(ILOG.J2CsMapping.NIO.ByteBuffer.allocate(0), false);
+				type_ = net.named_data.jndn.Name.Component.ComponentType.GENERIC;
 			}
 	
 			/// <summary>
-			/// Create a new Name.Component, using the existing the Blob value.
+			/// Create a new GENERIC Name.Component, using the existing the Blob value.
+			/// (To create an ImplicitSha256Digest component, use fromImplicitSha256Digest.)
 			/// </summary>
 			///
 			/// <param name="value"></param>
@@ -49,6 +51,7 @@ namespace net.named_data.jndn {
 					throw new NullReferenceException(
 							"Component: Blob value may not be null");
 				value_ = value_ren;
+				type_ = net.named_data.jndn.Name.Component.ComponentType.GENERIC;
 			}
 	
 			/// <summary>
@@ -59,19 +62,22 @@ namespace net.named_data.jndn {
 			/// <param name="component">The component to copy.</param>
 			public Component(Name.Component  component) {
 				value_ = component.value_;
+				type_ = component.type_;
 			}
 	
 			/// <summary>
-			/// Create a new Name.Component, copying the given value.
+			/// Create a new GENERIC Name.Component, copying the given value.
+			/// (To create an ImplicitSha256Digest component, use fromImplicitSha256Digest.)
 			/// </summary>
 			///
 			/// <param name="value">The value byte array.</param>
 			public Component(byte[] value_ren) {
 				value_ = new Blob(value_ren, true);
+				type_ = net.named_data.jndn.Name.Component.ComponentType.GENERIC;
 			}
 	
 			/// <summary>
-			/// Create a new Name.Component, converting the value to UTF8 bytes.
+			/// Create a new GENERIC Name.Component, converting the value to UTF8 bytes.
 			/// Note, this does not escape %XX values.  If you need to escape, use
 			/// Name.fromEscapedString.
 			/// </summary>
@@ -79,6 +85,7 @@ namespace net.named_data.jndn {
 			/// <param name="value">The string to convert to UTF8.</param>
 			public Component(String value_ren) {
 				value_ = new Blob(value_ren);
+				type_ = net.named_data.jndn.Name.Component.ComponentType.GENERIC;
 			}
 	
 			/// <summary>
@@ -93,21 +100,29 @@ namespace net.named_data.jndn {
 			/// <summary>
 			/// Write this component value to result, escaping characters according to
 			/// the NDN URI Scheme. This also adds "..." to a value with zero or more ".".
+			/// This adds a type code prefix as needed, such as "sha256digest=".
 			/// </summary>
 			///
 			/// <param name="result">The StringBuffer to write to.</param>
 			public void toEscapedString(StringBuilder result) {
-				net.named_data.jndn.Name.toEscapedString(value_.buf(), result);
+				if (type_ == net.named_data.jndn.Name.Component.ComponentType.IMPLICIT_SHA256_DIGEST) {
+					result.append("sha256digest=");
+					net.named_data.jndn.util.Blob.toHex(value_.buf(), result);
+				} else
+					net.named_data.jndn.Name.toEscapedString(value_.buf(), result);
 			}
 	
 			/// <summary>
 			/// Convert this component value by escaping characters according to the
 			/// NDN URI Scheme. This also adds "..." to a value with zero or more ".".
+			/// This adds a type code prefix as needed, such as "sha256digest=".
 			/// </summary>
 			///
 			/// <returns>The escaped string.</returns>
 			public String toEscapedString() {
-				return net.named_data.jndn.Name.toEscapedString(value_.buf());
+				StringBuilder result = new StringBuilder(value_.buf().remaining());
+				toEscapedString(result);
+				return result.toString();
 			}
 	
 			/// <summary>
@@ -118,7 +133,8 @@ namespace net.named_data.jndn {
 			///
 			/// <returns>True if this is a segment number.</returns>
 			public bool isSegment() {
-				return value_.size() >= 1 && value_.buf().get(0) == (byte) 0x00;
+				return value_.size() >= 1 && value_.buf().get(0) == (byte) 0x00
+						&& isGeneric();
 			}
 	
 			/// <summary>
@@ -129,7 +145,8 @@ namespace net.named_data.jndn {
 			///
 			/// <returns>True if this is a segment byte offset.</returns>
 			public bool isSegmentOffset() {
-				return value_.size() >= 1 && value_.buf().get(0) == (byte) 0xFB;
+				return value_.size() >= 1 && value_.buf().get(0) == (byte) 0xFB
+						&& isGeneric();
 			}
 	
 			/// <summary>
@@ -139,7 +156,8 @@ namespace net.named_data.jndn {
 			///
 			/// <returns>True if this is a version number.</returns>
 			public bool isVersion() {
-				return value_.size() >= 1 && value_.buf().get(0) == (byte) 0xFD;
+				return value_.size() >= 1 && value_.buf().get(0) == (byte) 0xFD
+						&& isGeneric();
 			}
 	
 			/// <summary>
@@ -150,7 +168,8 @@ namespace net.named_data.jndn {
 			///
 			/// <returns>True if this is a timestamp.</returns>
 			public bool isTimestamp() {
-				return value_.size() >= 1 && value_.buf().get(0) == (byte) 0xFC;
+				return value_.size() >= 1 && value_.buf().get(0) == (byte) 0xFC
+						&& isGeneric();
 			}
 	
 			/// <summary>
@@ -161,7 +180,26 @@ namespace net.named_data.jndn {
 			///
 			/// <returns>True if this is a sequence number.</returns>
 			public bool isSequenceNumber() {
-				return value_.size() >= 1 && value_.buf().get(0) == (byte) 0xFE;
+				return value_.size() >= 1 && value_.buf().get(0) == (byte) 0xFE
+						&& isGeneric();
+			}
+	
+			/// <summary>
+			/// Check if this component is a generic component.
+			/// </summary>
+			///
+			/// <returns>True if this is an generic component.</returns>
+			public bool isGeneric() {
+				return type_ == net.named_data.jndn.Name.Component.ComponentType.GENERIC;
+			}
+	
+			/// <summary>
+			/// Check if this component is an ImplicitSha256Digest component.
+			/// </summary>
+			///
+			/// <returns>True if this is an ImplicitSha256Digest component.</returns>
+			public bool isImplicitSha256Digest() {
+				return type_ == net.named_data.jndn.Name.Component.ComponentType.IMPLICIT_SHA256_DIGEST;
 			}
 	
 			/// <summary>
@@ -368,6 +406,36 @@ namespace net.named_data.jndn {
 			}
 	
 			/// <summary>
+			/// Create a component of type ImplicitSha256DigestComponent, so that
+			/// isImplicitSha256Digest() is true.
+			/// </summary>
+			///
+			/// <param name="digest">The SHA-256 digest value.</param>
+			/// <returns>The new Component.</returns>
+			/// <exception cref="EncodingException">If the digest length is not 32 bytes.</exception>
+			public static Name.Component  fromImplicitSha256Digest(Blob digest) {
+				if (digest.size() != 32)
+					throw new EncodingException(
+							"Name.Component.fromImplicitSha256Digest: The digest length must be 32 bytes");
+	
+				Name.Component  result = new Name.Component (digest);
+				result.type_ = net.named_data.jndn.Name.Component.ComponentType.IMPLICIT_SHA256_DIGEST;
+				return result;
+			}
+	
+			/// <summary>
+			/// Create a component of type ImplicitSha256DigestComponent, so that
+			/// isImplicitSha256Digest() is true.
+			/// </summary>
+			///
+			/// <param name="digest">The SHA-256 digest value.</param>
+			/// <returns>The new Component.</returns>
+			/// <exception cref="EncodingException">If the digest length is not 32 bytes.</exception>
+			public static Name.Component  fromImplicitSha256Digest(byte[] digest) {
+				return fromImplicitSha256Digest(new Blob(digest));
+			}
+	
+			/// <summary>
 			/// Get the successor of this component, as described in Name.getSuccessor.
 			/// </summary>
 			///
@@ -407,7 +475,7 @@ namespace net.named_data.jndn {
 			/// <param name="other">The other Component to compare with.</param>
 			/// <returns>True if the components are equal, otherwise false.</returns>
 			public bool equals(Name.Component  other) {
-				return value_.equals(other.value_);
+				return value_.equals(other.value_) && type_ == other.type_;
 			}
 	
 			public override bool Equals(Object other) {
@@ -418,7 +486,7 @@ namespace net.named_data.jndn {
 			}
 	
 			public override int GetHashCode() {
-				return value_.GetHashCode();
+				return 37 * type_.getNumericType() + value_.GetHashCode();
 			}
 	
 			/// <summary>
@@ -430,6 +498,11 @@ namespace net.named_data.jndn {
 			/// canonical ordering, or 1 if this comes after other in the canonical
 			/// ordering.</returns>
 			public int compare(Name.Component  other) {
+				if (type_.getNumericType() < other.type_.getNumericType())
+					return -1;
+				if (type_.getNumericType() > other.type_.getNumericType())
+					return 1;
+	
 				if (value_.size() < other.value_.size())
 					return -1;
 				if (value_.size() > other.value_.size())
@@ -470,6 +543,17 @@ namespace net.named_data.jndn {
 				}
 			}
 	
+			/// <summary>
+			/// A ComponentType specifies the recognized types of a name component.
+			/// </summary>
+			///
+			public enum ComponentType {
+				IMPLICIT_SHA256_DIGEST, GENERIC		}
+	
+			// Note: We keep the type_ internal because it is only used to distinguish
+			// from ImplicitSha256Digest. If we support general typed components then
+			// we can provide public access.
+			private net.named_data.jndn.Name.Component.ComponentType  type_;
 			private readonly Blob value_;
 		}
 	
@@ -592,13 +676,26 @@ namespace net.named_data.jndn {
 			int iComponentStart = 0;
 	
 			// Unescape the components.
+			String sha256digestPrefix = "sha256digest=";
 			while (iComponentStart < uri.Length) {
 				int iComponentEnd = ILOG.J2CsMapping.Util.StringUtil.IndexOf(uri,"/",iComponentStart);
 				if (iComponentEnd < 0)
 					iComponentEnd = uri.Length;
 	
-				Name.Component  component = new Name.Component (fromEscapedString(uri,
-						iComponentStart, iComponentEnd));
+				Name.Component  component;
+				if (sha256digestPrefix.regionMatches(0, uri, iComponentStart,
+						sha256digestPrefix.Length)) {
+					try {
+						component = net.named_data.jndn.Name.Component.fromImplicitSha256Digest(fromHex(uri,
+								iComponentStart + sha256digestPrefix.Length,
+								iComponentEnd));
+					} catch (EncodingException ex) {
+						throw new Exception(ex.Message);
+					}
+				} else
+					component = new Name.Component (fromEscapedString(uri,
+							iComponentStart, iComponentEnd));
+	
 				// Ignore illegal components.  This also gets rid of a trailing '/'.
 				if (!component.getValue().isNull())
 					append(component);
@@ -617,7 +714,8 @@ namespace net.named_data.jndn {
 		}
 	
 		/// <summary>
-		/// Append a new component, copying from value.
+		/// Append a new GENERIC component, copying from value.
+		/// (To append an ImplicitSha256Digest component, use appendImplicitSha256Digest.)
 		/// </summary>
 		///
 		/// <param name="value">The component value.</param>
@@ -627,7 +725,8 @@ namespace net.named_data.jndn {
 		}
 	
 		/// <summary>
-		/// Append a new component, using the existing Blob value.
+		/// Append a new GENERIC component, using the existing Blob value.
+		/// (To append an ImplicitSha256Digest component, use appendImplicitSha256Digest.)
 		/// </summary>
 		///
 		/// <param name="value">The component value.</param>
@@ -732,7 +831,7 @@ namespace net.named_data.jndn {
 				result.append("ndn:");
 			for (int i = 0; i < components_.Count; ++i) {
 				result.append("/");
-				toEscapedString(get(i).getValue().buf(), result);
+				get(i).toEscapedString(result);
 			}
 	
 			return result.toString();
@@ -813,6 +912,30 @@ namespace net.named_data.jndn {
 		/// <returns>This name so that you can chain calls to append.</returns>
 		public Name appendSequenceNumber(long sequenceNumber) {
 			return append(net.named_data.jndn.Name.Component.fromSequenceNumber(sequenceNumber));
+		}
+	
+		/// <summary>
+		/// Append a component of type ImplicitSha256DigestComponent, so that
+		/// isImplicitSha256Digest() is true.
+		/// </summary>
+		///
+		/// <param name="digest">The SHA-256 digest value.</param>
+		/// <returns>This name so that you can chain calls to append.</returns>
+		/// <exception cref="EncodingException">If the digest length is not 32 bytes.</exception>
+		public Name appendImplicitSha256Digest(Blob digest) {
+			return append(net.named_data.jndn.Name.Component.fromImplicitSha256Digest(digest));
+		}
+	
+		/// <summary>
+		/// Append a component of type ImplicitSha256DigestComponent, so that
+		/// isImplicitSha256Digest() is true.
+		/// </summary>
+		///
+		/// <param name="digest">The SHA-256 digest value.</param>
+		/// <returns>This name so that you can chain calls to append.</returns>
+		/// <exception cref="EncodingException">If the digest length is not 32 bytes.</exception>
+		public Name appendImplicitSha256Digest(byte[] digest) {
+			return append(net.named_data.jndn.Name.Component.fromImplicitSha256Digest(digest));
 		}
 	
 		/// <summary>
@@ -1112,6 +1235,7 @@ namespace net.named_data.jndn {
 		/// endOffset according to the NDN URI Scheme. If the escaped string is
 		/// "", "." or ".." then return a Blob with a null pointer, which means the
 		/// component should be skipped in a URI name.
+		/// This does not check for a type code prefix such as "sha256digest=".
 		/// </summary>
 		///
 		/// <param name="escapedString">The escaped string</param>
@@ -1153,6 +1277,7 @@ namespace net.named_data.jndn {
 		/// Scheme.
 		/// If the escaped string is "", "." or ".." then return a Blob with a null
 		/// pointer, which means the component should be skipped in a URI name.
+		/// This does not check for a type code prefix such as "sha256digest=".
 		/// </summary>
 		///
 		/// <param name="escapedString">The escaped string.</param>
@@ -1166,6 +1291,7 @@ namespace net.named_data.jndn {
 		/// Write the value to result, escaping characters according to the NDN URI
 		/// Scheme.
 		/// This also adds "..." to a value with zero or more ".".
+		/// This does not add a type code prefix such as "sha256digest=".
 		/// </summary>
 		///
 		/// <param name="value"></param>
@@ -1204,6 +1330,7 @@ namespace net.named_data.jndn {
 		/// <summary>
 		/// Convert the value by escaping characters according to the NDN URI Scheme.
 		/// This also adds "..." to a value with zero or more ".".
+		/// This does not add a type code prefix such as "sha256digest=".
 		/// </summary>
 		///
 		/// <param name="value"></param>
@@ -1212,6 +1339,44 @@ namespace net.named_data.jndn {
 			StringBuilder result = new StringBuilder(value_ren.remaining());
 			toEscapedString(value_ren, result);
 			return result.toString();
+		}
+	
+		/// <summary>
+		/// Make a Blob value by decoding the hexString between beginOffset and
+		/// endOffset.
+		/// </summary>
+		///
+		/// <param name="hexString">The hex string.</param>
+		/// <param name="beginOffset"></param>
+		/// <param name="endOffset"></param>
+		/// <returns>The Blob value. If the hexString is not a valid hex string, then
+		/// the Blob has a null pointer.</returns>
+		public static Blob fromHex(String hexString, int beginOffset, int endOffset) {
+			ByteBuffer result = ILOG.J2CsMapping.NIO.ByteBuffer.allocate((endOffset - beginOffset) / 2);
+	
+			for (int i = beginOffset; i < endOffset; ++i) {
+				if (hexString[i] == ' ')
+					// Skip whitespace.
+					continue;
+				if (i + 1 >= endOffset)
+					// Only one hex digit. Ignore.
+					break;
+	
+				int hi = fromHexChar(hexString[i]);
+				int lo = fromHexChar(hexString[i + 1]);
+	
+				if (hi < 0 || lo < 0)
+					// Invalid hex characters.
+					return new Blob();
+	
+				result.put((byte) (16 * hi + lo));
+	
+				// Skip past the second digit.
+				i += 1;
+			}
+	
+			result.flip();
+			return new Blob(result, false);
 		}
 	
 		/// <summary>

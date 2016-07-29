@@ -24,6 +24,7 @@ namespace net.named_data.jndn.encoding.tlv {
 		public const int Interest = 5;
 		public const int Data = 6;
 		public const int Name = 7;
+		public const int ImplicitSha256DigestComponent = 1;
 		public const int NameComponent = 8;
 		public const int Selectors = 9;
 		public const int Nonce = 10;

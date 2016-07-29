@@ -104,13 +104,13 @@ namespace net.named_data.jndn {
 		public sealed class Anonymous_C12 : OnNetworkNack {
 				public sealed class Anonymous_C22 : IRunnable {
 								private readonly ThreadPoolFace.Anonymous_C12  outer_Anonymous_C12;
-								private readonly Interest localInterest;
 								private readonly NetworkNack networkNack;
+								private readonly Interest localInterest;
 					
 								public Anonymous_C22(ThreadPoolFace.Anonymous_C12  paramouter_Anonymous_C12,
-										Interest localInterest_0, NetworkNack networkNack_1) {
-									this.localInterest = localInterest_0;
-									this.networkNack = networkNack_1;
+										NetworkNack networkNack_0, Interest localInterest_1) {
+									this.networkNack = networkNack_0;
+									this.localInterest = localInterest_1;
 									this.outer_Anonymous_C12 = paramouter_Anonymous_C12;
 								}
 					
@@ -138,28 +138,28 @@ namespace net.named_data.jndn {
 		
 				public void onNetworkNack(Interest localInterest_0,
 						NetworkNack networkNack_1) {
-					outer_ThreadPoolFace.threadPool_.submit(new net.named_data.jndn.ThreadPoolFace.Anonymous_C12.Anonymous_C22 (this, localInterest_0, networkNack_1));
+					outer_ThreadPoolFace.threadPool_.submit(new net.named_data.jndn.ThreadPoolFace.Anonymous_C12.Anonymous_C22 (this, networkNack_1, localInterest_0));
 				}
 			}
 		public sealed class Anonymous_C11 : IRunnable {
 				private readonly ThreadPoolFace outer_ThreadPoolFace;
-				private readonly long pendingInterestId;
-				private readonly WireFormat wireFormat;
+				private readonly OnNetworkNack onNetworkNackSubmit;
 				private readonly OnData onDataSubmit;
 				private readonly Interest interestCopy;
 				private readonly OnTimeout onTimeoutSubmit;
-				private readonly OnNetworkNack onNetworkNackSubmit;
+				private readonly long pendingInterestId;
+				private readonly WireFormat wireFormat;
 		
 				public Anonymous_C11(ThreadPoolFace paramouter_ThreadPoolFace,
-						long pendingInterestId_0, WireFormat wireFormat_1,
-						OnData onDataSubmit_2, Interest interestCopy_3,
-						OnTimeout onTimeoutSubmit_4, OnNetworkNack onNetworkNackSubmit_5) {
-					this.pendingInterestId = pendingInterestId_0;
-					this.wireFormat = wireFormat_1;
-					this.onDataSubmit = onDataSubmit_2;
-					this.interestCopy = interestCopy_3;
-					this.onTimeoutSubmit = onTimeoutSubmit_4;
-					this.onNetworkNackSubmit = onNetworkNackSubmit_5;
+						OnNetworkNack onNetworkNackSubmit_0, OnData onDataSubmit_1,
+						Interest interestCopy_2, OnTimeout onTimeoutSubmit_3,
+						long pendingInterestId_4, WireFormat wireFormat_5) {
+					this.onNetworkNackSubmit = onNetworkNackSubmit_0;
+					this.onDataSubmit = onDataSubmit_1;
+					this.interestCopy = interestCopy_2;
+					this.onTimeoutSubmit = onTimeoutSubmit_3;
+					this.pendingInterestId = pendingInterestId_4;
+					this.wireFormat = wireFormat_5;
 					this.outer_ThreadPoolFace = paramouter_ThreadPoolFace;
 				}
 		
@@ -177,13 +177,13 @@ namespace net.named_data.jndn {
 		public sealed class Anonymous_C10 : OnData {
 				public sealed class Anonymous_C21 : IRunnable {
 								private readonly ThreadPoolFace.Anonymous_C10  outer_Anonymous_C10;
-								private readonly Interest localInterest;
 								private readonly Data data;
+								private readonly Interest localInterest;
 					
 								public Anonymous_C21(ThreadPoolFace.Anonymous_C10  paramouter_Anonymous_C10,
-										Interest localInterest_0, Data data_1) {
-									this.localInterest = localInterest_0;
-									this.data = data_1;
+										Data data_0, Interest localInterest_1) {
+									this.data = data_0;
+									this.localInterest = localInterest_1;
 									this.outer_Anonymous_C10 = paramouter_Anonymous_C10;
 								}
 					
@@ -208,7 +208,7 @@ namespace net.named_data.jndn {
 				}
 		
 				public void onData(Interest localInterest_0, Data data_1) {
-					outer_ThreadPoolFace.threadPool_.submit(new net.named_data.jndn.ThreadPoolFace.Anonymous_C10.Anonymous_C21 (this, localInterest_0, data_1));
+					outer_ThreadPoolFace.threadPool_.submit(new net.named_data.jndn.ThreadPoolFace.Anonymous_C10.Anonymous_C21 (this, data_1, localInterest_0));
 				}
 			}
 		public sealed class Anonymous_C9 : OnTimeout {
@@ -250,13 +250,13 @@ namespace net.named_data.jndn {
 		public sealed class Anonymous_C8 : OnNetworkNack {
 				public sealed class Anonymous_C19 : IRunnable {
 								private readonly ThreadPoolFace.Anonymous_C8  outer_Anonymous_C8;
-								private readonly NetworkNack networkNack;
 								private readonly Interest localInterest;
+								private readonly NetworkNack networkNack;
 					
 								public Anonymous_C19(ThreadPoolFace.Anonymous_C8  paramouter_Anonymous_C8,
-										NetworkNack networkNack_0, Interest localInterest_1) {
-									this.networkNack = networkNack_0;
-									this.localInterest = localInterest_1;
+										Interest localInterest_0, NetworkNack networkNack_1) {
+									this.localInterest = localInterest_0;
+									this.networkNack = networkNack_1;
 									this.outer_Anonymous_C8 = paramouter_Anonymous_C8;
 								}
 					
@@ -284,28 +284,28 @@ namespace net.named_data.jndn {
 		
 				public void onNetworkNack(Interest localInterest_0,
 						NetworkNack networkNack_1) {
-					outer_ThreadPoolFace.threadPool_.submit(new net.named_data.jndn.ThreadPoolFace.Anonymous_C8.Anonymous_C19 (this, networkNack_1, localInterest_0));
+					outer_ThreadPoolFace.threadPool_.submit(new net.named_data.jndn.ThreadPoolFace.Anonymous_C8.Anonymous_C19 (this, localInterest_0, networkNack_1));
 				}
 			}
 		public sealed class Anonymous_C7 : IRunnable {
 				private readonly ThreadPoolFace outer_ThreadPoolFace;
+				private readonly OnData onDataSubmit;
+				private readonly OnTimeout onTimeoutSubmit;
 				private readonly Interest interestCopy;
+				private readonly OnNetworkNack onNetworkNackSubmit;
 				private readonly WireFormat wireFormat;
 				private readonly long pendingInterestId;
-				private readonly OnNetworkNack onNetworkNackSubmit;
-				private readonly OnTimeout onTimeoutSubmit;
-				private readonly OnData onDataSubmit;
 		
 				public Anonymous_C7(ThreadPoolFace paramouter_ThreadPoolFace,
-						Interest interestCopy_0, WireFormat wireFormat_1,
-						long pendingInterestId_2, OnNetworkNack onNetworkNackSubmit_3,
-						OnTimeout onTimeoutSubmit_4, OnData onDataSubmit_5) {
-					this.interestCopy = interestCopy_0;
-					this.wireFormat = wireFormat_1;
-					this.pendingInterestId = pendingInterestId_2;
+						OnData onDataSubmit_0, OnTimeout onTimeoutSubmit_1,
+						Interest interestCopy_2, OnNetworkNack onNetworkNackSubmit_3,
+						WireFormat wireFormat_4, long pendingInterestId_5) {
+					this.onDataSubmit = onDataSubmit_0;
+					this.onTimeoutSubmit = onTimeoutSubmit_1;
+					this.interestCopy = interestCopy_2;
 					this.onNetworkNackSubmit = onNetworkNackSubmit_3;
-					this.onTimeoutSubmit = onTimeoutSubmit_4;
-					this.onDataSubmit = onDataSubmit_5;
+					this.wireFormat = wireFormat_4;
+					this.pendingInterestId = pendingInterestId_5;
 					this.outer_ThreadPoolFace = paramouter_ThreadPoolFace;
 				}
 		
@@ -323,20 +323,20 @@ namespace net.named_data.jndn {
 		public sealed class Anonymous_C6 : OnInterestCallback {
 				public sealed class Anonymous_C18 : IRunnable {
 								private readonly ThreadPoolFace.Anonymous_C6  outer_Anonymous_C6;
-								private readonly Name localPrefix;
 								private readonly Interest interest;
-								private readonly Face face;
-								private readonly InterestFilter filter;
 								private readonly long interestFilterId;
+								private readonly Name localPrefix;
+								private readonly InterestFilter filter;
+								private readonly Face face;
 					
 								public Anonymous_C18(ThreadPoolFace.Anonymous_C6  paramouter_Anonymous_C6,
-										Name localPrefix_0, Interest interest_1, Face face_2,
-										InterestFilter filter_3, long interestFilterId_4) {
-									this.localPrefix = localPrefix_0;
-									this.interest = interest_1;
-									this.face = face_2;
+										Interest interest_0, long interestFilterId_1, Name localPrefix_2,
+										InterestFilter filter_3, Face face_4) {
+									this.interest = interest_0;
+									this.interestFilterId = interestFilterId_1;
+									this.localPrefix = localPrefix_2;
 									this.filter = filter_3;
-									this.interestFilterId = interestFilterId_4;
+									this.face = face_4;
 									this.outer_Anonymous_C6 = paramouter_Anonymous_C6;
 								}
 					
@@ -367,8 +367,8 @@ namespace net.named_data.jndn {
 						Interest interest_1, Face face_2,
 						long interestFilterId_3,
 						InterestFilter filter_4) {
-					outer_ThreadPoolFace.threadPool_.submit(new net.named_data.jndn.ThreadPoolFace.Anonymous_C6.Anonymous_C18 (this, localPrefix_0, interest_1, face_2, filter_4,
-							interestFilterId_3));
+					outer_ThreadPoolFace.threadPool_.submit(new net.named_data.jndn.ThreadPoolFace.Anonymous_C6.Anonymous_C18 (this, interest_1, interestFilterId_3, localPrefix_0,
+							filter_4, face_2));
 				}
 			}
 		public sealed class Anonymous_C5 : OnRegisterFailed {
@@ -410,13 +410,13 @@ namespace net.named_data.jndn {
 		public sealed class Anonymous_C4 : OnRegisterSuccess {
 				public sealed class Anonymous_C16 : IRunnable {
 								private readonly ThreadPoolFace.Anonymous_C4  outer_Anonymous_C4;
-								private readonly Name localPrefix;
 								private readonly long localRegisteredPrefixId;
+								private readonly Name localPrefix;
 					
 								public Anonymous_C16(ThreadPoolFace.Anonymous_C4  paramouter_Anonymous_C4,
-										Name localPrefix_0, long localRegisteredPrefixId_1) {
-									this.localPrefix = localPrefix_0;
-									this.localRegisteredPrefixId = localRegisteredPrefixId_1;
+										long localRegisteredPrefixId_0, Name localPrefix_1) {
+									this.localRegisteredPrefixId = localRegisteredPrefixId_0;
+									this.localPrefix = localPrefix_1;
 									this.outer_Anonymous_C4 = paramouter_Anonymous_C4;
 								}
 					
@@ -445,31 +445,31 @@ namespace net.named_data.jndn {
 		
 				public void onRegisterSuccess(Name localPrefix_0,
 						long localRegisteredPrefixId_1) {
-					outer_ThreadPoolFace.threadPool_.submit(new net.named_data.jndn.ThreadPoolFace.Anonymous_C4.Anonymous_C16 (this, localPrefix_0, localRegisteredPrefixId_1));
+					outer_ThreadPoolFace.threadPool_.submit(new net.named_data.jndn.ThreadPoolFace.Anonymous_C4.Anonymous_C16 (this, localRegisteredPrefixId_1, localPrefix_0));
 				}
 			}
 		public sealed class Anonymous_C3 : IRunnable {
 				private readonly ThreadPoolFace outer_ThreadPoolFace;
 				private readonly OnRegisterSuccess onRegisterSuccessSubmit;
-				private readonly long registeredPrefixId;
-				private readonly WireFormat wireFormat;
+				private readonly OnRegisterFailed onRegisterFailedSubmit;
 				private readonly Name prefix;
 				private readonly OnInterestCallback onInterestSubmit;
-				private readonly OnRegisterFailed onRegisterFailedSubmit;
 				private readonly ForwardingFlags flags;
+				private readonly WireFormat wireFormat;
+				private readonly long registeredPrefixId;
 		
 				public Anonymous_C3(ThreadPoolFace paramouter_ThreadPoolFace,
 						OnRegisterSuccess onRegisterSuccessSubmit_0,
-						long registeredPrefixId_1, WireFormat wireFormat_2, Name prefix_3,
-						OnInterestCallback onInterestSubmit_4,
-						OnRegisterFailed onRegisterFailedSubmit_5, ForwardingFlags flags_6) {
+						OnRegisterFailed onRegisterFailedSubmit_1, Name prefix_2,
+						OnInterestCallback onInterestSubmit_3, ForwardingFlags flags_4,
+						WireFormat wireFormat_5, long registeredPrefixId_6) {
 					this.onRegisterSuccessSubmit = onRegisterSuccessSubmit_0;
-					this.registeredPrefixId = registeredPrefixId_1;
-					this.wireFormat = wireFormat_2;
-					this.prefix = prefix_3;
-					this.onInterestSubmit = onInterestSubmit_4;
-					this.onRegisterFailedSubmit = onRegisterFailedSubmit_5;
-					this.flags = flags_6;
+					this.onRegisterFailedSubmit = onRegisterFailedSubmit_1;
+					this.prefix = prefix_2;
+					this.onInterestSubmit = onInterestSubmit_3;
+					this.flags = flags_4;
+					this.wireFormat = wireFormat_5;
+					this.registeredPrefixId = registeredPrefixId_6;
 					this.outer_ThreadPoolFace = paramouter_ThreadPoolFace;
 				}
 		
@@ -489,20 +489,20 @@ namespace net.named_data.jndn {
 		public sealed class Anonymous_C2 : OnInterestCallback {
 				public sealed class Anonymous_C15 : IRunnable {
 								private readonly ThreadPoolFace.Anonymous_C2  outer_Anonymous_C2;
-								private readonly long interestFilterId;
 								private readonly Name prefix;
 								private readonly Face face;
-								private readonly Interest interest;
 								private readonly InterestFilter filter;
+								private readonly Interest interest;
+								private readonly long interestFilterId;
 					
 								public Anonymous_C15(ThreadPoolFace.Anonymous_C2  paramouter_Anonymous_C2,
-										long interestFilterId_0, Name prefix_1, Face face_2,
-										Interest interest_3, InterestFilter filter_4) {
-									this.interestFilterId = interestFilterId_0;
-									this.prefix = prefix_1;
-									this.face = face_2;
+										Name prefix_0, Face face_1, InterestFilter filter_2,
+										Interest interest_3, long interestFilterId_4) {
+									this.prefix = prefix_0;
+									this.face = face_1;
+									this.filter = filter_2;
 									this.interest = interest_3;
-									this.filter = filter_4;
+									this.interestFilterId = interestFilterId_4;
 									this.outer_Anonymous_C2 = paramouter_Anonymous_C2;
 								}
 					
@@ -530,22 +530,22 @@ namespace net.named_data.jndn {
 				public void onInterest(Name prefix_0, Interest interest_1,
 						Face face_2, long interestFilterId_3,
 						InterestFilter filter_4) {
-					outer_ThreadPoolFace.threadPool_.submit(new net.named_data.jndn.ThreadPoolFace.Anonymous_C2.Anonymous_C15 (this, interestFilterId_3, prefix_0, face_2, interest_1,
-							filter_4));
+					outer_ThreadPoolFace.threadPool_.submit(new net.named_data.jndn.ThreadPoolFace.Anonymous_C2.Anonymous_C15 (this, prefix_0, face_2, filter_4, interest_1,
+							interestFilterId_3));
 				}
 			}
 		public sealed class Anonymous_C1 : IRunnable {
 				private readonly ThreadPoolFace outer_ThreadPoolFace;
-				private readonly long interestFilterId;
 				private readonly OnInterestCallback onInterestSubmit;
 				private readonly InterestFilter filter;
+				private readonly long interestFilterId;
 		
 				public Anonymous_C1(ThreadPoolFace paramouter_ThreadPoolFace,
-						long interestFilterId_0, OnInterestCallback onInterestSubmit_1,
-						InterestFilter filter_2) {
-					this.interestFilterId = interestFilterId_0;
-					this.onInterestSubmit = onInterestSubmit_1;
-					this.filter = filter_2;
+						OnInterestCallback onInterestSubmit_0, InterestFilter filter_1,
+						long interestFilterId_2) {
+					this.onInterestSubmit = onInterestSubmit_0;
+					this.filter = filter_1;
+					this.interestFilterId = interestFilterId_2;
 					this.outer_ThreadPoolFace = paramouter_ThreadPoolFace;
 				}
 		
@@ -614,8 +614,8 @@ namespace net.named_data.jndn {
 	
 			// Make an interest copy as required by Node.expressInterest.
 			Interest interestCopy_9 = new Interest(interest_0);
-			threadPool_.submit(new ThreadPoolFace.Anonymous_C11 (this, pendingInterestId_2, wireFormat_1, onDataSubmit_4,
-					interestCopy_9, onTimeoutSubmit_6, onNetworkNackSubmit_8));
+			threadPool_.submit(new ThreadPoolFace.Anonymous_C11 (this, onNetworkNackSubmit_8, onDataSubmit_4,
+					interestCopy_9, onTimeoutSubmit_6, pendingInterestId_2, wireFormat_1));
 	
 			return pendingInterestId_2;
 		}
@@ -648,8 +648,8 @@ namespace net.named_data.jndn {
 	
 			// Make an interest copy as required by Node.expressInterest.
 			Interest interestCopy_8 = net.named_data.jndn.Face.getInterestCopy(name, interestTemplate);
-			threadPool_.submit(new ThreadPoolFace.Anonymous_C7 (this, interestCopy_8, wireFormat_0, pendingInterestId_1,
-					onNetworkNackSubmit_7, onTimeoutSubmit_5, onDataSubmit_3));
+			threadPool_.submit(new ThreadPoolFace.Anonymous_C7 (this, onDataSubmit_3, onTimeoutSubmit_5, interestCopy_8,
+					onNetworkNackSubmit_7, wireFormat_0, pendingInterestId_1));
 	
 			return pendingInterestId_1;
 		}
@@ -687,9 +687,8 @@ namespace net.named_data.jndn {
 			OnRegisterSuccess onRegisterSuccessSubmit_9 = (onRegisterSuccess == null) ? null
 					: new ThreadPoolFace.Anonymous_C4 (this, finalOnRegisterSuccess_8);
 	
-			threadPool_.submit(new ThreadPoolFace.Anonymous_C3 (this, onRegisterSuccessSubmit_9, registeredPrefixId_3,
-					wireFormat_2, prefix_0, onInterestSubmit_5, onRegisterFailedSubmit_7,
-					flags_1));
+			threadPool_.submit(new ThreadPoolFace.Anonymous_C3 (this, onRegisterSuccessSubmit_9, onRegisterFailedSubmit_7,
+					prefix_0, onInterestSubmit_5, flags_1, wireFormat_2, registeredPrefixId_3));
 	
 			return registeredPrefixId_3;
 		}
@@ -713,7 +712,7 @@ namespace net.named_data.jndn {
 			OnInterestCallback finalOnInterest_2 = onInterest;
 			OnInterestCallback onInterestSubmit_3 = new ThreadPoolFace.Anonymous_C2 (this, finalOnInterest_2);
 	
-			threadPool_.submit(new ThreadPoolFace.Anonymous_C1 (this, interestFilterId_1, onInterestSubmit_3, filter_0));
+			threadPool_.submit(new ThreadPoolFace.Anonymous_C1 (this, onInterestSubmit_3, filter_0, interestFilterId_1));
 	
 			return interestFilterId_1;
 		}

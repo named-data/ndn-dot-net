@@ -22,7 +22,7 @@ namespace net.named_data.jndn.encoding {
 	/// NDN-TLV.
 	/// </summary>
 	///
-	public class TlvWireFormat : Tlv0_1_1WireFormat {
+	public class TlvWireFormat : Tlv0_2WireFormat {
 		/// <summary>
 		/// Get a singleton instance of a TlvWireFormat.  Assuming that the default
 		/// wire format was set with

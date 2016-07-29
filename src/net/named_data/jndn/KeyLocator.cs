@@ -83,6 +83,34 @@ namespace net.named_data.jndn {
 		}
 	
 		/// <summary>
+		/// Check if this key locator has the same values as the given key locator.
+		/// </summary>
+		///
+		/// <param name="other">The other key locator to check.</param>
+		/// <returns>true if the key locators are equal, otherwise false.</returns>
+		public bool equals(KeyLocator other) {
+			if (type_ != other.type_)
+				return false;
+	
+			if (type_ == net.named_data.jndn.KeyLocatorType.KEYNAME) {
+				if (!getKeyName().equals(other.getKeyName()))
+					return false;
+			} else if (type_ == net.named_data.jndn.KeyLocatorType.KEY_LOCATOR_DIGEST) {
+				if (!getKeyData().equals(other.getKeyData()))
+					return false;
+			}
+	
+			return true;
+		}
+	
+		public override bool Equals(Object other) {
+			if (!(other  is  KeyLocator))
+				return false;
+	
+			return equals((KeyLocator) other);
+		}
+	
+		/// <summary>
 		/// If the signature is a type that has a KeyLocator (so that
 		/// getFromSignature will succeed), return true.
 		/// Note: This is a static method of KeyLocator instead of a method of

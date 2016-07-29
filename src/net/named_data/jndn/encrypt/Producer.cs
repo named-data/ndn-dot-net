@@ -40,15 +40,14 @@ namespace net.named_data.jndn.encrypt {
 	
 		public sealed class Anonymous_C2 : OnData {
 				private readonly Producer outer_Producer;
-				private readonly Producer.OnEncryptedKeys  onEncryptedKeys;
 				private readonly double timeSlot;
+				private readonly Producer.OnEncryptedKeys  onEncryptedKeys;
 				private readonly net.named_data.jndn.encrypt.EncryptError.OnError  onError;
 		
-				public Anonymous_C2(Producer paramouter_Producer,
-						Producer.OnEncryptedKeys  onEncryptedKeys_0, double timeSlot_1,
-						net.named_data.jndn.encrypt.EncryptError.OnError  onError_2) {
-					this.onEncryptedKeys = onEncryptedKeys_0;
-					this.timeSlot = timeSlot_1;
+				public Anonymous_C2(Producer paramouter_Producer, double timeSlot_0,
+						Producer.OnEncryptedKeys  onEncryptedKeys_1, net.named_data.jndn.encrypt.EncryptError.OnError  onError_2) {
+					this.timeSlot = timeSlot_0;
+					this.onEncryptedKeys = onEncryptedKeys_1;
 					this.onError = onError_2;
 					this.outer_Producer = paramouter_Producer;
 				}
@@ -65,15 +64,15 @@ namespace net.named_data.jndn.encrypt {
 	
 		public sealed class Anonymous_C1 : OnTimeout {
 				private readonly Producer outer_Producer;
+				private readonly net.named_data.jndn.encrypt.EncryptError.OnError  onError;
 				private readonly double timeSlot;
 				private readonly Producer.OnEncryptedKeys  onEncryptedKeys;
-				private readonly net.named_data.jndn.encrypt.EncryptError.OnError  onError;
 		
-				public Anonymous_C1(Producer paramouter_Producer, double timeSlot_0,
-						Producer.OnEncryptedKeys  onEncryptedKeys_1, net.named_data.jndn.encrypt.EncryptError.OnError  onError_2) {
-					this.timeSlot = timeSlot_0;
-					this.onEncryptedKeys = onEncryptedKeys_1;
-					this.onError = onError_2;
+				public Anonymous_C1(Producer paramouter_Producer, net.named_data.jndn.encrypt.EncryptError.OnError  onError_0,
+						double timeSlot_1, Producer.OnEncryptedKeys  onEncryptedKeys_2) {
+					this.onError = onError_0;
+					this.timeSlot = timeSlot_1;
+					this.onEncryptedKeys = onEncryptedKeys_2;
 					this.outer_Producer = paramouter_Producer;
 				}
 		
@@ -351,9 +350,9 @@ namespace net.named_data.jndn.encrypt {
 		/// <param name="onEncryptedKeys_1"></param>
 		private void sendKeyInterest(Interest interest, double timeSlot_0,
 				Producer.OnEncryptedKeys  onEncryptedKeys_1, net.named_data.jndn.encrypt.EncryptError.OnError  onError_2) {
-			OnData onKey = new Producer.Anonymous_C2 (this, onEncryptedKeys_1, timeSlot_0, onError_2);
+			OnData onKey = new Producer.Anonymous_C2 (this, timeSlot_0, onEncryptedKeys_1, onError_2);
 	
-			OnTimeout onTimeout = new Producer.Anonymous_C1 (this, timeSlot_0, onEncryptedKeys_1, onError_2);
+			OnTimeout onTimeout = new Producer.Anonymous_C1 (this, onError_2, timeSlot_0, onEncryptedKeys_1);
 	
 			OnNetworkNack onNetworkNack = new Producer.Anonymous_C0 (this, timeSlot_0, onEncryptedKeys_1);
 	

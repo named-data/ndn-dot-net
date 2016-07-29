@@ -152,14 +152,14 @@ namespace net.named_data.jndn.encrypt {
 							}
 		
 				private readonly Consumer outer_Consumer;
-				internal readonly Interest interest;
 				internal readonly net.named_data.jndn.encrypt.EncryptError.OnError  onError;
+				internal readonly Interest interest;
 				private readonly OnData onData;
 		
-				public Anonymous_C5(Consumer paramouter_Consumer, Interest interest_0,
-						net.named_data.jndn.encrypt.EncryptError.OnError  onError_1, OnData onData_2) {
-					this.interest = interest_0;
-					this.onError = onError_1;
+				public Anonymous_C5(Consumer paramouter_Consumer, net.named_data.jndn.encrypt.EncryptError.OnError  onError_0,
+						Interest interest_1, OnData onData_2) {
+					this.onError = onError_0;
+					this.interest = interest_1;
 					this.onData = onData_2;
 					this.outer_Consumer = paramouter_Consumer;
 				}
@@ -220,18 +220,18 @@ namespace net.named_data.jndn.encrypt {
 							}
 		
 				internal readonly Consumer outer_Consumer;
+				internal readonly net.named_data.jndn.encrypt.EncryptError.OnError  onError;
 				internal readonly Consumer.OnPlainText  onPlainText;
 				internal readonly Name cKeyName;
 				internal readonly EncryptedContent dataEncryptedContent;
-				internal readonly net.named_data.jndn.encrypt.EncryptError.OnError  onError;
 		
-				public Anonymous_C4(Consumer paramouter_Consumer,
-						Consumer.OnPlainText  onPlainText_0, Name cKeyName_1,
-						EncryptedContent dataEncryptedContent_2, net.named_data.jndn.encrypt.EncryptError.OnError  onError_3) {
-					this.onPlainText = onPlainText_0;
-					this.cKeyName = cKeyName_1;
-					this.dataEncryptedContent = dataEncryptedContent_2;
-					this.onError = onError_3;
+				public Anonymous_C4(Consumer paramouter_Consumer, net.named_data.jndn.encrypt.EncryptError.OnError  onError_0,
+						Consumer.OnPlainText  onPlainText_1, Name cKeyName_2,
+						EncryptedContent dataEncryptedContent_3) {
+					this.onError = onError_0;
+					this.onPlainText = onPlainText_1;
+					this.cKeyName = cKeyName_2;
+					this.dataEncryptedContent = dataEncryptedContent_3;
 					this.outer_Consumer = paramouter_Consumer;
 				}
 		
@@ -274,15 +274,15 @@ namespace net.named_data.jndn.encrypt {
 							}
 		
 				private readonly Consumer outer_Consumer;
-				internal readonly Interest interest;
 				private readonly OnData onData;
 				internal readonly net.named_data.jndn.encrypt.EncryptError.OnError  onError;
+				internal readonly Interest interest;
 		
-				public Anonymous_C3(Consumer paramouter_Consumer, Interest interest_0,
-						OnData onData_1, net.named_data.jndn.encrypt.EncryptError.OnError  onError_2) {
-					this.interest = interest_0;
-					this.onData = onData_1;
-					this.onError = onError_2;
+				public Anonymous_C3(Consumer paramouter_Consumer, OnData onData_0,
+						net.named_data.jndn.encrypt.EncryptError.OnError  onError_1, Interest interest_2) {
+					this.onData = onData_0;
+					this.onError = onError_1;
+					this.interest = interest_2;
 					this.outer_Consumer = paramouter_Consumer;
 				}
 		
@@ -344,17 +344,17 @@ namespace net.named_data.jndn.encrypt {
 							}
 		
 				internal readonly Consumer outer_Consumer;
+				internal readonly EncryptedContent cKeyEncryptedContent;
 				internal readonly net.named_data.jndn.encrypt.EncryptError.OnError  onError;
 				internal readonly Name dKeyName;
-				internal readonly EncryptedContent cKeyEncryptedContent;
 				internal readonly Consumer.OnPlainText  onPlainText;
 		
-				public Anonymous_C2(Consumer paramouter_Consumer, net.named_data.jndn.encrypt.EncryptError.OnError  onError_0,
-						Name dKeyName_1, EncryptedContent cKeyEncryptedContent_2,
-						Consumer.OnPlainText  onPlainText_3) {
-					this.onError = onError_0;
-					this.dKeyName = dKeyName_1;
-					this.cKeyEncryptedContent = cKeyEncryptedContent_2;
+				public Anonymous_C2(Consumer paramouter_Consumer,
+						EncryptedContent cKeyEncryptedContent_0, net.named_data.jndn.encrypt.EncryptError.OnError  onError_1,
+						Name dKeyName_2, Consumer.OnPlainText  onPlainText_3) {
+					this.cKeyEncryptedContent = cKeyEncryptedContent_0;
+					this.onError = onError_1;
+					this.dKeyName = dKeyName_2;
 					this.onPlainText = onPlainText_3;
 					this.outer_Consumer = paramouter_Consumer;
 				}
@@ -398,15 +398,15 @@ namespace net.named_data.jndn.encrypt {
 							}
 		
 				private readonly Consumer outer_Consumer;
-				internal readonly net.named_data.jndn.encrypt.EncryptError.OnError  onError;
 				internal readonly Interest interest;
 				private readonly OnData onData;
+				internal readonly net.named_data.jndn.encrypt.EncryptError.OnError  onError;
 		
-				public Anonymous_C1(Consumer paramouter_Consumer, net.named_data.jndn.encrypt.EncryptError.OnError  onError_0,
-						Interest interest_1, OnData onData_2) {
-					this.onError = onError_0;
-					this.interest = interest_1;
-					this.onData = onData_2;
+				public Anonymous_C1(Consumer paramouter_Consumer, Interest interest_0,
+						OnData onData_1, net.named_data.jndn.encrypt.EncryptError.OnError  onError_2) {
+					this.interest = interest_0;
+					this.onData = onData_1;
+					this.onError = onError_2;
 					this.outer_Consumer = paramouter_Consumer;
 				}
 		
@@ -428,14 +428,14 @@ namespace net.named_data.jndn.encrypt {
 			}
 	
 		public sealed class Anonymous_C0 : Consumer.OnPlainText {
-			private readonly net.named_data.jndn.encrypt.EncryptError.OnError  onError;
 			private readonly Consumer.OnPlainText  callerOnPlainText;
+			private readonly net.named_data.jndn.encrypt.EncryptError.OnError  onError;
 			private readonly Blob encryptedPayloadBlob;
 	
-			public Anonymous_C0(net.named_data.jndn.encrypt.EncryptError.OnError  onError_0, Consumer.OnPlainText  callerOnPlainText_1,
+			public Anonymous_C0(Consumer.OnPlainText  callerOnPlainText_0, net.named_data.jndn.encrypt.EncryptError.OnError  onError_1,
 					Blob encryptedPayloadBlob_2) {
-				this.onError = onError_0;
-				this.callerOnPlainText = callerOnPlainText_1;
+				this.callerOnPlainText = callerOnPlainText_0;
+				this.onError = onError_1;
 				this.encryptedPayloadBlob = encryptedPayloadBlob_2;
 			}
 	
@@ -464,7 +464,7 @@ namespace net.named_data.jndn.encrypt {
 			// Prepare the callback functions.
 			OnData onData_3 = new Consumer.Anonymous_C6 (this, onConsumeComplete_0, onError_1);
 	
-			OnTimeout onTimeout = new Consumer.Anonymous_C5 (this, interest_2, onError_1, onData_3);
+			OnTimeout onTimeout = new Consumer.Anonymous_C5 (this, onError_1, interest_2, onData_3);
 	
 			// Express the Interest.
 			try {
@@ -639,10 +639,10 @@ namespace net.named_data.jndn.encrypt {
 				Interest interest_4 = new Interest(interestName);
 	
 				// Prepare the callback functions.
-				OnData onData_5 = new Consumer.Anonymous_C4 (this, onPlainText_0, cKeyName_3, dataEncryptedContent_2,
-						onError_1);
+				OnData onData_5 = new Consumer.Anonymous_C4 (this, onError_1, onPlainText_0, cKeyName_3,
+						dataEncryptedContent_2);
 	
-				OnTimeout onTimeout = new Consumer.Anonymous_C3 (this, interest_4, onData_5, onError_1);
+				OnTimeout onTimeout = new Consumer.Anonymous_C3 (this, onData_5, onError_1, interest_4);
 	
 				// Express the Interest.
 				try {
@@ -698,10 +698,10 @@ namespace net.named_data.jndn.encrypt {
 				Interest interest_4 = new Interest(interestName);
 	
 				// Prepare the callback functions.
-				OnData onData_5 = new Consumer.Anonymous_C2 (this, onError_1, dKeyName_3, cKeyEncryptedContent_2,
+				OnData onData_5 = new Consumer.Anonymous_C2 (this, cKeyEncryptedContent_2, onError_1, dKeyName_3,
 						onPlainText_0);
 	
-				OnTimeout onTimeout = new Consumer.Anonymous_C1 (this, onError_1, interest_4, onData_5);
+				OnTimeout onTimeout = new Consumer.Anonymous_C1 (this, interest_4, onData_5, onError_1);
 	
 				// Express the Interest.
 				try {
@@ -786,7 +786,7 @@ namespace net.named_data.jndn.encrypt {
 	
 			// Decrypt the D-KEY.
 			Consumer.OnPlainText  callerOnPlainText_7 = onPlainText_0;
-			decrypt(encryptedNonce, consumerKeyBlob, new Consumer.Anonymous_C0 (onError_1, callerOnPlainText_7, encryptedPayloadBlob_5), onError_1);
+			decrypt(encryptedNonce, consumerKeyBlob, new Consumer.Anonymous_C0 (callerOnPlainText_7, onError_1, encryptedPayloadBlob_5), onError_1);
 		}
 	
 		/// <summary>

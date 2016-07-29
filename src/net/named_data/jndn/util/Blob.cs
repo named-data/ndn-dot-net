@@ -219,13 +219,14 @@ namespace net.named_data.jndn.util {
 		}
 	
 		/// <summary>
-		/// Return a hex string of the contents of buffer from position to limit.
+		/// Write a hex string of the contents of buffer from position to limit to the
+		/// output.
 		/// </summary>
 		///
 		/// <param name="buffer">The buffer.</param>
 		/// <returns>A string of hex bytes.</returns>
-		public static String toHex(ByteBuffer buffer) {
-			StringBuilder output = new StringBuilder(buffer.remaining() * 2);
+		/// <param name="output">The StringBuffer to write to.</param>
+		public static void toHex(ByteBuffer buffer, StringBuilder output) {
 			for (int i = buffer.position(); i < buffer.limit(); ++i) {
 				String hex = ILOG.J2CsMapping.Util.IlNumber.ToString((int) buffer.get(i) & 0xff,16);
 				if (hex.Length <= 1)
@@ -233,7 +234,17 @@ namespace net.named_data.jndn.util {
 					output.append("0");
 				output.append(hex);
 			}
+		}
 	
+		/// <summary>
+		/// Return a hex string of the contents of buffer from position to limit.
+		/// </summary>
+		///
+		/// <param name="buffer">The buffer.</param>
+		/// <returns>A string of hex bytes.</returns>
+		public static String toHex(ByteBuffer buffer) {
+			StringBuilder output = new StringBuilder(buffer.remaining() * 2);
+			toHex(buffer, output);
 			return output.toString();
 		}
 	

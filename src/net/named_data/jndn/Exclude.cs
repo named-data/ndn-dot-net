@@ -222,8 +222,7 @@ namespace net.named_data.jndn {
 				if (get(i).getType() == net.named_data.jndn.Exclude.Type.ANY)
 					result.append("*");
 				else
-					net.named_data.jndn.Name.toEscapedString(get(i).getComponent().getValue().buf(),
-							result);
+					get(i).getComponent().toEscapedString(result);
 			}
 	
 			return result.toString();

@@ -17,6 +17,7 @@ namespace net.named_data.jndn.impl {
 	using System.IO;
 	using System.Runtime.CompilerServices;
 	using net.named_data.jndn;
+	using net.named_data.jndn.encoding;
 	using net.named_data.jndn.util;
 	
 	/// <summary>
@@ -163,21 +164,21 @@ namespace net.named_data.jndn.impl {
 		}
 	
 		/// <summary>
-		/// Find all entries from the pending interest table where the name conforms to
+		/// Find all entries from the pending interest table where data conforms to
 		/// the entry's interest selectors, remove the entries from the table, set each
 		/// entry's isRemoved flag, and add to the entries list.
 		/// </summary>
 		///
-		/// <param name="name"></param>
+		/// <param name="data">The incoming Data packet to find the interest for.</param>
 		/// <param name="entries"></param>
 		[MethodImpl(MethodImplOptions.Synchronized)]
 		public void extractEntriesForExpressedInterest(
-				Name name, ArrayList<Entry> entries) {
+				Data data, ArrayList<Entry> entries) {
 			// Go backwards through the list so we can remove entries.
 			for (int i = table_.Count - 1; i >= 0; --i) {
 				PendingInterestTable.Entry  pendingInterest = table_[i];
 	
-				if (pendingInterest.getInterest().matchesName(name)) {
+				if (pendingInterest.getInterest().matchesData(data)) {
 					ILOG.J2CsMapping.Collections.Collections.Add(entries,table_[i]);
 					// We let the callback from callLater call _processInterestTimeout, but
 					// for efficiency, mark this as removed so that it returns right away.

@@ -34,6 +34,7 @@ namespace net.named_data.jndn {
 			this.content_ = new Blob();
 			this.lpPacket_ = null;
 			this.defaultWireEncoding_ = new SignedBlob();
+			this.defaultFullName_ = new Name();
 			this.getDefaultWireEncodingChangeCount_ = 0;
 			this.changeCount_ = 0;
 		}
@@ -52,6 +53,7 @@ namespace net.named_data.jndn {
 			this.content_ = new Blob();
 			this.lpPacket_ = null;
 			this.defaultWireEncoding_ = new SignedBlob();
+			this.defaultFullName_ = new Name();
 			this.getDefaultWireEncodingChangeCount_ = 0;
 			this.changeCount_ = 0;
 			name_.set(new Name(name));
@@ -71,6 +73,7 @@ namespace net.named_data.jndn {
 			this.content_ = new Blob();
 			this.lpPacket_ = null;
 			this.defaultWireEncoding_ = new SignedBlob();
+			this.defaultFullName_ = new Name();
 			this.getDefaultWireEncodingChangeCount_ = 0;
 			this.changeCount_ = 0;
 			try {
@@ -95,7 +98,7 @@ namespace net.named_data.jndn {
 		/// wire format, also set the defaultWireEncoding field to the encoded result.
 		/// </summary>
 		///
-		/// <param name="wireFormat">A WireFormat object used to decode the input.</param>
+		/// <param name="wireFormat">A WireFormat object used to encode the input.</param>
 		/// <returns>The encoded buffer.</returns>
 		public SignedBlob wireEncode(WireFormat wireFormat) {
 			if (!getDefaultWireEncoding().isNull()
@@ -215,6 +218,47 @@ namespace net.named_data.jndn {
 			IncomingFaceId field = (lpPacket_ == null) ? null : net.named_data.jndn.lp.IncomingFaceId
 					.getFirstHeader(lpPacket_);
 			return (field == null) ? (long) (-1) : (long) (field.getFaceId());
+		}
+	
+		/// <summary>
+		/// Get the Data packet's full name, which includes the final
+		/// ImplicitSha256Digest component based on the wire encoding for a particular
+		/// wire format.
+		/// </summary>
+		///
+		/// <param name="wireFormat">A WireFormat object used to encode the Data packet.</param>
+		/// <returns>The full name. You must not change the Name object - if you need
+		/// to change it then make a copy.</returns>
+		public Name getFullName(WireFormat wireFormat) {
+			// The default full name depends on the default wire encoding.
+			if (!getDefaultWireEncoding().isNull() && defaultFullName_.size() > 0
+					&& getDefaultWireEncodingFormat() == wireFormat)
+				// We already have a full name. A non-null default wire encoding means
+				// that the Data packet fields have not changed.
+				return defaultFullName_;
+	
+			Name fullName = new Name(getName());
+			// wireEncode will use the cached encoding if possible.
+			fullName.appendImplicitSha256Digest(net.named_data.jndn.util.Common.digestSha256(wireEncode(
+					wireFormat).buf()));
+	
+			if (wireFormat == net.named_data.jndn.encoding.WireFormat.getDefaultWireFormat())
+				// wireEncode has already set defaultWireEncodingFormat_.
+				defaultFullName_ = fullName;
+	
+			return fullName;
+		}
+	
+		/// <summary>
+		/// Get the Data packet's full name, which includes the final
+		/// ImplicitSha256Digest component based on the wire encoding for the default
+		/// wire format.
+		/// </summary>
+		///
+		/// <returns>The full name. You must not change the Name objects - if you need
+		/// to change it then make a copy.</returns>
+		public Name getFullName() {
+			return getFullName(net.named_data.jndn.encoding.WireFormat.getDefaultWireFormat());
 		}
 	
 		/// <summary>
@@ -345,6 +389,7 @@ namespace net.named_data.jndn {
 		private Blob content_;
 		private LpPacket lpPacket_;
 		private SignedBlob defaultWireEncoding_;
+		private Name defaultFullName_;
 		private WireFormat defaultWireEncodingFormat_;
 		private long getDefaultWireEncodingChangeCount_;
 		private long changeCount_;

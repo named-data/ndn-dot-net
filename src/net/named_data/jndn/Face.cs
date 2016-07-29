@@ -139,6 +139,79 @@ namespace net.named_data.jndn {
 		}
 	
 		/// <summary>
+		/// Send the Interest through the transport, read the entire response and call
+		/// onData or onTimeout as described below.
+		/// </summary>
+		///
+		/// <param name="interest">The Interest to send.  This copies the Interest.</param>
+		/// <param name="onData">expressInterest and data is the received Data object. NOTE: You must not change the interest object - if you need to change it then make a copy. NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
+		/// <param name="onTimeout">interest given to expressInterest. If onTimeout is null, this does not use it. NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
+		/// <param name="wireFormat">A WireFormat object used to encode the message.</param>
+		/// <returns>The pending interest ID which can be used with
+		/// removePendingInterest.</returns>
+		/// <exception cref="IOException">For I/O error in sending the interest.</exception>
+		/// <exception cref="System.Exception">If the encoded interest size exceeds getMaxNdnPacketSize().</exception>
+		public long expressInterest(Interest interest, OnData onData,
+				OnTimeout onTimeout, WireFormat wireFormat) {
+			return expressInterest(interest, onData, onTimeout, null, wireFormat);
+		}
+	
+		/// <summary>
+		/// Send the Interest through the transport, read the entire response and call
+		/// onData or onTimeout as described below.
+		/// This uses the default WireFormat.getDefaultWireFormat().
+		/// </summary>
+		///
+		/// <param name="interest">The Interest to send.  This copies the Interest.</param>
+		/// <param name="onData">expressInterest and data is the received Data object. NOTE: You must not change the interest object - if you need to change it then make a copy. NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
+		/// <param name="onTimeout">interest given to expressInterest. If onTimeout is null, this does not use it. NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
+		/// <returns>The pending interest ID which can be used with
+		/// removePendingInterest.</returns>
+		/// <exception cref="IOException">For I/O error in sending the interest.</exception>
+		/// <exception cref="System.Exception">If the encoded interest size exceeds getMaxNdnPacketSize().</exception>
+		public long expressInterest(Interest interest, OnData onData,
+				OnTimeout onTimeout) {
+			return expressInterest(interest, onData, onTimeout,
+					net.named_data.jndn.encoding.WireFormat.getDefaultWireFormat());
+		}
+	
+		/// <summary>
+		/// Send the Interest through the transport, read the entire response and call
+		/// onData as described below.
+		/// Ignore if the interest times out.
+		/// </summary>
+		///
+		/// <param name="interest">The Interest to send.  This copies the Interest.</param>
+		/// <param name="onData">expressInterest and data is the received Data object. NOTE: You must not change the interest object - if you need to change it then make a copy. NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
+		/// <param name="wireFormat">A WireFormat object used to encode the message.</param>
+		/// <returns>The pending interest ID which can be used with
+		/// removePendingInterest.</returns>
+		/// <exception cref="IOException">For I/O error in sending the interest.</exception>
+		/// <exception cref="System.Exception">If the encoded interest size exceeds getMaxNdnPacketSize().</exception>
+		public long expressInterest(Interest interest, OnData onData,
+				WireFormat wireFormat) {
+			return expressInterest(interest, onData, null, wireFormat);
+		}
+	
+		/// <summary>
+		/// Send the Interest through the transport, read the entire response and call
+		/// onData as described below.
+		/// Ignore if the interest times out.
+		/// This uses the default WireFormat.getDefaultWireFormat().
+		/// </summary>
+		///
+		/// <param name="interest">The Interest to send.  This copies the Interest.</param>
+		/// <param name="onData">expressInterest and data is the received Data object. NOTE: You must not change the interest object - if you need to change it then make a copy. NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
+		/// <returns>The pending interest ID which can be used with
+		/// removePendingInterest.</returns>
+		/// <exception cref="IOException">For I/O error in sending the interest.</exception>
+		/// <exception cref="System.Exception">If the encoded interest size exceeds getMaxNdnPacketSize().</exception>
+		public long expressInterest(Interest interest, OnData onData) {
+			return expressInterest(interest, onData, null,
+					net.named_data.jndn.encoding.WireFormat.getDefaultWireFormat());
+		}
+	
+		/// <summary>
 		/// Encode name as an Interest. If interestTemplate is not null, use its
 		/// interest selectors.
 		/// Send the Interest through the transport, read the entire response and call
@@ -230,79 +303,6 @@ namespace net.named_data.jndn {
 		public long expressInterest(Name name, OnData onData, OnTimeout onTimeout,
 				OnNetworkNack onNetworkNack) {
 			return expressInterest(name, null, onData, onTimeout, onNetworkNack,
-					net.named_data.jndn.encoding.WireFormat.getDefaultWireFormat());
-		}
-	
-		/// <summary>
-		/// Send the Interest through the transport, read the entire response and call
-		/// onData or onTimeout as described below.
-		/// </summary>
-		///
-		/// <param name="interest">The Interest to send.  This copies the Interest.</param>
-		/// <param name="onData">expressInterest and data is the received Data object. NOTE: You must not change the interest object - if you need to change it then make a copy. NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
-		/// <param name="onTimeout">interest given to expressInterest. If onTimeout is null, this does not use it. NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
-		/// <param name="wireFormat">A WireFormat object used to encode the message.</param>
-		/// <returns>The pending interest ID which can be used with
-		/// removePendingInterest.</returns>
-		/// <exception cref="IOException">For I/O error in sending the interest.</exception>
-		/// <exception cref="System.Exception">If the encoded interest size exceeds getMaxNdnPacketSize().</exception>
-		public long expressInterest(Interest interest, OnData onData,
-				OnTimeout onTimeout, WireFormat wireFormat) {
-			return expressInterest(interest, onData, onTimeout, null, wireFormat);
-		}
-	
-		/// <summary>
-		/// Send the Interest through the transport, read the entire response and call
-		/// onData or onTimeout as described below.
-		/// This uses the default WireFormat.getDefaultWireFormat().
-		/// </summary>
-		///
-		/// <param name="interest">The Interest to send.  This copies the Interest.</param>
-		/// <param name="onData">expressInterest and data is the received Data object. NOTE: You must not change the interest object - if you need to change it then make a copy. NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
-		/// <param name="onTimeout">interest given to expressInterest. If onTimeout is null, this does not use it. NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
-		/// <returns>The pending interest ID which can be used with
-		/// removePendingInterest.</returns>
-		/// <exception cref="IOException">For I/O error in sending the interest.</exception>
-		/// <exception cref="System.Exception">If the encoded interest size exceeds getMaxNdnPacketSize().</exception>
-		public long expressInterest(Interest interest, OnData onData,
-				OnTimeout onTimeout) {
-			return expressInterest(interest, onData, onTimeout,
-					net.named_data.jndn.encoding.WireFormat.getDefaultWireFormat());
-		}
-	
-		/// <summary>
-		/// Send the Interest through the transport, read the entire response and call
-		/// onData as described below.
-		/// Ignore if the interest times out.
-		/// </summary>
-		///
-		/// <param name="interest">The Interest to send.  This copies the Interest.</param>
-		/// <param name="onData">expressInterest and data is the received Data object. NOTE: You must not change the interest object - if you need to change it then make a copy. NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
-		/// <param name="wireFormat">A WireFormat object used to encode the message.</param>
-		/// <returns>The pending interest ID which can be used with
-		/// removePendingInterest.</returns>
-		/// <exception cref="IOException">For I/O error in sending the interest.</exception>
-		/// <exception cref="System.Exception">If the encoded interest size exceeds getMaxNdnPacketSize().</exception>
-		public long expressInterest(Interest interest, OnData onData,
-				WireFormat wireFormat) {
-			return expressInterest(interest, onData, null, wireFormat);
-		}
-	
-		/// <summary>
-		/// Send the Interest through the transport, read the entire response and call
-		/// onData as described below.
-		/// Ignore if the interest times out.
-		/// This uses the default WireFormat.getDefaultWireFormat().
-		/// </summary>
-		///
-		/// <param name="interest">The Interest to send.  This copies the Interest.</param>
-		/// <param name="onData">expressInterest and data is the received Data object. NOTE: You must not change the interest object - if you need to change it then make a copy. NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
-		/// <returns>The pending interest ID which can be used with
-		/// removePendingInterest.</returns>
-		/// <exception cref="IOException">For I/O error in sending the interest.</exception>
-		/// <exception cref="System.Exception">If the encoded interest size exceeds getMaxNdnPacketSize().</exception>
-		public long expressInterest(Interest interest, OnData onData) {
-			return expressInterest(interest, onData, null,
 					net.named_data.jndn.encoding.WireFormat.getDefaultWireFormat());
 		}
 	
