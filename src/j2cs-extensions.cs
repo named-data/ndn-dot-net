@@ -112,6 +112,16 @@ namespace net.named_data.jndn.util {
     public static int 
     indexOf(this String str, char value, int startIndex) { return str.IndexOf(value, startIndex); }
 
+    public static bool
+    regionMatches(this String str, int thisOffset, string other, int otherOffset, int length)
+    { 
+      if (thisOffset + length > str.Length || otherOffset + length > other.Length)
+        // The length runs past the end of one or the other string.
+        return false;
+ 
+      return str.Substring(thisOffset, length) == other.Substring(otherOffset, length);
+    }
+
     public static string
     replace(this String str, string oldValue, string newValue) { return str.Replace(oldValue, newValue); }
 
