@@ -946,7 +946,7 @@ namespace net.named_data.jndn.security.policy {
 				for (int i_0 = 0; i_0 < keysToErase.Count; ++i_0)
 					ILOG.J2CsMapping.Collections.Collections.Remove(keyTimestamps_,keysToErase[i_0]);
 	
-				if (keyTimestamps_.Count > maxTrackedKeys_ && !oldestKey.Length == 0)
+				if (keyTimestamps_.Count > maxTrackedKeys_ && oldestKey.Length != 0)
 					// have not removed enough
 					ILOG.J2CsMapping.Collections.Collections.Remove(keyTimestamps_,oldestKey);
 			}
