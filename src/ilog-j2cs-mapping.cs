@@ -82,6 +82,33 @@ namespace ILOG.J2CsMapping.Collections {
     RemoveAt(IList list, int index) { list.RemoveAt(index); }
 
     public static IList synchronizedList(IList list) { return list; }
+
+    public static Object[]
+    ToArray(ICollection collection)
+    { 
+      var result = new Object[collection.Count];
+      collection.CopyTo(result, 0);
+      return result;
+    }
+  }
+
+  public class ListSet : ArrayList {
+    public ListSet(ICollection collection)
+      : base(toListSet(collection))
+    {
+    }
+
+    private static ICollection toListSet(ICollection collection) 
+    { 
+      var hashSet = new System.Collections.Generic.HashSet<object>();
+      foreach (var obj in collection)
+        hashSet.Add(obj);
+
+      var result = new ArrayList();
+      foreach (var obj in hashSet)
+        result.Add(obj);
+      return result;
+    }
   }
 }
 
