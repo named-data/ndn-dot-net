@@ -92,6 +92,10 @@ namespace net.named_data.jndn.util {
     public static void 
     clear(this Hashtable map) { map.Clear(); }
 
+    // FileInfo extensions.
+    public static FileInfo[] 
+    listFiles(this FileInfo fileInfo) { return new DirectoryInfo(fileInfo.FullName).GetFiles(); }
+
     // Random extensions.
     public static void
     nextBytes(this Random random, byte[] array) { random.NextBytes(array); }
