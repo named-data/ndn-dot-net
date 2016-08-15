@@ -479,13 +479,15 @@ namespace ILOG.J2CsMapping.Text {
     }
 
     public int
-    start(int groupNumber) { return match_.Groups[groupNumber].Index; }
+    start(int groupNumber = 0) { return match_.Groups[groupNumber].Index; }
 
     public int
-    end(int groupNumber) 
+    end(int groupNumber = 0) 
     { 
       return match_.Groups[groupNumber].Index + match_.Groups[groupNumber].Length; 
     }
+
+    public int groupCount() { return match_.Groups.Count; }
 
     public string
     Group(int groupNumber) { return match_.Groups[groupNumber].Value; }
