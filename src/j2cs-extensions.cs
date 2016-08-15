@@ -162,6 +162,13 @@ namespace net.named_data.jndn.util {
 
     public static string 
     toString(this StringBuilder builder) { return builder.ToString(); }
+
+    // TextReader extensions.
+    public static void 
+    close(this TextReader reader) { reader.Close(); }
+
+    public static string 
+    readLine(this TextReader reader) { return reader.ReadLine(); }
   }
 
   // We need a generic version of ArrayList.
@@ -177,6 +184,10 @@ namespace net.named_data.jndn.util {
 
   public class BufferUnderflowException : Exception {
     public BufferUnderflowException(string message) : base(message) {}
+  }
+
+  public class FileReader : StreamReader {
+    public FileReader(string filename) : base(filename) {}
   }
 
   public class InvalidKeyException : Exception {
