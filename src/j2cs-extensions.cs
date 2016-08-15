@@ -100,6 +100,16 @@ namespace net.named_data.jndn.util {
     public static void
     nextBytes(this Random random, byte[] array) { random.NextBytes(array); }
 
+    // StreamWriter extensions.
+    public static void 
+    close(this StreamWriter writer) { writer.Close(); }
+
+    public static void 
+    flush(this StreamWriter writer) { writer.Flush(); }
+
+    public static void 
+    write(this StreamWriter writer, string value) { writer.Write(value); }
+
     // String extensions.
     public static bool 
     contains(this String str, string value) { return str.Contains(value); }
