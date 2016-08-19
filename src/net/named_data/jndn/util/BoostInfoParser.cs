@@ -66,7 +66,7 @@ namespace net.named_data.jndn.util {
 		///
 		/// <param name="fileName">The output path.</param>
 		public void write(String fileName) {
-      StreamWriter writer = new StreamWriter(fileName);
+			var writer = (new StreamWriter(fileName));
 			try {
 				writer.write("" + root_);
 				writer.flush();

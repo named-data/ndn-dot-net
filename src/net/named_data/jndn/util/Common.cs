@@ -45,7 +45,7 @@ namespace net.named_data.jndn.util {
 		/// <see cref="M:Net.Named_data.Jndn.Util.Common.SetRandom(System.Random)"/>
 		///  or (by default) a SecureRandom</returns>
 		[MethodImpl(MethodImplOptions.Synchronized)]
-		public static SecureRandom getRandom() {
+    public static SecureRandom getRandom() {
 			if (randomNumberGenerator_ == null) {
 				setRandom(new SecureRandom());
 			}
@@ -61,7 +61,7 @@ namespace net.named_data.jndn.util {
 		/// <param name="randomNumberGenerator">the random number generator</param>
 		/// <exception cref="System.NotSupportedException">if a user attempts to set the generator a second time</exception>
 		[MethodImpl(MethodImplOptions.Synchronized)]
-		public static void setRandom(SecureRandom randomNumberGenerator) {
+    public static void setRandom(SecureRandom randomNumberGenerator) {
 			if (randomNumberGenerator_ == null) {
 				randomNumberGenerator_ = randomNumberGenerator;
 			} else {
@@ -88,6 +88,25 @@ namespace net.named_data.jndn.util {
 			int savePosition = data.position();
 			sha256.update(data);
 			data.position(savePosition);
+			return sha256.Hash;
+		}
+	
+		/// <summary>
+		/// Compute the sha-256 digest of data.
+		/// </summary>
+		///
+		/// <param name="data">The input byte buffer.</param>
+		/// <returns>The digest.</returns>
+		public static byte[] digestSha256(byte[] data) {
+			SecuritySHA256 sha256;
+			try {
+				sha256 = System.Security.Cryptography.SecuritySHA256.Create();
+			} catch (Exception exception) {
+				// Don't expect this to happen.
+				throw new Exception("MessageDigest: SHA-256 is not supported: "
+						+ exception.Message);
+			}
+			sha256.update(data);
 			return sha256.Hash;
 		}
 	
@@ -241,6 +260,6 @@ namespace net.named_data.jndn.util {
 	
 		private static Common.Base64ConverterType  base64ConverterType_ = net.named_data.jndn.util.Common.Base64ConverterType.UNINITIALIZED;
 		private static Type base64Converter_ = null;
-		private static SecureRandom randomNumberGenerator_;
+    private static SecureRandom randomNumberGenerator_;
 	}
 }
