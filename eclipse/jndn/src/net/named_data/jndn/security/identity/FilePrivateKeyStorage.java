@@ -25,6 +25,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.File;
 import java.io.FileWriter;
+import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.security.InvalidKeyException;
 import java.security.KeyFactory;
@@ -94,7 +95,7 @@ public class FilePrivateKeyStorage extends PrivateKeyStorage {
   public static String
   getDefaultDirecoryPath(File filesRoot)
   {
-    return getDefaultDirecoryPath(filesRoot.getAbsolutePath());
+    return getDefaultDirecoryPath(filesRoot.getPath());
   }
 
   /**
@@ -106,7 +107,7 @@ public class FilePrivateKeyStorage extends PrivateKeyStorage {
   getDefaultDirecoryPath(String filesRoot)
   {
     // NOTE: Use File because java.nio.file.Path is not available before Java 7.
-    return new File(new File(filesRoot, ".ndn"), "ndnsec-tpm-file").getAbsolutePath();
+    return new File(new File(filesRoot, ".ndn"), "ndnsec-tpm-file").getPath();
   }
 
   /**
@@ -447,18 +448,13 @@ public class FilePrivateKeyStorage extends PrivateKeyStorage {
   private File
   nameTransform(String keyName, String extension) throws SecurityException
   {
-    MessageDigest sha256;
+    byte[] hash;
     try {
-      sha256 = MessageDigest.getInstance("SHA-256");
+      hash = Common.digestSha256(keyName.getBytes("UTF-8"));
+    } catch (UnsupportedEncodingException ex) {
+      // We don't expect this to happen.
+      throw new Error("UTF-8 encoder not supported: " + ex.getMessage());
     }
-    catch (NoSuchAlgorithmException exception) {
-      // Don't expect this to happen.
-      throw new Error
-        ("MessageDigest: SHA-256 is not supported: " + exception.getMessage());
-    }
-    sha256.update(keyName.getBytes());
-    byte[] hash = sha256.digest();
-
     String digest = Common.base64Encode(hash);
     digest = digest.replace('/', '%');
 
@@ -480,7 +476,7 @@ public class FilePrivateKeyStorage extends PrivateKeyStorage {
 
     try{
       BufferedWriter writer = new BufferedWriter
-        (new FileWriter(mappingFilePath, true));
+        (new FileWriter(mappingFilePath.getPath(), true));
       try {
         writer.write(keyName + ' ' + keyFilePathNoExtension + '\n');
         writer.flush();
@@ -549,7 +545,7 @@ public class FilePrivateKeyStorage extends PrivateKeyStorage {
     StringBuilder contents = new StringBuilder();
     try{
       BufferedReader reader = new BufferedReader
-        (new FileReader(nameTransform(keyName.toUri(), extension)));
+        (new FileReader(nameTransform(keyName.toUri(), extension).getPath()));
       // Use "try/finally instead of "try-with-resources" or "using"
       // which are not supported before Java 7.
       try {

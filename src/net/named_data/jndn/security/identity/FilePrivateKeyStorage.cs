@@ -16,7 +16,6 @@ namespace net.named_data.jndn.security.identity {
 	using System.ComponentModel;
 	using System.IO;
 	using System.Runtime.CompilerServices;
-	using System.Security.Cryptography;
 	using System.Text;
 	using System.spec;
 	using javax.crypto;
@@ -62,7 +61,7 @@ namespace net.named_data.jndn.security.identity {
 		/// <param name="filesRoot"></param>
 		/// <returns>The default directory path.</returns>
 		public static String getDefaultDirecoryPath(FileInfo filesRoot) {
-			return getDefaultDirecoryPath(filesRoot.FullName);
+			return getDefaultDirecoryPath(System.IO.Path.GetFullPath(filesRoot.Name));
 		}
 	
 		/// <summary>
@@ -73,7 +72,7 @@ namespace net.named_data.jndn.security.identity {
 		/// <returns>The default directory path.</returns>
 		public static String getDefaultDirecoryPath(String filesRoot) {
 			// NOTE: Use File because java.nio.file.Path is not available before Java 7.
-			return new FileInfo(System.IO.Path.Combine(new FileInfo(filesRoot+".ndn").FullName,"ndnsec-tpm-file")).FullName;
+			return System.IO.Path.GetFullPath(new FileInfo(System.IO.Path.Combine(new FileInfo(filesRoot+".ndn").FullName,"ndnsec-tpm-file")).Name);
 		}
 	
 		/// <summary>
@@ -174,7 +173,8 @@ namespace net.named_data.jndn.security.identity {
 				IList pkcs8Children = parsedNode.getChildren();
 				IList algorithmIdChildren = net.named_data.jndn.encoding.der.DerNode.getSequence(pkcs8Children, 1)
 						.getChildren();
-        oidString = "" + ((DerNode.DerOid) algorithmIdChildren[0]).toVal();
+				oidString = ""
+						+ ((DerNode.DerOid) algorithmIdChildren[0]).toVal();
 			} catch (DerDecodingException ex) {
 				throw new SecurityException(
 						"Cannot decode the PKCS #8 private key: " + ex);
@@ -393,17 +393,13 @@ namespace net.named_data.jndn.security.identity {
 		/// <returns>The hashed file path.</returns>
 		/// <exception cref="System.Security.SecurityException"></exception>
 		private FileInfo nameTransform(String keyName, String extension) {
-			MD5 sha256;
+			byte[] hash;
 			try {
-				sha256 = System.Security.Cryptography.MD5.Create();
-			} catch (Exception exception) {
-				// Don't expect this to happen.
-				throw new Exception("MessageDigest: SHA-256 is not supported: "
-						+ exception.Message);
+				hash = net.named_data.jndn.util.Common.digestSha256(ILOG.J2CsMapping.Util.StringUtil.GetBytes(keyName,"UTF-8"));
+			} catch (IOException ex) {
+				// We don't expect this to happen.
+				throw new Exception("UTF-8 encoder not supported: " + ex.Message);
 			}
-      sha256.ComputeHash(ILOG.J2CsMapping.Util.StringUtil.GetBytes(keyName, "UTF-8"));
-			byte[] hash = sha256.Hash;
-	
 			String digest = net.named_data.jndn.util.Common.base64Encode(hash);
 			digest = digest.replace('/', '%');
 	
@@ -423,8 +419,8 @@ namespace net.named_data.jndn.security.identity {
 			FileInfo mappingFilePath = new FileInfo(System.IO.Path.Combine(keyStorePath_.FullName,"mapping.txt"));
 	
 			try {
-        StreamWriter writer = (new StreamWriter(
-						mappingFilePath.FullName, true));
+				var writer = (new StreamWriter(
+						System.IO.Path.GetFullPath(mappingFilePath.Name), true));
 				try {
 					writer.write(keyName + ' ' + keyFilePathNoExtension + '\n');
 					writer.flush();
@@ -490,7 +486,8 @@ namespace net.named_data.jndn.security.identity {
 			String extension = (String) ILOG.J2CsMapping.Collections.Collections.Get(keyTypeMap_,keyClass);
 			StringBuilder contents = new StringBuilder();
 			try {
-				TextReader reader = new System.IO.StreamReader(nameTransform(keyName.toUri(), extension).OpenWrite());
+				TextReader reader = new FileReader(
+									System.IO.Path.GetFullPath(nameTransform(keyName.toUri(), extension).Name));
 				// Use "try/finally instead of "try-with-resources" or "using"
 				// which are not supported before Java 7.
 				try {
