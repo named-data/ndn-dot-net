@@ -174,8 +174,7 @@ namespace net.named_data.jndn.security.identity {
 				IList pkcs8Children = parsedNode.getChildren();
 				IList algorithmIdChildren = net.named_data.jndn.encoding.der.DerNode.getSequence(pkcs8Children, 1)
 						.getChildren();
-				oidString = ""
-						+ ((DerNode.DerOid) algorithmIdChildren[0]).toVal();
+        oidString = "" + ((DerNode.DerOid) algorithmIdChildren[0]).toVal();
 			} catch (DerDecodingException ex) {
 				throw new SecurityException(
 						"Cannot decode the PKCS #8 private key: " + ex);
@@ -402,7 +401,7 @@ namespace net.named_data.jndn.security.identity {
 				throw new Exception("MessageDigest: SHA-256 is not supported: "
 						+ exception.Message);
 			}
-			sha256.ComputeHash(ILOG.J2CsMapping.Util.StringUtil.GetBytes(keyName));
+      sha256.ComputeHash(ILOG.J2CsMapping.Util.StringUtil.GetBytes(keyName, "UTF-8"));
 			byte[] hash = sha256.Hash;
 	
 			String digest = net.named_data.jndn.util.Common.base64Encode(hash);
@@ -424,8 +423,8 @@ namespace net.named_data.jndn.security.identity {
 			FileInfo mappingFilePath = new FileInfo(System.IO.Path.Combine(keyStorePath_.FullName,"mapping.txt"));
 	
 			try {
-				BufferedStream writer = new BufferedStream(new StreamWriter(
-						mappingFilePath, true));
+        StreamWriter writer = (new StreamWriter(
+						mappingFilePath.FullName, true));
 				try {
 					writer.write(keyName + ' ' + keyFilePathNoExtension + '\n');
 					writer.flush();
@@ -459,7 +458,7 @@ namespace net.named_data.jndn.security.identity {
 				else
 					filePath = System.IO.Path.GetFullPath(nameTransform(keyName.toUri(), extension).Name);
 	
-				BufferedStream writer = new BufferedStream(new StreamWriter(filePath));
+				var writer = (new StreamWriter(filePath));
 				try {
 					String base64Data = net.named_data.jndn.util.Common.base64Encode(data);
 					writer.Write(base64Data,0,base64Data.Substring(0,base64Data.Length));
