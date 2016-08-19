@@ -93,6 +93,9 @@ namespace net.named_data.jndn.util {
     clear(this Hashtable map) { map.Clear(); }
 
     // FileInfo extensions.
+    public static void 
+    delete(this FileInfo fileInfo) { fileInfo.Delete(); }
+
     public static FileInfo[] 
     listFiles(this FileInfo fileInfo) { return new DirectoryInfo(fileInfo.FullName).GetFiles(); }
 
@@ -138,6 +141,9 @@ namespace net.named_data.jndn.util {
 
     public static string
     replace(this String str, string oldValue, string newValue) { return str.Replace(oldValue, newValue); }
+
+    public static string
+    replace(this String str, char oldValue, char newValue) { return str.Replace(oldValue, newValue); }
 
     public static string[]
     split(this String str, string regex) { return Regex.Split(str, regex); }
