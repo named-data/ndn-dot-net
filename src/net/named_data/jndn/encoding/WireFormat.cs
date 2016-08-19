@@ -40,10 +40,23 @@ namespace net.named_data.jndn.encoding {
 		/// </summary>
 		///
 		/// <param name="name">The Name object whose fields are updated.</param>
+		/// <param name="copy">unchanged while the Blob values are used.</param>
 		/// <param name="input"></param>
 		/// <exception cref="EncodingException">For invalid encoding.</exception>
-		public virtual void decodeName(Name name, ByteBuffer input) {
+		public virtual void decodeName(Name name, ByteBuffer input, bool copy) {
 			throw new NotSupportedException("decodeName is not implemented");
+		}
+	
+		/// <summary>
+		/// Decode input as a name and set the fields of the Name object. Copy from the
+		/// input when making new Blob values. Your derived class should override.
+		/// </summary>
+		///
+		/// <param name="name">The Name object whose fields are updated.</param>
+		/// <param name="input"></param>
+		/// <exception cref="EncodingException">For invalid encoding.</exception>
+		public void decodeName(Name name, ByteBuffer input) {
+			decodeName(name, input, true);
 		}
 	
 		/// <summary>
@@ -83,12 +96,32 @@ namespace net.named_data.jndn.encoding {
 		/// <param name="input"></param>
 		/// <param name="signedPortionBeginOffset">name component and ends just before the final name component (which is assumed to be a signature for a signed interest). If you are not decoding in order to verify, you can call decodeInterest(Interest interest, ByteBuffer input) to ignore this returned value.</param>
 		/// <param name="signedPortionEndOffset">name component and ends just before the final name component (which is assumed to be a signature for a signed interest). If you are not decoding in order to verify, you can call decodeInterest(Interest interest, ByteBuffer input) to ignore this returned value.</param>
+		/// <param name="copy">unchanged while the Blob values are used.</param>
 		/// <exception cref="System.NotSupportedException">for unimplemented if the derivedclass does not override.</exception>
 		/// <exception cref="EncodingException">For invalid encoding.</exception>
 		public virtual void decodeInterest(Interest interest, ByteBuffer input,
-				int[] signedPortionBeginOffset, int[] signedPortionEndOffset) {
+				int[] signedPortionBeginOffset, int[] signedPortionEndOffset,
+				bool copy) {
 			throw new NotSupportedException(
 					"decodeInterest is not implemented");
+		}
+	
+		/// <summary>
+		/// Decode input as an interest and set the fields of the interest object.
+		/// Copy from the input when making new Blob values. Your derived class should
+		/// override.
+		/// </summary>
+		///
+		/// <param name="interest">The Interest object whose fields are updated.</param>
+		/// <param name="input"></param>
+		/// <param name="signedPortionBeginOffset">name component and ends just before the final name component (which is assumed to be a signature for a signed interest). If you are not decoding in order to verify, you can call decodeInterest(Interest interest, ByteBuffer input) to ignore this returned value.</param>
+		/// <param name="signedPortionEndOffset">name component and ends just before the final name component (which is assumed to be a signature for a signed interest). If you are not decoding in order to verify, you can call decodeInterest(Interest interest, ByteBuffer input) to ignore this returned value.</param>
+		/// <exception cref="System.NotSupportedException">for unimplemented if the derivedclass does not override.</exception>
+		/// <exception cref="EncodingException">For invalid encoding.</exception>
+		public void decodeInterest(Interest interest, ByteBuffer input,
+				int[] signedPortionBeginOffset, int[] signedPortionEndOffset) {
+			decodeInterest(interest, input, signedPortionBeginOffset,
+					signedPortionEndOffset, true);
 		}
 	
 		/// <summary>
@@ -98,10 +131,26 @@ namespace net.named_data.jndn.encoding {
 		///
 		/// <param name="interest">The Interest object whose fields are updated.</param>
 		/// <param name="input"></param>
+		/// <param name="copy">unchanged while the Blob values are used.</param>
+		/// <exception cref="System.NotSupportedException">for unimplemented if the derivedclass does not override.</exception>
+		/// <exception cref="EncodingException">For invalid encoding.</exception>
+		public void decodeInterest(Interest interest, ByteBuffer input,
+				bool copy) {
+			decodeInterest(interest, input, new int[1], new int[1], copy);
+		}
+	
+		/// <summary>
+		/// Decode input as an interest and set the fields of the interest object.
+		/// Copy from the input when making new Blob values. Your derived class should
+		/// override.
+		/// </summary>
+		///
+		/// <param name="interest">The Interest object whose fields are updated.</param>
+		/// <param name="input"></param>
 		/// <exception cref="System.NotSupportedException">for unimplemented if the derivedclass does not override.</exception>
 		/// <exception cref="EncodingException">For invalid encoding.</exception>
 		public void decodeInterest(Interest interest, ByteBuffer input) {
-			decodeInterest(interest, input, new int[1], new int[1]);
+			decodeInterest(interest, input, new int[1], new int[1], true);
 		}
 	
 		/// <summary>
@@ -138,11 +187,31 @@ namespace net.named_data.jndn.encoding {
 		/// <param name="input"></param>
 		/// <param name="signedPortionBeginOffset">If you are not decoding in order to verify, you can call decodeData(data, input) to ignore this returned value.</param>
 		/// <param name="signedPortionEndOffset">setting signedPortionEndOffset[0]. If you are not decoding in order to verify, you can call decodeData(data, input) to ignore this returned value.</param>
+		/// <param name="copy">unchanged while the Blob values are used.</param>
 		/// <exception cref="System.NotSupportedException">for unimplemented if the derivedclass does not override.</exception>
 		/// <exception cref="EncodingException">For invalid encoding.</exception>
 		public virtual void decodeData(Data data, ByteBuffer input,
-				int[] signedPortionBeginOffset, int[] signedPortionEndOffset) {
+				int[] signedPortionBeginOffset, int[] signedPortionEndOffset,
+				bool copy) {
 			throw new NotSupportedException("decodeData is not implemented");
+		}
+	
+		/// <summary>
+		/// Decode input as a data packet and set the fields in the data object. Copy 
+		/// from the input when making new Blob values. Your derived class should
+		/// override.
+		/// </summary>
+		///
+		/// <param name="data">The Data object whose fields are updated.</param>
+		/// <param name="input"></param>
+		/// <param name="signedPortionBeginOffset">If you are not decoding in order to verify, you can call decodeData(data, input) to ignore this returned value.</param>
+		/// <param name="signedPortionEndOffset">setting signedPortionEndOffset[0]. If you are not decoding in order to verify, you can call decodeData(data, input) to ignore this returned value.</param>
+		/// <exception cref="System.NotSupportedException">for unimplemented if the derivedclass does not override.</exception>
+		/// <exception cref="EncodingException">For invalid encoding.</exception>
+		public void decodeData(Data data, ByteBuffer input,
+				int[] signedPortionBeginOffset, int[] signedPortionEndOffset) {
+			decodeData(data, input, signedPortionBeginOffset,
+					signedPortionEndOffset, true);
 		}
 	
 		/// <summary>
@@ -152,10 +221,25 @@ namespace net.named_data.jndn.encoding {
 		///
 		/// <param name="data">The Data object whose fields are updated.</param>
 		/// <param name="input"></param>
+		/// <param name="copy">unchanged while the Blob values are used.</param>
+		/// <exception cref="System.NotSupportedException">for unimplemented if the derivedclass does not override.</exception>
+		/// <exception cref="EncodingException">For invalid encoding.</exception>
+		public void decodeData(Data data, ByteBuffer input, bool copy) {
+			decodeData(data, input, new int[1], new int[1], copy);
+		}
+	
+		/// <summary>
+		/// Decode input as a data packet and set the fields in the data object. Copy
+		/// from the input when making new Blob values.  Your derived class should
+		/// override.
+		/// </summary>
+		///
+		/// <param name="data">The Data object whose fields are updated.</param>
+		/// <param name="input"></param>
 		/// <exception cref="System.NotSupportedException">for unimplemented if the derivedclass does not override.</exception>
 		/// <exception cref="EncodingException">For invalid encoding.</exception>
 		public void decodeData(Data data, ByteBuffer input) {
-			decodeData(data, input, new int[1], new int[1]);
+			decodeData(data, input, new int[1], new int[1], true);
 		}
 	
 		/// <summary>
@@ -178,12 +262,28 @@ namespace net.named_data.jndn.encoding {
 		///
 		/// <param name="controlParameters"></param>
 		/// <param name="input"></param>
+		/// <param name="copy">unchanged while the Blob values are used.</param>
 		/// <exception cref="System.NotSupportedException">for unimplemented if the derivedclass does not override.</exception>
 		/// <exception cref="EncodingException">For invalid encoding.</exception>
 		public virtual void decodeControlParameters(ControlParameters controlParameters,
-				ByteBuffer input) {
+				ByteBuffer input, bool copy) {
 			throw new NotSupportedException(
 					"decodeControlParameters is not implemented");
+		}
+	
+		/// <summary>
+		/// Decode input as a control parameters and set the fields of the
+		/// controlParameters object. Copy from the input when making new Blob values.
+		/// Your derived class should override.
+		/// </summary>
+		///
+		/// <param name="controlParameters"></param>
+		/// <param name="input"></param>
+		/// <exception cref="System.NotSupportedException">for unimplemented if the derivedclass does not override.</exception>
+		/// <exception cref="EncodingException">For invalid encoding.</exception>
+		public void decodeControlParameters(
+				ControlParameters controlParameters, ByteBuffer input) {
+			decodeControlParameters(controlParameters, input, true);
 		}
 	
 		/// <summary>
@@ -206,12 +306,28 @@ namespace net.named_data.jndn.encoding {
 		///
 		/// <param name="controlResponse"></param>
 		/// <param name="input"></param>
+		/// <param name="copy">unchanged while the Blob values are used.</param>
 		/// <exception cref="System.NotSupportedException">for unimplemented if the derivedclass does not override.</exception>
 		/// <exception cref="EncodingException">For invalid encoding.</exception>
 		public virtual void decodeControlResponse(ControlResponse controlResponse,
-				ByteBuffer input) {
+				ByteBuffer input, bool copy) {
 			throw new NotSupportedException(
 					"decodeControlResponse is not implemented");
+		}
+	
+		/// <summary>
+		/// Decode input as a control parameters and set the fields of the
+		/// controlResponse object. Copy from the input when making new Blob values.
+		/// Your derived class should override.
+		/// </summary>
+		///
+		/// <param name="controlResponse"></param>
+		/// <param name="input"></param>
+		/// <exception cref="System.NotSupportedException">for unimplemented if the derivedclass does not override.</exception>
+		/// <exception cref="EncodingException">For invalid encoding.</exception>
+		public void decodeControlResponse(ControlResponse controlResponse,
+				ByteBuffer input) {
+			decodeControlResponse(controlResponse, input, true);
 		}
 	
 		/// <summary>
@@ -235,13 +351,31 @@ namespace net.named_data.jndn.encoding {
 		///
 		/// <param name="signatureInfo"></param>
 		/// <param name="signatureValue"></param>
+		/// <param name="copy">unchanged while the Blob values are used.</param>
 		/// <returns>A new object which is a subclass of Signature.</returns>
 		/// <exception cref="System.NotSupportedException">for unimplemented if the derivedclass does not override.</exception>
 		/// <exception cref="EncodingException">For invalid encoding.</exception>
 		public virtual Signature decodeSignatureInfoAndValue(ByteBuffer signatureInfo,
-				ByteBuffer signatureValue) {
+				ByteBuffer signatureValue, bool copy) {
 			throw new NotSupportedException(
 					"decodeSignatureInfoAndValue is not implemented");
+		}
+	
+		/// <summary>
+		/// Decode signatureInfo as a signature info and signatureValue as the related
+		/// SignatureValue, and return a new object which is a subclass of Signature.
+		/// Copy from the input when making new Blob values. Your derived class should
+		/// override.
+		/// </summary>
+		///
+		/// <param name="signatureInfo"></param>
+		/// <param name="signatureValue"></param>
+		/// <returns>A new object which is a subclass of Signature.</returns>
+		/// <exception cref="System.NotSupportedException">for unimplemented if the derivedclass does not override.</exception>
+		/// <exception cref="EncodingException">For invalid encoding.</exception>
+		public Signature decodeSignatureInfoAndValue(
+				ByteBuffer signatureInfo, ByteBuffer signatureValue) {
+			return decodeSignatureInfoAndValue(signatureInfo, signatureValue, true);
 		}
 	
 		/// <summary>
@@ -265,11 +399,26 @@ namespace net.named_data.jndn.encoding {
 		///
 		/// <param name="lpPacket">The LpPacket object whose fields are updated.</param>
 		/// <param name="input"></param>
+		/// <param name="copy">unchanged while the Blob values are used.</param>
 		/// <exception cref="EncodingException">For invalid encoding.</exception>
 		/// <exception cref="System.NotSupportedException">for unimplemented if the derivedclass does not override.</exception>
-		public virtual void decodeLpPacket(LpPacket lpPacket, ByteBuffer input) {
+		public virtual void decodeLpPacket(LpPacket lpPacket, ByteBuffer input, bool copy) {
 			throw new NotSupportedException(
 					"decodeLpPacket is not implemented");
+		}
+	
+		/// <summary>
+		/// Decode input as an LpPacket and set the fields of the lpPacket object. Copy 
+		/// from the input when making new Blob values. Your derived class should
+		/// override.
+		/// </summary>
+		///
+		/// <param name="lpPacket">The LpPacket object whose fields are updated.</param>
+		/// <param name="input"></param>
+		/// <exception cref="EncodingException">For invalid encoding.</exception>
+		/// <exception cref="System.NotSupportedException">for unimplemented if the derivedclass does not override.</exception>
+		public void decodeLpPacket(LpPacket lpPacket, ByteBuffer input) {
+			decodeLpPacket(lpPacket, input, true);
 		}
 	
 		/// <summary>
@@ -292,12 +441,28 @@ namespace net.named_data.jndn.encoding {
 		///
 		/// <param name="delegationSet">The DelegationSet object whose fields are updated.</param>
 		/// <param name="input"></param>
+		/// <param name="copy">unchanged while the Blob values are used.</param>
 		/// <exception cref="System.NotSupportedException">for unimplemented if the derivedclass does not override.</exception>
 		/// <exception cref="EncodingException">For invalid encoding.</exception>
 		public virtual void decodeDelegationSet(DelegationSet delegationSet,
-				ByteBuffer input) {
+				ByteBuffer input, bool copy) {
 			throw new NotSupportedException(
 					"decodeDelegationSet is not implemented");
+		}
+	
+		/// <summary>
+		/// Decode input as a delegation set and set the fields of the
+		/// delegationSet object. Copy from the input when making new Blob values. Your
+		/// derived class should override.
+		/// </summary>
+		///
+		/// <param name="delegationSet">The DelegationSet object whose fields are updated.</param>
+		/// <param name="input"></param>
+		/// <exception cref="System.NotSupportedException">for unimplemented if the derivedclass does not override.</exception>
+		/// <exception cref="EncodingException">For invalid encoding.</exception>
+		public void decodeDelegationSet(DelegationSet delegationSet,
+				ByteBuffer input) {
+			decodeDelegationSet(delegationSet, input, true);
 		}
 	
 		/// <summary>
@@ -320,12 +485,28 @@ namespace net.named_data.jndn.encoding {
 		///
 		/// <param name="encryptedContent"></param>
 		/// <param name="input"></param>
+		/// <param name="copy">unchanged while the Blob values are used.</param>
 		/// <exception cref="EncodingException">For invalid encoding.</exception>
 		/// <exception cref="System.NotSupportedException">for unimplemented if the derivedclass does not override.</exception>
 		public virtual void decodeEncryptedContent(EncryptedContent encryptedContent,
-				ByteBuffer input) {
+				ByteBuffer input, bool copy) {
 			throw new NotSupportedException(
 					"decodeEncryptedContent is not implemented");
+		}
+	
+		/// <summary>
+		/// Decode input as an EncryptedContent and set the fields of the
+		/// encryptedContent object. Copy from the input when making new Blob values.
+		/// Your derived class should override.
+		/// </summary>
+		///
+		/// <param name="encryptedContent"></param>
+		/// <param name="input"></param>
+		/// <exception cref="EncodingException">For invalid encoding.</exception>
+		/// <exception cref="System.NotSupportedException">for unimplemented if the derivedclass does not override.</exception>
+		public void decodeEncryptedContent(EncryptedContent encryptedContent,
+				ByteBuffer input) {
+			decodeEncryptedContent(encryptedContent, input, true);
 		}
 	
 		/// <summary>

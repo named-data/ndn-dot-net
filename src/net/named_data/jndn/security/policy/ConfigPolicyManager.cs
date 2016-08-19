@@ -882,7 +882,7 @@ namespace net.named_data.jndn.security.policy {
 			try {
 				return wireFormat.decodeSignatureInfoAndValue(interest.getName()
 						.get(-2).getValue().buf(), interest.getName().get(-1)
-						.getValue().buf());
+						.getValue().buf(), false);
 			} catch (EncodingException ex) {
 				return null;
 			}
@@ -946,7 +946,8 @@ namespace net.named_data.jndn.security.policy {
 				for (int i_0 = 0; i_0 < keysToErase.Count; ++i_0)
 					ILOG.J2CsMapping.Collections.Collections.Remove(keyTimestamps_,keysToErase[i_0]);
 	
-				if (keyTimestamps_.Count > maxTrackedKeys_ && oldestKey.Length != 0)
+				if (keyTimestamps_.Count > maxTrackedKeys_
+						&& oldestKey.Length != 0)
 					// have not removed enough
 					ILOG.J2CsMapping.Collections.Collections.Remove(keyTimestamps_,oldestKey);
 			}

@@ -144,7 +144,7 @@ namespace net.named_data.jndn.security.policy {
 			try {
 				signature = wireFormat.decodeSignatureInfoAndValue(interest
 						.getName().get(-2).getValue().buf(), interest.getName()
-						.get(-1).getValue().buf());
+						.get(-1).getValue().buf(), false);
 			} catch (EncodingException ex) {
 				logger_.log(
 						ILOG.J2CsMapping.Util.Logging.Level.INFO,

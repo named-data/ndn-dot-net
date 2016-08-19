@@ -99,7 +99,7 @@ namespace net.named_data.jndn {
 		/// <param name="wireFormat">A WireFormat object used to decode the input.</param>
 		/// <exception cref="EncodingException">For invalid encoding.</exception>
 		public void wireDecode(ByteBuffer input, WireFormat wireFormat) {
-			wireFormat.decodeControlParameters(this, input);
+			wireFormat.decodeControlParameters(this, input, true);
 		}
 	
 		/// <summary>
@@ -121,7 +121,7 @@ namespace net.named_data.jndn {
 		/// <param name="wireFormat">A WireFormat object used to decode the input.</param>
 		/// <exception cref="EncodingException">For invalid encoding.</exception>
 		public void wireDecode(Blob input, WireFormat wireFormat) {
-			wireDecode(input.buf(), wireFormat);
+			wireFormat.decodeControlParameters(this, input.buf(), false);
 		}
 	
 		/// <summary>

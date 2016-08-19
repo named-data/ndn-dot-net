@@ -174,8 +174,8 @@ namespace net.named_data.jndn.security.identity {
 				IList pkcs8Children = parsedNode.getChildren();
 				IList algorithmIdChildren = net.named_data.jndn.encoding.der.DerNode.getSequence(pkcs8Children, 1)
 						.getChildren();
-				oidString = ((DerNode.DerOid) algorithmIdChildren[0]).toVal()
-						.toString();
+				oidString = ""
+						+ ((DerNode.DerOid) algorithmIdChildren[0]).toVal();
 			} catch (DerDecodingException ex) {
 				throw new SecurityException(
 						"Cannot decode the PKCS #8 private key: " + ex);

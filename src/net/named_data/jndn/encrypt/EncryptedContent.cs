@@ -165,7 +165,7 @@ namespace net.named_data.jndn.encrypt {
 		/// <param name="wireFormat">A WireFormat object used to decode the input.</param>
 		/// <exception cref="EncodingException">For invalid encoding.</exception>
 		public void wireDecode(ByteBuffer input, WireFormat wireFormat) {
-			wireFormat.decodeEncryptedContent(this, input);
+			wireFormat.decodeEncryptedContent(this, input, true);
 		}
 	
 		/// <summary>
@@ -188,7 +188,7 @@ namespace net.named_data.jndn.encrypt {
 		/// <param name="wireFormat">A WireFormat object used to decode the input.</param>
 		/// <exception cref="EncodingException">For invalid encoding.</exception>
 		public void wireDecode(Blob input, WireFormat wireFormat) {
-			wireDecode(input.buf(), wireFormat);
+			wireFormat.decodeEncryptedContent(this, input.buf(), false);
 		}
 	
 		/// <summary>

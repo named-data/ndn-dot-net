@@ -209,14 +209,19 @@ namespace net.named_data.jndn {
 		/// <param name="wireFormat">A WireFormat object used to decode the input.</param>
 		/// <exception cref="EncodingException">For invalid encoding.</exception>
 		public void wireDecode(ByteBuffer input, WireFormat wireFormat) {
+			wireDecodeHelper(input, wireFormat, true);
+		}
+	
+		private void wireDecodeHelper(ByteBuffer input, WireFormat wireFormat,
+				bool copy) {
 			int[] signedPortionBeginOffset = new int[1];
 			int[] signedPortionEndOffset = new int[1];
 			wireFormat.decodeInterest(this, input, signedPortionBeginOffset,
-					signedPortionEndOffset);
+					signedPortionEndOffset, copy);
 	
 			if (wireFormat == net.named_data.jndn.encoding.WireFormat.getDefaultWireFormat())
 				// This is the default wire encoding.
-				setDefaultWireEncoding(new SignedBlob(input, true,
+				setDefaultWireEncoding(new SignedBlob(input, copy,
 						signedPortionBeginOffset[0], signedPortionEndOffset[0]),
 						net.named_data.jndn.encoding.WireFormat.getDefaultWireFormat());
 			else
@@ -244,18 +249,7 @@ namespace net.named_data.jndn {
 		/// <param name="wireFormat">A WireFormat object used to decode the input.</param>
 		/// <exception cref="EncodingException">For invalid encoding.</exception>
 		public void wireDecode(Blob input, WireFormat wireFormat) {
-			int[] signedPortionBeginOffset = new int[1];
-			int[] signedPortionEndOffset = new int[1];
-			wireFormat.decodeInterest(this, input.buf(), signedPortionBeginOffset,
-					signedPortionEndOffset);
-	
-			if (wireFormat == net.named_data.jndn.encoding.WireFormat.getDefaultWireFormat())
-				// This is the default wire encoding.
-				setDefaultWireEncoding(new SignedBlob(input,
-						signedPortionBeginOffset[0], signedPortionEndOffset[0]),
-						net.named_data.jndn.encoding.WireFormat.getDefaultWireFormat());
-			else
-				setDefaultWireEncoding(new SignedBlob(), null);
+			wireDecodeHelper(input.buf(), wireFormat, false);
 		}
 	
 		/// <summary>

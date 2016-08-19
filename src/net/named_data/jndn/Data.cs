@@ -144,7 +144,7 @@ namespace net.named_data.jndn {
 			int[] signedPortionBeginOffset = new int[1];
 			int[] signedPortionEndOffset = new int[1];
 			wireFormat.decodeData(this, input.buf(), signedPortionBeginOffset,
-					signedPortionEndOffset);
+					signedPortionEndOffset, false);
 	
 			if (wireFormat == net.named_data.jndn.encoding.WireFormat.getDefaultWireFormat())
 				// This is the default wire encoding.

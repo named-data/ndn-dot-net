@@ -47,10 +47,11 @@ namespace net.named_data.jndn.encoding {
 		///
 		/// <param name="name">The Name object whose fields are updated.</param>
 		/// <param name="input">The input buffer to decode.  This reads from position() to limit(), but does not change the position.</param>
+		/// <param name="copy">unchanged while the Blob values are used.</param>
 		/// <exception cref="EncodingException">For invalid encoding.</exception>
-		public override void decodeName(Name name, ByteBuffer input) {
+		public override void decodeName(Name name, ByteBuffer input, bool copy) {
 			TlvDecoder decoder = new TlvDecoder(input);
-			decodeName(name, new int[1], new int[1], decoder);
+			decodeName(name, new int[1], new int[1], decoder, copy);
 		}
 	
 		/// <summary>
@@ -139,16 +140,18 @@ namespace net.named_data.jndn.encoding {
 		/// <param name="input"></param>
 		/// <param name="signedPortionBeginOffset">name component and ends just before the final name component (which is assumed to be a signature for a signed interest).</param>
 		/// <param name="signedPortionEndOffset">name component and ends just before the final name component (which is assumed to be a signature for a signed interest).</param>
+		/// <param name="copy">unchanged while the Blob values are used.</param>
 		/// <exception cref="EncodingException">For invalid encoding.</exception>
 		public override void decodeInterest(Interest interest, ByteBuffer input,
-				int[] signedPortionBeginOffset, int[] signedPortionEndOffset) {
+				int[] signedPortionBeginOffset, int[] signedPortionEndOffset,
+				bool copy) {
 			TlvDecoder decoder = new TlvDecoder(input);
 	
 			int endOffset = decoder.readNestedTlvsStart(net.named_data.jndn.encoding.tlv.Tlv.Interest);
 			decodeName(interest.getName(), signedPortionBeginOffset,
-					signedPortionEndOffset, decoder);
+					signedPortionEndOffset, decoder, copy);
 			if (decoder.peekType(net.named_data.jndn.encoding.tlv.Tlv.Selectors, endOffset))
-				decodeSelectors(interest, decoder);
+				decodeSelectors(interest, decoder, copy);
 			// Require a Nonce, but don't force it to be 4 bytes.
 			ByteBuffer nonce = decoder.readBlobTlv(net.named_data.jndn.encoding.tlv.Tlv.Nonce);
 			interest.setInterestLifetimeMilliseconds(decoder
@@ -163,7 +166,7 @@ namespace net.named_data.jndn.encoding {
 	
 				interest.setLinkWireEncoding(
 						new Blob(decoder.getSlice(linkBeginOffset, linkEndOffset),
-								true), this);
+								copy), this);
 			} else
 				interest.unsetLink();
 			interest.setSelectedDelegationIndex((int) decoder
@@ -174,7 +177,7 @@ namespace net.named_data.jndn.encoding {
 						"Interest has a selected delegation, but no link object");
 	
 			// Set the nonce last because setting other interest fields clears it.
-			interest.setNonce(new Blob(nonce, true));
+			interest.setNonce(new Blob(nonce, copy));
 	
 			decoder.finishNestedTlvs(endOffset);
 		}
@@ -221,22 +224,24 @@ namespace net.named_data.jndn.encoding {
 		/// <param name="input"></param>
 		/// <param name="signedPortionBeginOffset">If you are not decoding in order to verify, you can call decodeData(data, input) to ignore this returned value.</param>
 		/// <param name="signedPortionEndOffset">not decoding in order to verify, you can call decodeData(data, input) to ignore this returned value.</param>
+		/// <param name="copy">unchanged while the Blob values are used.</param>
 		/// <exception cref="EncodingException">For invalid encoding.</exception>
 		public override void decodeData(Data data, ByteBuffer input,
-				int[] signedPortionBeginOffset, int[] signedPortionEndOffset) {
+				int[] signedPortionBeginOffset, int[] signedPortionEndOffset,
+				bool copy) {
 			TlvDecoder decoder = new TlvDecoder(input);
 	
 			int endOffset = decoder.readNestedTlvsStart(net.named_data.jndn.encoding.tlv.Tlv.Data);
 			signedPortionBeginOffset[0] = decoder.getOffset();
 	
-			decodeName(data.getName(), new int[1], new int[1], decoder);
-			decodeMetaInfo(data.getMetaInfo(), decoder);
-			data.setContent(new Blob(decoder.readBlobTlv(net.named_data.jndn.encoding.tlv.Tlv.Content), true));
-			decodeSignatureInfo(data, decoder);
+			decodeName(data.getName(), new int[1], new int[1], decoder, copy);
+			decodeMetaInfo(data.getMetaInfo(), decoder, copy);
+			data.setContent(new Blob(decoder.readBlobTlv(net.named_data.jndn.encoding.tlv.Tlv.Content), copy));
+			decodeSignatureInfo(data, decoder, copy);
 	
 			signedPortionEndOffset[0] = decoder.getOffset();
 			data.getSignature().setSignature(
-					new Blob(decoder.readBlobTlv(net.named_data.jndn.encoding.tlv.Tlv.SignatureValue), true));
+					new Blob(decoder.readBlobTlv(net.named_data.jndn.encoding.tlv.Tlv.SignatureValue), copy));
 	
 			decoder.finishNestedTlvs(endOffset);
 		}
@@ -260,11 +265,12 @@ namespace net.named_data.jndn.encoding {
 		///
 		/// <param name="controlParameters"></param>
 		/// <param name="input"></param>
+		/// <param name="copy">unchanged while the Blob values are used.</param>
 		/// <exception cref="EncodingException">For invalid encoding</exception>
 		public override void decodeControlParameters(ControlParameters controlParameters,
-				ByteBuffer input) {
+				ByteBuffer input, bool copy) {
 			TlvDecoder decoder = new TlvDecoder(input);
-			decodeControlParameters(controlParameters, decoder);
+			decodeControlParameters(controlParameters, decoder, copy);
 		}
 	
 		/// <summary>
@@ -302,17 +308,19 @@ namespace net.named_data.jndn.encoding {
 		///
 		/// <param name="controlResponse"></param>
 		/// <param name="input"></param>
+		/// <param name="copy">unchanged while the Blob values are used.</param>
 		/// <exception cref="EncodingException">For invalid encoding</exception>
 		public override void decodeControlResponse(ControlResponse controlResponse,
-				ByteBuffer input) {
+				ByteBuffer input, bool copy) {
 			TlvDecoder decoder = new TlvDecoder(input);
 			int endOffset = decoder
 					.readNestedTlvsStart(net.named_data.jndn.encoding.tlv.Tlv.NfdCommand_ControlResponse);
 	
 			controlResponse.setStatusCode((int) decoder
 					.readNonNegativeIntegerTlv(net.named_data.jndn.encoding.tlv.Tlv.NfdCommand_StatusCode));
+			// Set copy false since we just immediately get a string.
 			Blob statusText = new Blob(
-					decoder.readBlobTlv(net.named_data.jndn.encoding.tlv.Tlv.NfdCommand_StatusText), true);
+					decoder.readBlobTlv(net.named_data.jndn.encoding.tlv.Tlv.NfdCommand_StatusText), false);
 			controlResponse.setStatusText(statusText.toString());
 	
 			// Decode the body.
@@ -321,7 +329,7 @@ namespace net.named_data.jndn.encoding {
 				controlResponse.setBodyAsControlParameters(new ControlParameters());
 				// Decode into the existing ControlParameters to avoid copying.
 				decodeControlParameters(
-						controlResponse.getBodyAsControlParameters(), decoder);
+						controlResponse.getBodyAsControlParameters(), decoder, copy);
 			} else
 				controlResponse.setBodyAsControlParameters(null);
 	
@@ -362,18 +370,19 @@ namespace net.named_data.jndn.encoding {
 		///
 		/// <param name="signatureInfo"></param>
 		/// <param name="signatureValue"></param>
+		/// <param name="copy">unchanged while the Blob values are used.</param>
 		/// <returns>A new object which is a subclass of Signature.</returns>
 		/// <exception cref="EncodingException">For invalid encoding.</exception>
 		public override Signature decodeSignatureInfoAndValue(ByteBuffer signatureInfo,
-				ByteBuffer signatureValue) {
+				ByteBuffer signatureValue, bool copy) {
 			// Use a SignatureHolder to imitate a Data object for _decodeSignatureInfo.
 			Tlv0_2WireFormat.SimpleSignatureHolder  signatureHolder = new Tlv0_2WireFormat.SimpleSignatureHolder ();
 			TlvDecoder decoder = new TlvDecoder(signatureInfo);
-			decodeSignatureInfo(signatureHolder, decoder);
+			decodeSignatureInfo(signatureHolder, decoder, copy);
 	
 			decoder = new TlvDecoder(signatureValue);
 			signatureHolder.getSignature().setSignature(
-					new Blob(decoder.readBlobTlv(net.named_data.jndn.encoding.tlv.Tlv.SignatureValue), true));
+					new Blob(decoder.readBlobTlv(net.named_data.jndn.encoding.tlv.Tlv.SignatureValue), copy));
 	
 			return signatureHolder.getSignature();
 		}
@@ -398,8 +407,9 @@ namespace net.named_data.jndn.encoding {
 		///
 		/// <param name="lpPacket">The LpPacket object whose fields are updated.</param>
 		/// <param name="input"></param>
+		/// <param name="copy">unchanged while the Blob values are used.</param>
 		/// <exception cref="EncodingException">For invalid encoding.</exception>
-		public override void decodeLpPacket(LpPacket lpPacket, ByteBuffer input) {
+		public override void decodeLpPacket(LpPacket lpPacket, ByteBuffer input, bool copy) {
 			lpPacket.clear();
 	
 			TlvDecoder decoder = new TlvDecoder(input);
@@ -417,7 +427,7 @@ namespace net.named_data.jndn.encoding {
 				if (fieldType == net.named_data.jndn.encoding.tlv.Tlv.LpPacket_Fragment) {
 					// Set the fragment to the bytes of the TLV value.
 					lpPacket.setFragmentWireEncoding(new Blob(decoder.getSlice(
-							decoder.getOffset(), fieldEndOffset), true));
+							decoder.getOffset(), fieldEndOffset), copy));
 					decoder.seek(fieldEndOffset);
 	
 					// The fragment is supposed to be the last field.
@@ -506,9 +516,10 @@ namespace net.named_data.jndn.encoding {
 		///
 		/// <param name="delegationSet">The DelegationSet object whose fields are updated.</param>
 		/// <param name="input"></param>
+		/// <param name="copy">unchanged while the Blob values are used.</param>
 		/// <exception cref="EncodingException">For invalid encoding.</exception>
 		public override void decodeDelegationSet(DelegationSet delegationSet,
-				ByteBuffer input) {
+				ByteBuffer input, bool copy) {
 			TlvDecoder decoder = new TlvDecoder(input);
 			int endOffset = input.limit();
 	
@@ -518,7 +529,7 @@ namespace net.named_data.jndn.encoding {
 				int preference = (int) decoder
 						.readNonNegativeIntegerTlv(net.named_data.jndn.encoding.tlv.Tlv.Link_Preference);
 				Name name = new Name();
-				decodeName(name, new int[1], new int[1], decoder);
+				decodeName(name, new int[1], new int[1], decoder, copy);
 	
 				// Add unsorted to preserve the order so that Interest selected delegation
 				// index will work.
@@ -560,15 +571,16 @@ namespace net.named_data.jndn.encoding {
 		///
 		/// <param name="encryptedContent"></param>
 		/// <param name="input"></param>
+		/// <param name="copy">unchanged while the Blob values are used.</param>
 		/// <exception cref="EncodingException">For invalid encoding</exception>
 		public override void decodeEncryptedContent(EncryptedContent encryptedContent,
-				ByteBuffer input) {
+				ByteBuffer input, bool copy) {
 			TlvDecoder decoder = new TlvDecoder(input);
 			int endOffset = decoder
 					.readNestedTlvsStart(net.named_data.jndn.encoding.tlv.Tlv.Encrypt_EncryptedContent);
 	
 			Tlv0_2WireFormat.decodeKeyLocator(net.named_data.jndn.encoding.tlv.Tlv.KeyLocator,
-					encryptedContent.getKeyLocator(), decoder);
+					encryptedContent.getKeyLocator(), decoder, copy);
 	
 			int algorithmType = (int) decoder
 					.readNonNegativeIntegerTlv(net.named_data.jndn.encoding.tlv.Tlv.Encrypt_EncryptionAlgorithm);
@@ -585,9 +597,9 @@ namespace net.named_data.jndn.encoding {
 						"Unrecognized EncryptionAlgorithm code " + algorithmType);
 	
 			encryptedContent.setInitialVector(new Blob(decoder.readOptionalBlobTlv(
-					net.named_data.jndn.encoding.tlv.Tlv.Encrypt_InitialVector, endOffset), true));
+					net.named_data.jndn.encoding.tlv.Tlv.Encrypt_InitialVector, endOffset), copy));
 			encryptedContent.setPayload(new Blob(decoder
-					.readBlobTlv(net.named_data.jndn.encoding.tlv.Tlv.Encrypt_EncryptedPayload), true));
+					.readBlobTlv(net.named_data.jndn.encoding.tlv.Tlv.Encrypt_EncryptedPayload), copy));
 	
 			decoder.finishNestedTlvs(endOffset);
 		}
@@ -622,15 +634,17 @@ namespace net.named_data.jndn.encoding {
 		/// </summary>
 		///
 		/// <param name="decoder">The decoder with the input to decode.</param>
+		/// <param name="copy">unchanged while the Blob values are used.</param>
 		/// <returns>A new Name.Component.</returns>
 		/// <exception cref="EncodingException"></exception>
-		private static Name.Component decodeNameComponent(TlvDecoder decoder) {
+		private static Name.Component decodeNameComponent(TlvDecoder decoder,
+				bool copy) {
 			int savePosition = decoder.getOffset();
 			int type = decoder.readVarNumber();
 			// Restore the position.
 			decoder.seek(savePosition);
 	
-			Blob value_ren = new Blob(decoder.readBlobTlv(type), true);
+			Blob value_ren = new Blob(decoder.readBlobTlv(type), copy);
 			if (type == net.named_data.jndn.encoding.tlv.Tlv.ImplicitSha256DigestComponent)
 				return net.named_data.jndn.Name.Component.fromImplicitSha256Digest(value_ren);
 			else
@@ -679,9 +693,10 @@ namespace net.named_data.jndn.encoding {
 		/// <param name="signedPortionBeginOffset">name component and ends just before the final name component (which is assumed to be a signature for a signed interest). If you are not decoding in order to verify, you can ignore this returned value.</param>
 		/// <param name="signedPortionEndOffset">name component and ends just before the final name component (which is assumed to be a signature for a signed interest). If you are not decoding in order to verify, you can ignore this returned value.</param>
 		/// <param name="decoder">The decoder with the input to decode.</param>
+		/// <param name="copy">unchanged while the Blob values are used.</param>
 		/// <exception cref="EncodingException"></exception>
 		private static void decodeName(Name name, int[] signedPortionBeginOffset,
-				int[] signedPortionEndOffset, TlvDecoder decoder) {
+				int[] signedPortionEndOffset, TlvDecoder decoder, bool copy) {
 			name.clear();
 	
 			int endOffset = decoder.readNestedTlvsStart(net.named_data.jndn.encoding.tlv.Tlv.Name);
@@ -692,7 +707,7 @@ namespace net.named_data.jndn.encoding {
 	
 			while (decoder.getOffset() < endOffset) {
 				signedPortionEndOffset[0] = decoder.getOffset();
-				name.append(decodeNameComponent(decoder));
+				name.append(decodeNameComponent(decoder, copy));
 			}
 	
 			decoder.finishNestedTlvs(endOffset);
@@ -729,7 +744,8 @@ namespace net.named_data.jndn.encoding {
 						- saveLength);
 		}
 	
-		private static void decodeSelectors(Interest interest, TlvDecoder decoder) {
+		private static void decodeSelectors(Interest interest, TlvDecoder decoder,
+				bool copy) {
 			int endOffset = decoder.readNestedTlvsStart(net.named_data.jndn.encoding.tlv.Tlv.Selectors);
 	
 			interest.setMinSuffixComponents((int) decoder
@@ -741,12 +757,12 @@ namespace net.named_data.jndn.encoding {
 	
 			if (decoder.peekType(net.named_data.jndn.encoding.tlv.Tlv.PublisherPublicKeyLocator, endOffset))
 				decodeKeyLocator(net.named_data.jndn.encoding.tlv.Tlv.PublisherPublicKeyLocator,
-						interest.getKeyLocator(), decoder);
+						interest.getKeyLocator(), decoder, copy);
 			else
 				interest.getKeyLocator().clear();
 	
 			if (decoder.peekType(net.named_data.jndn.encoding.tlv.Tlv.Exclude, endOffset))
-				decodeExclude(interest.getExclude(), decoder);
+				decodeExclude(interest.getExclude(), decoder, copy);
 			else
 				interest.getExclude().clear();
 	
@@ -776,7 +792,8 @@ namespace net.named_data.jndn.encoding {
 					- saveLength);
 		}
 	
-		private static void decodeExclude(Exclude exclude, TlvDecoder decoder) {
+		private static void decodeExclude(Exclude exclude, TlvDecoder decoder,
+				bool copy) {
 			int endOffset = decoder.readNestedTlvsStart(net.named_data.jndn.encoding.tlv.Tlv.Exclude);
 	
 			exclude.clear();
@@ -786,7 +803,7 @@ namespace net.named_data.jndn.encoding {
 					decoder.readBooleanTlv(net.named_data.jndn.encoding.tlv.Tlv.Any, endOffset);
 					exclude.appendAny();
 				} else
-					exclude.appendComponent(decodeNameComponent(decoder));
+					exclude.appendComponent(decodeNameComponent(decoder, copy));
 			}
 	
 			decoder.finishNestedTlvs(endOffset);
@@ -814,7 +831,7 @@ namespace net.named_data.jndn.encoding {
 		}
 	
 		private static void decodeKeyLocator(int expectedType,
-				KeyLocator keyLocator, TlvDecoder decoder) {
+				KeyLocator keyLocator, TlvDecoder decoder, bool copy) {
 			int endOffset = decoder.readNestedTlvsStart(expectedType);
 	
 			keyLocator.clear();
@@ -826,12 +843,13 @@ namespace net.named_data.jndn.encoding {
 			if (decoder.peekType(net.named_data.jndn.encoding.tlv.Tlv.Name, endOffset)) {
 				// KeyLocator is a Name.
 				keyLocator.setType(net.named_data.jndn.KeyLocatorType.KEYNAME);
-				decodeName(keyLocator.getKeyName(), new int[1], new int[1], decoder);
+				decodeName(keyLocator.getKeyName(), new int[1], new int[1],
+						decoder, copy);
 			} else if (decoder.peekType(net.named_data.jndn.encoding.tlv.Tlv.KeyLocatorDigest, endOffset)) {
 				// KeyLocator is a KeyLocatorDigest.
 				keyLocator.setType(net.named_data.jndn.KeyLocatorType.KEY_LOCATOR_DIGEST);
 				keyLocator.setKeyData(new Blob(decoder
-						.readBlobTlv(net.named_data.jndn.encoding.tlv.Tlv.KeyLocatorDigest), true));
+						.readBlobTlv(net.named_data.jndn.encoding.tlv.Tlv.KeyLocatorDigest), copy));
 			} else
 				throw new EncodingException(
 						"decodeKeyLocator: Unrecognized key locator type");
@@ -901,7 +919,7 @@ namespace net.named_data.jndn.encoding {
 		}
 	
 		private static void decodeSignatureInfo(SignatureHolder signatureHolder,
-				TlvDecoder decoder) {
+				TlvDecoder decoder, bool copy) {
 			int beginOffset = decoder.getOffset();
 			int endOffset = decoder.readNestedTlvsStart(net.named_data.jndn.encoding.tlv.Tlv.SignatureInfo);
 	
@@ -914,19 +932,19 @@ namespace net.named_data.jndn.encoding {
 				Sha256WithRsaSignature signatureInfo = (Sha256WithRsaSignature) signatureHolder
 						.getSignature();
 				decodeKeyLocator(net.named_data.jndn.encoding.tlv.Tlv.KeyLocator, signatureInfo.getKeyLocator(),
-						decoder);
+						decoder, copy);
 			} else if (signatureType == net.named_data.jndn.encoding.tlv.Tlv.SignatureType_SignatureSha256WithEcdsa) {
 				signatureHolder.setSignature(new Sha256WithEcdsaSignature());
 				Sha256WithEcdsaSignature signatureInfo_0 = (Sha256WithEcdsaSignature) signatureHolder
 						.getSignature();
 				decodeKeyLocator(net.named_data.jndn.encoding.tlv.Tlv.KeyLocator, signatureInfo_0.getKeyLocator(),
-						decoder);
+						decoder, copy);
 			} else if (signatureType == net.named_data.jndn.encoding.tlv.Tlv.SignatureType_SignatureHmacWithSha256) {
 				signatureHolder.setSignature(new HmacWithSha256Signature());
 				HmacWithSha256Signature signatureInfo_1 = (HmacWithSha256Signature) signatureHolder
 						.getSignature();
 				decodeKeyLocator(net.named_data.jndn.encoding.tlv.Tlv.KeyLocator, signatureInfo_1.getKeyLocator(),
-						decoder);
+						decoder, copy);
 			} else if (signatureType == net.named_data.jndn.encoding.tlv.Tlv.SignatureType_DigestSha256)
 				signatureHolder.setSignature(new DigestSha256Signature());
 			else {
@@ -936,7 +954,7 @@ namespace net.named_data.jndn.encoding {
 	
 				// Get the bytes of the SignatureInfo TLV.
 				signatureInfo_2.setSignatureInfoEncoding(
-						new Blob(decoder.getSlice(beginOffset, endOffset), true),
+						new Blob(decoder.getSlice(beginOffset, endOffset), copy),
 						signatureType);
 			}
 	
@@ -980,7 +998,8 @@ namespace net.named_data.jndn.encoding {
 					- saveLength);
 		}
 	
-		private static void decodeMetaInfo(MetaInfo metaInfo, TlvDecoder decoder) {
+		private static void decodeMetaInfo(MetaInfo metaInfo, TlvDecoder decoder,
+				bool copy) {
 			int endOffset = decoder.readNestedTlvsStart(net.named_data.jndn.encoding.tlv.Tlv.MetaInfo);
 	
 			// The ContentType enum is set up with the correct integer for each
@@ -1007,7 +1026,7 @@ namespace net.named_data.jndn.encoding {
 			if (decoder.peekType(net.named_data.jndn.encoding.tlv.Tlv.FinalBlockId, endOffset)) {
 				int finalBlockIdEndOffset = decoder
 						.readNestedTlvsStart(net.named_data.jndn.encoding.tlv.Tlv.FinalBlockId);
-				metaInfo.setFinalBlockId(decodeNameComponent(decoder));
+				metaInfo.setFinalBlockId(decodeNameComponent(decoder, copy));
 				decoder.finishNestedTlvs(finalBlockIdEndOffset);
 			} else
 				metaInfo.setFinalBlockId(null);
@@ -1069,7 +1088,8 @@ namespace net.named_data.jndn.encoding {
 		}
 	
 		private static void decodeControlParameters(
-				ControlParameters controlParameters, TlvDecoder decoder) {
+				ControlParameters controlParameters, TlvDecoder decoder,
+				bool copy) {
 			controlParameters.clear();
 	
 			int endOffset = decoder
@@ -1078,7 +1098,7 @@ namespace net.named_data.jndn.encoding {
 			// decode name
 			if (decoder.peekType(net.named_data.jndn.encoding.tlv.Tlv.Name, endOffset)) {
 				Name name = new Name();
-				decodeName(name, new int[1], new int[1], decoder);
+				decodeName(name, new int[1], new int[1], decoder, copy);
 				controlParameters.setName(name);
 			}
 	
@@ -1089,8 +1109,9 @@ namespace net.named_data.jndn.encoding {
 	
 			// decode URI
 			if (decoder.peekType(net.named_data.jndn.encoding.tlv.Tlv.ControlParameters_Uri, endOffset)) {
+				// Set copy false since we just immediately get the string.
 				Blob uri = new Blob(decoder.readOptionalBlobTlv(
-						net.named_data.jndn.encoding.tlv.Tlv.ControlParameters_Uri, endOffset), true);
+						net.named_data.jndn.encoding.tlv.Tlv.ControlParameters_Uri, endOffset), false);
 				controlParameters.setUri("" + uri);
 			}
 	
@@ -1118,7 +1139,7 @@ namespace net.named_data.jndn.encoding {
 				int strategyEndOffset = decoder
 						.readNestedTlvsStart(net.named_data.jndn.encoding.tlv.Tlv.ControlParameters_Strategy);
 				decodeName(controlParameters.getStrategy(), new int[1], new int[1],
-						decoder);
+						decoder, copy);
 				decoder.finishNestedTlvs(strategyEndOffset);
 			}
 	

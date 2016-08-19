@@ -343,7 +343,7 @@ namespace net.named_data.jndn.util {
 				return "";
 			else {
 				try {
-					return ILOG.J2CsMapping.Util.StringUtil.NewString(buffer_.array(),"UTF-8");
+					return ILOG.J2CsMapping.Util.StringUtil.NewString(getImmutableArray(),"UTF-8");
 				} catch (IOException ex) {
 					// We don't expect this to happen.
 					throw new Exception("UTF-8 decoder not supported: "
