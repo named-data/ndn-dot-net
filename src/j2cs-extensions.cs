@@ -734,6 +734,9 @@ namespace System.Security.Cryptography {
     Create() { return new SecuritySHA256(); }
 
     public void
+    update(byte[] data) { memoryStream_.Write(data, 0, data.Length); }
+
+    public void
     update(ByteBuffer data)
     {
       memoryStream_.Write(data.array(), data.arrayOffset(), data.remaining());
