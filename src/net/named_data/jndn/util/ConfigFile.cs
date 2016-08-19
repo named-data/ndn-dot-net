@@ -78,13 +78,13 @@ namespace net.named_data.jndn.util {
 			// NOTE: Use File because java.nio.file.Path is not available before Java 7.
 			FileInfo filePath = new FileInfo(System.IO.Path.Combine(new FileInfo(System.Environment.GetEnvironmentVariable("user.home")+".ndn").FullName,"client.conf"));
 			if (filePath.Exists)
-				return System.IO.Path.GetFullPath(filePath.Name);
+				return filePath.FullName;
 	
 			// Ignore the C++ SYSCONFDIR.
 	
 			filePath = new FileInfo("/etc/ndn/client.conf");
 			if (filePath.Exists)
-				return System.IO.Path.GetFullPath(filePath.Name);
+				return filePath.FullName;
 	
 			return "";
 		}

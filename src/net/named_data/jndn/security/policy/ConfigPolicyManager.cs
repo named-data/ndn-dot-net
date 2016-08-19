@@ -504,7 +504,7 @@ namespace net.named_data.jndn.security.policy {
 	
 					IdentityCertificate cert;
 					try {
-						cert = loadIdentityCertificateFromFile(System.IO.Path.GetFullPath(file.Name));
+						cert = loadIdentityCertificateFromFile(file.FullName);
 					} catch (SecurityException ex) {
 						// Allow files that are not certificates.
 						continue;

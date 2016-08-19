@@ -61,7 +61,7 @@ namespace net.named_data.jndn.security.identity {
 		/// <param name="filesRoot"></param>
 		/// <returns>The default directory path.</returns>
 		public static String getDefaultDirecoryPath(FileInfo filesRoot) {
-			return getDefaultDirecoryPath(System.IO.Path.GetFullPath(filesRoot.Name));
+			return getDefaultDirecoryPath(filesRoot.FullName);
 		}
 	
 		/// <summary>
@@ -72,7 +72,7 @@ namespace net.named_data.jndn.security.identity {
 		/// <returns>The default directory path.</returns>
 		public static String getDefaultDirecoryPath(String filesRoot) {
 			// NOTE: Use File because java.nio.file.Path is not available before Java 7.
-			return System.IO.Path.GetFullPath(new FileInfo(System.IO.Path.Combine(new FileInfo(filesRoot+".ndn").FullName,"ndnsec-tpm-file")).Name);
+			return new FileInfo(System.IO.Path.Combine(new FileInfo(filesRoot+".ndn").FullName,"ndnsec-tpm-file")).FullName;
 		}
 	
 		/// <summary>
@@ -414,13 +414,13 @@ namespace net.named_data.jndn.security.identity {
 		/// <param name="keyName">The key name which is transformed to a file path.</param>
 		/// <returns>The key file path without the extension.</returns>
 		private String maintainMapping(String keyName) {
-			String keyFilePathNoExtension = System.IO.Path.GetFullPath(nameTransform(keyName, "").Name);
+			String keyFilePathNoExtension = nameTransform(keyName, "").FullName;
 	
 			FileInfo mappingFilePath = new FileInfo(System.IO.Path.Combine(keyStorePath_.FullName,"mapping.txt"));
 	
 			try {
 				var writer = (new StreamWriter(
-						System.IO.Path.GetFullPath(mappingFilePath.Name), true));
+						mappingFilePath.FullName, true));
 				try {
 					writer.write(keyName + ' ' + keyFilePathNoExtension + '\n');
 					writer.flush();
@@ -452,7 +452,7 @@ namespace net.named_data.jndn.security.identity {
 				if (keyClass == net.named_data.jndn.security.KeyClass.PRIVATE)
 					filePath = maintainMapping(keyName.toUri()) + extension;
 				else
-					filePath = System.IO.Path.GetFullPath(nameTransform(keyName.toUri(), extension).Name);
+					filePath = nameTransform(keyName.toUri(), extension).FullName;
 	
 				var writer = (new StreamWriter(filePath));
 				try {
@@ -486,8 +486,7 @@ namespace net.named_data.jndn.security.identity {
 			String extension = (String) ILOG.J2CsMapping.Collections.Collections.Get(keyTypeMap_,keyClass);
 			StringBuilder contents = new StringBuilder();
 			try {
-				TextReader reader = new FileReader(
-									System.IO.Path.GetFullPath(nameTransform(keyName.toUri(), extension).Name));
+				TextReader reader = new FileReader(nameTransform(keyName.toUri(), extension).FullName);
 				// Use "try/finally instead of "try-with-resources" or "using"
 				// which are not supported before Java 7.
 				try {
