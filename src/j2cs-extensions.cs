@@ -690,7 +690,7 @@ namespace System {
     sign()
     {
       memoryStream_.Flush();
-      var result = provider_.SignData(memoryStream_.ToArray(), new SHA256CryptoServiceProvider());
+      var result = provider_.SignData(memoryStream_.ToArray(), sha256Oid);
 
       // We don't need the data in the stream any more.
       memoryStream_.Dispose();
@@ -709,8 +709,7 @@ namespace System {
     verify(byte[] signature)
     {
       memoryStream_.Flush();
-      var result = provider_.VerifyData
-        (memoryStream_.ToArray(), new SHA256CryptoServiceProvider(), signature);
+      var result = provider_.VerifyData(memoryStream_.ToArray(), sha256Oid, signature);
 
       // We don't need the data in the stream any more.
       memoryStream_.Dispose();
@@ -721,6 +720,7 @@ namespace System {
 
     private RSACryptoServiceProvider provider_;
     private MemoryStream memoryStream_;
+    private static string sha256Oid = CryptoConfig.MapNameToOID("SHA256");
   }
 }
 
