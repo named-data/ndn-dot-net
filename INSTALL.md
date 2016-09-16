@@ -37,6 +37,7 @@ Java to C# Translation
   fix the use of DateTime.Now.Millisecond, fix .length and .parseInt in OID.cs,
   fix the erroneous translation to @"\0",
   fix the erroneous translation to MD5,
+  fix the erroneous translation of System.currentTimeMillis().
   remove the generated TcpTransport.cs since we use src/tcp-transport.cs:
 
 In a terminal change directory to `ndn-dot-net/src/net` and enter:
@@ -53,4 +54,5 @@ In a terminal change directory to `ndn-dot-net/src/net` and enter:
     sed -i '' 's/@"\\0"/"\\0"/g' named_data/jndn/util/BoostInfoTree.cs
     sed -i '' 's/MD5/SecuritySHA256/g' named_data/jndn/util/Common.cs
     sed -i '' 's/sha256\.ComputeHash/sha256\.update/g' named_data/jndn/util/Common.cs
+    sed -i '' 's/DateTime.Now - new DateTime(1970, 1, 1)/DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)/g' named_data/jndn/util/Common.cs
     rm named_data/jndn/transport/TcpTransport.cs

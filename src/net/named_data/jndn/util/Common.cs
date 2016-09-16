@@ -33,7 +33,7 @@ namespace net.named_data.jndn.util {
 		/// <returns>The current time in milliseconds since 1/1/1970, including
 		/// fractions of a millisecond.</returns>
 		public static double getNowMilliseconds() {
-			return (double) (DateTime.Now - new DateTime(1970, 1, 1)).TotalMilliseconds;
+			return (double) (DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)).TotalMilliseconds;
 		}
 	
 		/// <summary>
