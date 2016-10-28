@@ -187,7 +187,7 @@ namespace TestNdnDotNet {
           "" + interest.getNonce().toHex() : "<none>"));
     }
 
-    private class VerifyCallbacks : OnVerifiedInterest, OnVerifyInterestFailed {
+    private class VerifyCallbacks : OnVerifiedInterest, OnInterestValidationFailed {
       public VerifyCallbacks(string prefix) { prefix_ = prefix; }
 
       private string prefix_;
@@ -197,9 +197,10 @@ namespace TestNdnDotNet {
         Console.Out.WriteLine(prefix_ + " signature verification: VERIFIED");
       }
 
-      public void onVerifyInterestFailed(Interest interest)
+      public void onInterestValidationFailed(Interest interest, string reason)
       {
-        Console.Out.WriteLine(prefix_ + " signature verification: FAILED");
+        Console.Out.WriteLine
+          (prefix_ + " signature verification: FAILED. Reason: " + reason);
       }
     }
 

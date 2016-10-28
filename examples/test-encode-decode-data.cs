@@ -252,7 +252,7 @@ namespace TestNdnDotNet {
       }
     }
 
-    private class VerifyCallbacks : OnVerified, OnVerifyFailed {
+    private class VerifyCallbacks : OnVerified, OnDataValidationFailed {
       public VerifyCallbacks(string prefix) { prefix_ = prefix; }
 
       private string prefix_;
@@ -262,9 +262,10 @@ namespace TestNdnDotNet {
         Console.Out.WriteLine(prefix_ + " signature verification: VERIFIED");
       }
 
-      public void onVerifyFailed(Data data)
+      public void onDataValidationFailed(Data data, string reason)
       {
-        Console.Out.WriteLine(prefix_ + " signature verification: FAILED");
+        Console.Out.WriteLine
+          (prefix_ + " signature verification: FAILED. Reason: " + reason);
       }
     }
 

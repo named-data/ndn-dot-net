@@ -69,10 +69,11 @@ namespace net.named_data.jndn.security.policy {
 		/// <param name="data">The Data object with the signature to check.</param>
 		/// <param name="stepCount"></param>
 		/// <param name="onVerified">better error handling the callback should catch and properly handle any exceptions.</param>
-		/// <param name="onVerifyFailed">Override to ignore this.</param>
+		/// <param name="onValidationFailed">Override to ignore this.</param>
 		/// <returns>null for no further step.</returns>
 		public sealed override ValidationRequest checkVerificationPolicy(Data data,
-				int stepCount, OnVerified onVerified, OnVerifyFailed onVerifyFailed) {
+				int stepCount, OnVerified onVerified,
+				OnDataValidationFailed onValidationFailed) {
 			try {
 				onVerified.onVerified(data);
 			} catch (Exception ex) {
@@ -89,11 +90,11 @@ namespace net.named_data.jndn.security.policy {
 		/// <param name="interest">The interest with the signature (to ignore).</param>
 		/// <param name="stepCount"></param>
 		/// <param name="onVerified">better error handling the callback should catch and properly handle any exceptions.</param>
-		/// <param name="onVerifyFailed">Override to ignore this.</param>
+		/// <param name="onValidationFailed">Override to ignore this.</param>
 		/// <returns>null for no further step.</returns>
 		public sealed override ValidationRequest checkVerificationPolicy(Interest interest,
 				int stepCount, OnVerifiedInterest onVerified,
-				OnVerifyInterestFailed onVerifyFailed, WireFormat wireFormat) {
+				OnInterestValidationFailed onValidationFailed, WireFormat wireFormat) {
 			try {
 				onVerified.onVerifiedInterest(interest);
 			} catch (Exception ex) {

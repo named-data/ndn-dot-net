@@ -72,7 +72,7 @@ namespace net.named_data.jndn.security {
 			policyManager_ = new NoVerifyPolicyManager();
 		}
 #endif
-
+	
 		/*****************************************
 		 *          Identity Management          *
 		 *****************************************/
@@ -644,26 +644,27 @@ namespace net.named_data.jndn.security {
 		}
 	
 		public void verifyData(Data data, OnVerified onVerified,
-				OnVerifyFailed onVerifyFailed, int stepCount) {
+				OnDataValidationFailed onValidationFailed, int stepCount) {
 			ILOG.J2CsMapping.Util.Logging.Logger.getLogger(this.GetType().FullName).log(ILOG.J2CsMapping.Util.Logging.Level.INFO,
 					"Enter Verify");
 	
 			if (policyManager_.requireVerify(data)) {
 				ValidationRequest nextStep = policyManager_
 						.checkVerificationPolicy(data, stepCount, onVerified,
-								onVerifyFailed);
+								onValidationFailed);
 				if (nextStep != null) {
 					KeyChain.VerifyCallbacks  callbacks = new KeyChain.VerifyCallbacks (this, nextStep,
-							nextStep.retry_, onVerifyFailed, data);
+							nextStep.retry_, onValidationFailed, data);
 					try {
 						face_.expressInterest(nextStep.interest_, callbacks,
 								callbacks);
 					} catch (IOException ex) {
 						try {
-							onVerifyFailed.onVerifyFailed(data);
+							onValidationFailed.onDataValidationFailed(data,
+									"Error calling expressInterest " + ex);
 						} catch (Exception exception) {
-							logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in onVerifyFailed",
-									exception);
+							logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE,
+									"Error in onDataValidationFailed", exception);
 						}
 					}
 				}
@@ -675,11 +676,28 @@ namespace net.named_data.jndn.security {
 				}
 			} else {
 				try {
-					onVerifyFailed.onVerifyFailed(data);
+					onValidationFailed
+							.onDataValidationFailed(data,
+									"The packet has no verify rule but skipVerifyAndTrust is false");
 				} catch (Exception ex_1) {
-					logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in onVerifyFailed", ex_1);
+					logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in onDataValidationFailed", ex_1);
 				}
 			}
+		}
+	
+		/// <summary>
+		/// Check the signature on the Data object and call either onVerify.onVerify or
+		/// onVerifyFailed.onVerifyFailed.
+		/// We use callback functions because verify may fetch information to check the
+		/// signature.
+		/// </summary>
+		///
+		/// <param name="data">To set the wireEncoding, you can call data.wireDecode.</param>
+		/// <param name="onVerified">NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
+		/// <param name="onValidationFailed">NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
+		public void verifyData(Data data, OnVerified onVerified,
+				OnDataValidationFailed onValidationFailed) {
+			verifyData(data, onVerified, onValidationFailed, 0);
 		}
 	
 		/// <summary>
@@ -694,31 +712,34 @@ namespace net.named_data.jndn.security {
 		/// <param name="onVerifyFailed">NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
 		public void verifyData(Data data, OnVerified onVerified,
 				OnVerifyFailed onVerifyFailed) {
-			verifyData(data, onVerified, onVerifyFailed, 0);
+			// Wrap the onVerifyFailed in an OnDataValidationFailed.
+			verifyData(data, onVerified, new KeyChain.Anonymous_C1 (onVerifyFailed));
 		}
 	
 		public void verifyInterest(Interest interest,
 				OnVerifiedInterest onVerified,
-				OnVerifyInterestFailed onVerifyFailed, int stepCount) {
+				OnInterestValidationFailed onValidationFailed, int stepCount) {
 			ILOG.J2CsMapping.Util.Logging.Logger.getLogger(this.GetType().FullName).log(ILOG.J2CsMapping.Util.Logging.Level.INFO,
 					"Enter Verify");
 	
 			if (policyManager_.requireVerify(interest)) {
 				ValidationRequest nextStep = policyManager_
 						.checkVerificationPolicy(interest, stepCount, onVerified,
-								onVerifyFailed);
+								onValidationFailed);
 				if (nextStep != null) {
 					KeyChain.VerifyCallbacksForVerifyInterest  callbacks = new KeyChain.VerifyCallbacksForVerifyInterest (
-							this, nextStep, nextStep.retry_, onVerifyFailed, interest);
+							this, nextStep, nextStep.retry_, onValidationFailed, interest);
 					try {
 						face_.expressInterest(nextStep.interest_, callbacks,
 								callbacks);
 					} catch (IOException ex) {
 						try {
-							onVerifyFailed.onVerifyInterestFailed(interest);
+							onValidationFailed.onInterestValidationFailed(interest,
+									"Error calling expressInterest " + ex);
 						} catch (Exception exception) {
 							logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE,
-									"Error in onVerifyInterestFailed", exception);
+									"Error in onInterestValidationFailed",
+									exception);
 						}
 					}
 				}
@@ -730,9 +751,12 @@ namespace net.named_data.jndn.security {
 				}
 			} else {
 				try {
-					onVerifyFailed.onVerifyInterestFailed(interest);
+					onValidationFailed
+							.onInterestValidationFailed(interest,
+									"The packet has no verify rule but skipVerifyAndTrust is false");
 				} catch (Exception ex_1) {
-					logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in onVerifyInterestFailed", ex_1);
+					logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE,
+							"Error in onInterestValidationFailed", ex_1);
 				}
 			}
 		}
@@ -746,10 +770,28 @@ namespace net.named_data.jndn.security {
 		///
 		/// <param name="interest">The interest with the signature to check.</param>
 		/// <param name="onVerified">NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
+		/// <param name="onValidationFailed">NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
+		public void verifyInterest(Interest interest,
+				OnVerifiedInterest onVerified,
+				OnInterestValidationFailed onValidationFailed) {
+			verifyInterest(interest, onVerified, onValidationFailed, 0);
+		}
+	
+		/// <summary>
+		/// Check the signature on the signed interest and call either
+		/// onVerify.onVerifiedInterest or onVerifyFailed.onVerifyInterestFailed. We
+		/// use callback functions because verify may fetch information to check the
+		/// signature.
+		/// </summary>
+		///
+		/// <param name="interest">The interest with the signature to check.</param>
+		/// <param name="onVerified">NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
 		/// <param name="onVerifyFailed">NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
 		public void verifyInterest(Interest interest,
-				OnVerifiedInterest onVerified, OnVerifyInterestFailed onVerifyFailed) {
-			verifyInterest(interest, onVerified, onVerifyFailed, 0);
+				OnVerifiedInterest onVerified,
+				OnVerifyInterestFailed onVerifyFailed) {
+			// Wrap the onVerifyFailed in an OnInterestValidationFailed.
+			verifyInterest(interest, onVerified, new KeyChain.Anonymous_C0 (onVerifyFailed));
 		}
 	
 		/// <summary>
@@ -830,6 +872,31 @@ namespace net.named_data.jndn.security {
 	
 		public static readonly RsaKeyParams DEFAULT_KEY_PARAMS = new RsaKeyParams();
 	
+		public sealed class Anonymous_C1 : OnDataValidationFailed {
+			private readonly OnVerifyFailed onVerifyFailed;
+	
+			public Anonymous_C1(OnVerifyFailed onVerifyFailed_0) {
+				this.onVerifyFailed = onVerifyFailed_0;
+			}
+	
+			public void onDataValidationFailed(Data localData, String reason) {
+				onVerifyFailed.onVerifyFailed(localData);
+			}
+		}
+	
+		public sealed class Anonymous_C0 : OnInterestValidationFailed {
+			private readonly OnVerifyInterestFailed onVerifyFailed;
+	
+			public Anonymous_C0(OnVerifyInterestFailed onVerifyFailed_0) {
+				this.onVerifyFailed = onVerifyFailed_0;
+			}
+	
+			public void onInterestValidationFailed(Interest localInterest,
+					String reason) {
+				onVerifyFailed.onVerifyInterestFailed(localInterest);
+			}
+		}
+	
 		/// <summary>
 		/// A VerifyCallbacks is used for callbacks from verifyData.
 		/// </summary>
@@ -837,11 +904,11 @@ namespace net.named_data.jndn.security {
 			internal class VerifyCallbacks : OnData, OnTimeout {
 				private KeyChain outer_KeyChain;
 				public VerifyCallbacks(KeyChain chain, ValidationRequest nextStep, int retry,
-						OnVerifyFailed onVerifyFailed, Data originalData) {
+						OnDataValidationFailed onValidationFailed, Data originalData) {
 					outer_KeyChain = chain;
 					nextStep_ = nextStep;
 					retry_ = retry;
-					onVerifyFailed_ = onVerifyFailed;
+					onValidationFailed_ = onValidationFailed;
 					originalData_ = originalData;
 				}
 		
@@ -850,7 +917,7 @@ namespace net.named_data.jndn.security {
 						// Try to verify the certificate (data) according to the parameters in
 						//   nextStep.
 						outer_KeyChain.verifyData(data, nextStep_.onVerified_,
-								nextStep_.onVerifyFailed_, nextStep_.stepCount_);
+								nextStep_.onValidationFailed_, nextStep_.stepCount_);
 					} catch (SecurityException ex) {
 						ILOG.J2CsMapping.Util.Logging.Logger.getLogger(typeof(KeyChain).FullName).log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE,
 								null, ex);
@@ -862,48 +929,55 @@ namespace net.named_data.jndn.security {
 						// Issue the same expressInterest as in verifyData except decrement
 						//   retry.
 						KeyChain.VerifyCallbacks  callbacks = new KeyChain.VerifyCallbacks (outer_KeyChain, nextStep_,
-								retry_ - 1, onVerifyFailed_, originalData_);
+								retry_ - 1, onValidationFailed_, originalData_);
 						try {
 							outer_KeyChain.face_.expressInterest(interest, callbacks, callbacks);
 						} catch (IOException ex) {
 							try {
-								onVerifyFailed_.onVerifyFailed(originalData_);
+								onValidationFailed_.onDataValidationFailed(
+										originalData_,
+										"Error in expressInterest to retry after timeout for fetching "
+												+ interest.getName().toUri() + ": "
+												+ ex);
 							} catch (Exception exception) {
-								net.named_data.jndn.security.KeyChain.logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in onVerifyFailed",
-										exception);
+								net.named_data.jndn.security.KeyChain.logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE,
+										"Error in onDataValidationFailed", exception);
 							}
 						}
 					} else {
 						try {
-							onVerifyFailed_.onVerifyFailed(originalData_);
+							onValidationFailed_.onDataValidationFailed(originalData_,
+									"The retry count is zero after timeout for fetching "
+											+ interest.getName().toUri());
 						} catch (Exception ex_0) {
-							net.named_data.jndn.security.KeyChain.logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in onVerifyFailed", ex_0);
+							net.named_data.jndn.security.KeyChain.logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE,
+									"Error in onDataValidationFailed", ex_0);
 						}
 					}
 				}
 		
 				private readonly ValidationRequest nextStep_;
 				private readonly int retry_;
-				private readonly OnVerifyFailed onVerifyFailed_;
+				private readonly OnDataValidationFailed onValidationFailed_;
 				private readonly Data originalData_;
 			}
 	
 		/// <summary>
 		/// A VerifyCallbacksForVerifyInterest is used for callbacks from verifyInterest.
 		/// This is the same as VerifyCallbacks, but we call
-		/// onVerifyFailed.onVerifyInterestFailed(originalInterest) if we have too many
-		/// retries.
+		/// onValidationFailed.onInterestValidationFailed(originalInterest, reason) if
+		/// we have too many retries.
 		/// </summary>
 		///
 			internal class VerifyCallbacksForVerifyInterest : OnData, OnTimeout {
 				private KeyChain outer_KeyChain;
 				public VerifyCallbacksForVerifyInterest(KeyChain chain, ValidationRequest nextStep,
-						int retry, OnVerifyInterestFailed onVerifyFailed,
+						int retry, OnInterestValidationFailed onValidationFailed,
 						Interest originalInterest) {
 					outer_KeyChain = chain;
 					nextStep_ = nextStep;
 					retry_ = retry;
-					onVerifyFailed_ = onVerifyFailed;
+					onValidationFailed_ = onValidationFailed;
 					originalInterest_ = originalInterest;
 				}
 		
@@ -912,7 +986,7 @@ namespace net.named_data.jndn.security {
 						// Try to verify the certificate (data) according to the parameters in
 						//   nextStep.
 						outer_KeyChain.verifyData(data, nextStep_.onVerified_,
-								nextStep_.onVerifyFailed_, nextStep_.stepCount_);
+								nextStep_.onValidationFailed_, nextStep_.stepCount_);
 					} catch (SecurityException ex) {
 						ILOG.J2CsMapping.Util.Logging.Logger.getLogger(typeof(KeyChain).FullName).log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE,
 								null, ex);
@@ -924,32 +998,39 @@ namespace net.named_data.jndn.security {
 						// Issue the same expressInterest as in verifyData except decrement
 						//   retry.
 						KeyChain.VerifyCallbacksForVerifyInterest  callbacks = new KeyChain.VerifyCallbacksForVerifyInterest (
-								outer_KeyChain, nextStep_, retry_ - 1, onVerifyFailed_,
+								outer_KeyChain, nextStep_, retry_ - 1, onValidationFailed_,
 								originalInterest_);
 						try {
 							outer_KeyChain.face_.expressInterest(interest, callbacks, callbacks);
 						} catch (IOException ex) {
 							try {
-								onVerifyFailed_
-										.onVerifyInterestFailed(originalInterest_);
+								onValidationFailed_.onInterestValidationFailed(
+										originalInterest_,
+										"Error in expressInterest to retry after timeout for fetching "
+												+ interest.getName().toUri() + ": "
+												+ ex);
 							} catch (Exception exception) {
 								net.named_data.jndn.security.KeyChain.logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE,
-										"Error in onVerifyInterestFailed", exception);
+										"Error in onInterestValidationFailed",
+										exception);
 							}
 						}
 					} else {
 						try {
-							onVerifyFailed_.onVerifyInterestFailed(originalInterest_);
+							onValidationFailed_.onInterestValidationFailed(
+									originalInterest_,
+									"The retry count is zero after timeout for fetching "
+											+ interest.getName().toUri());
 						} catch (Exception ex_0) {
 							net.named_data.jndn.security.KeyChain.logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE,
-									"Error in onVerifyInterestFailed", ex_0);
+									"Error in onInterestValidationFailed", ex_0);
 						}
 					}
 				}
 		
 				private readonly ValidationRequest nextStep_;
 				private readonly int retry_;
-				private readonly OnVerifyInterestFailed onVerifyFailed_;
+				private readonly OnInterestValidationFailed onValidationFailed_;
 				private readonly Interest originalInterest_;
 			}
 	

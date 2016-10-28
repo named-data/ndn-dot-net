@@ -19,6 +19,7 @@ namespace net.named_data.jndn.util {
 	using System.Runtime.CompilerServices;
 	using net.named_data.jndn;
 	using net.named_data.jndn.encoding;
+	using net.named_data.jndn.security;
 	
 	/// <summary>
 	/// SegmentFetcher is a utility class to fetch the latest version of segmented data.
@@ -46,18 +47,17 @@ namespace net.named_data.jndn.util {
 	/// - `DATA_HAS_NO_SEGMENT`: if any of the retrieved Data packets don't have a segment
 	/// as the last component of the name (not counting the implicit digest)
 	/// - `SEGMENT_VERIFICATION_FAILED`: if any retrieved segment fails
-	/// the user-provided VerifySegment callback
+	/// the user-provided VerifySegment callback or KeyChain verifyData.
 	/// - `IO_ERROR`: for I/O errors when sending an Interest.
-	/// In order to validate individual segments, a VerifySegment callback needs to
-	/// be specified. If the callback returns false, the fetching process is aborted
-	/// with SEGMENT_VERIFICATION_FAILED. If data validation is not required, the
-	/// provided DontVerifySegment object can be used.
+	/// In order to validate individual segments, a KeyChain needs to be supplied.
+	/// If verifyData fails, the fetching process is aborted with
+	/// SEGMENT_VERIFICATION_FAILED. If data validation is not required, pass
+	/// (KeyChain)null.
 	/// Example:
 	/// Interest interest = new Interest(new Name("/data/prefix"));
 	/// interest.setInterestLifetimeMilliseconds(1000);
 	/// SegmentFetcher.fetch
-	/// (face, interest, SegmentFetcher.DontVerifySegment,
-	/// new SegmentFetcher.OnComplete() {
+	/// (face, interest, 0, new SegmentFetcher.OnComplete() {
 	/// public void onComplete(Blob content) {
 	/// ...
 	/// }},
@@ -67,10 +67,27 @@ namespace net.named_data.jndn.util {
 	/// }});
 	/// </summary>
 	///
-	public class SegmentFetcher : OnData, OnTimeout {
-		public sealed class Anonymous_C0 : SegmentFetcher.VerifySegment  {
+	public class SegmentFetcher : OnData, OnDataValidationFailed,
+			OnTimeout {
+		public sealed class Anonymous_C1 : SegmentFetcher.VerifySegment  {
 			public bool verifySegment(Data data) {
 				return true;
+			}
+		}
+	
+		public sealed class Anonymous_C0 : OnVerified {
+			private readonly SegmentFetcher thisSegmentFetcher;
+			private readonly Interest originalInterest;
+	
+			public Anonymous_C0(SegmentFetcher thisSegmentFetcher_0,
+					Interest originalInterest_1) {
+				this.thisSegmentFetcher = thisSegmentFetcher_0;
+				this.originalInterest = originalInterest_1;
+			}
+	
+			public void onVerified(Data localData) {
+				thisSegmentFetcher.onVerified(localData,
+						originalInterest);
 			}
 		}
 		public enum ErrorCode {
@@ -93,7 +110,7 @@ namespace net.named_data.jndn.util {
 		/// DontVerifySegment may be used in fetch to skip validation of Data packets.
 		/// </summary>
 		///
-		public static readonly SegmentFetcher.VerifySegment  DontVerifySegment = new SegmentFetcher.Anonymous_C0 ();
+		public static readonly SegmentFetcher.VerifySegment  DontVerifySegment = new SegmentFetcher.Anonymous_C1 ();
 	
 		/// <summary>
 		/// Initiate segment fetching. For more details, see the documentation for
@@ -107,22 +124,42 @@ namespace net.named_data.jndn.util {
 		/// <param name="onError">NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
 		public static void fetch(Face face, Interest baseInterest,
 				SegmentFetcher.VerifySegment  verifySegment, SegmentFetcher.OnComplete  onComplete, SegmentFetcher.OnError  onError) {
-			new SegmentFetcher(face, verifySegment, onComplete, onError)
+			new SegmentFetcher(face, null, verifySegment, onComplete, onError)
 					.fetchFirstSegment(baseInterest);
 		}
 	
 		/// <summary>
-		/// Create a new SegmentFetcher to use the Face.
+		/// Initiate segment fetching. For more details, see the documentation for
+		/// the class.
 		/// </summary>
 		///
 		/// <param name="face">This calls face.expressInterest to fetch more segments.</param>
+		/// <param name="baseInterest">This interest may include a custom InterestLifetime and selectors that will propagate to all subsequent Interests. The only exception is that the initial Interest will be forced to include selectors "ChildSelector=1" and "MustBeFresh=true" which will be turned off in subsequent Interests.</param>
+		/// <param name="validatorKeyChain">fetching and call onError with SEGMENT_VERIFICATION_FAILED. This does not make a copy of the KeyChain; the object must remain valid while fetching. If validatorKeyChain is null, this does not validate the data packet.</param>
+		/// <param name="onComplete">content of all the segments. NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
+		/// <param name="onError">NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
+		public static void fetch(Face face, Interest baseInterest,
+				KeyChain validatorKeyChain, SegmentFetcher.OnComplete  onComplete, SegmentFetcher.OnError  onError) {
+			new SegmentFetcher(face, validatorKeyChain, DontVerifySegment,
+					onComplete, onError).fetchFirstSegment(baseInterest);
+		}
+	
+		/// <summary>
+		/// Create a new SegmentFetcher to use the Face. See the static fetch method
+		/// for details. If validatorKeyChain is not null, use it and ignore
+		/// verifySegment. After creating the SegmentFetcher, call fetchFirstSegment.
+		/// </summary>
+		///
+		/// <param name="face">This calls face.expressInterest to fetch more segments.</param>
+		/// <param name="validatorKeyChain"></param>
 		/// <param name="verifySegment">and call onError.onError with ErrorCode.SEGMENT_VERIFICATION_FAILED.</param>
 		/// <param name="onComplete">content of all the segments.</param>
 		/// <param name="onError"></param>
-		private SegmentFetcher(Face face, SegmentFetcher.VerifySegment  verifySegment,
-				SegmentFetcher.OnComplete  onComplete, SegmentFetcher.OnError  onError) {
+		private SegmentFetcher(Face face, KeyChain validatorKeyChain,
+				SegmentFetcher.VerifySegment  verifySegment, SegmentFetcher.OnComplete  onComplete, SegmentFetcher.OnError  onError) {
 			this.contentParts_ = new ArrayList();
 			face_ = face;
+			validatorKeyChain_ = validatorKeyChain;
 			verifySegment_ = verifySegment;
 			onComplete_ = onComplete;
 			onError_ = onError;
@@ -145,10 +182,10 @@ namespace net.named_data.jndn.util {
 			}
 		}
 	
-		private void fetchNextSegment(Interest originalInterest, Name dataName,
+		private void fetchNextSegment(Interest originalInterest_0, Name dataName,
 				long segment) {
 			// Start with the original Interest to preserve any special selectors.
-			Interest interest = new Interest(originalInterest);
+			Interest interest = new Interest(originalInterest_0);
 			// Changing a field clears the nonce so that the library will generate a new one.
 			interest.setChildSelector(0);
 			interest.setMustBeFresh(false);
@@ -165,42 +202,60 @@ namespace net.named_data.jndn.util {
 			}
 		}
 	
-		public virtual void onData(Interest originalInterest, Data data) {
-			bool verified = false;
-			try {
-				verified = verifySegment_.verifySegment(data);
-			} catch (Exception ex) {
-				logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in verifySegment", ex);
-			}
-			if (!verified) {
+		public virtual void onData(Interest originalInterest_0, Data data) {
+			if (validatorKeyChain_ != null) {
 				try {
-					onError_.onError(net.named_data.jndn.util.SegmentFetcher.ErrorCode.SEGMENT_VERIFICATION_FAILED,
-							"Segment verification failed");
-				} catch (Exception ex_0) {
-					logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in onError", ex_0);
+					SegmentFetcher thisSegmentFetcher_1 = this;
+					validatorKeyChain_.verifyData(data, new SegmentFetcher.Anonymous_C0 (thisSegmentFetcher_1, originalInterest_0), this);
+				} catch (Exception ex) {
+					try {
+						onError_.onError(net.named_data.jndn.util.SegmentFetcher.ErrorCode.SEGMENT_VERIFICATION_FAILED,
+								"Error in KeyChain.verifyData " + ex.Message);
+					} catch (Exception ex2) {
+						logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in onError", ex2);
+					}
 				}
-				return;
-			}
+			} else {
+				bool verified = false;
+				try {
+					verified = verifySegment_.verifySegment(data);
+				} catch (Exception ex_2) {
+					logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in verifySegment", ex_2);
+				}
+				if (!verified) {
+					try {
+						onError_.onError(net.named_data.jndn.util.SegmentFetcher.ErrorCode.SEGMENT_VERIFICATION_FAILED,
+								"Segment verification failed");
+					} catch (Exception ex_3) {
+						logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in onError", ex_3);
+					}
+					return;
+				}
 	
+				onVerified(data, originalInterest_0);
+			}
+		}
+	
+		public void onVerified(Data data, Interest originalInterest_0) {
 			if (!endsWithSegmentNumber(data.getName())) {
 				// We don't expect a name without a segment number.  Treat it as a bad packet.
 				try {
 					onError_.onError(net.named_data.jndn.util.SegmentFetcher.ErrorCode.DATA_HAS_NO_SEGMENT,
 							"Got an unexpected packet without a segment number: "
 									+ data.getName().toUri());
-				} catch (Exception ex_1) {
-					logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in onError", ex_1);
+				} catch (Exception ex) {
+					logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in onError", ex);
 				}
 			} else {
 				long currentSegment;
 				try {
 					currentSegment = data.getName().get(-1).toSegment();
-				} catch (EncodingException ex_2) {
+				} catch (EncodingException ex_1) {
 					try {
 						onError_.onError(net.named_data.jndn.util.SegmentFetcher.ErrorCode.DATA_HAS_NO_SEGMENT,
 								"Error decoding the name segment number "
 										+ data.getName().get(-1).toEscapedString()
-										+ ": " + ex_2);
+										+ ": " + ex_1);
 					} catch (Exception exception) {
 						logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in onError", exception);
 					}
@@ -211,7 +266,7 @@ namespace net.named_data.jndn.util {
 				if (currentSegment != expectedSegmentNumber) {
 					// Try again to get the expected segment.  This also includes the case
 					//   where the first segment is not segment 0.
-					fetchNextSegment(originalInterest, data.getName(),
+					fetchNextSegment(originalInterest_0, data.getName(),
 							expectedSegmentNumber);
 				} else {
 					// Save the content and check if we are finished.
@@ -222,17 +277,17 @@ namespace net.named_data.jndn.util {
 						try {
 							finalSegmentNumber = data.getMetaInfo()
 									.getFinalBlockId().toSegment();
-						} catch (EncodingException ex_3) {
+						} catch (EncodingException ex_2) {
 							try {
 								onError_.onError(net.named_data.jndn.util.SegmentFetcher.ErrorCode.DATA_HAS_NO_SEGMENT,
 										"Error decoding the FinalBlockId segment number "
 												+ data.getMetaInfo()
 														.getFinalBlockId()
 														.toEscapedString() + ": "
-												+ ex_3);
-							} catch (Exception exception_4) {
+												+ ex_2);
+							} catch (Exception exception_3) {
 								logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in onError",
-										exception_4);
+										exception_3);
 							}
 							return;
 						}
@@ -245,23 +300,33 @@ namespace net.named_data.jndn.util {
 							for (int i = 0; i < contentParts_.Count; ++i)
 								totalSize += ((Blob) contentParts_[i]).size();
 							ByteBuffer content = ILOG.J2CsMapping.NIO.ByteBuffer.allocate(totalSize);
-							for (int i_5 = 0; i_5 < contentParts_.Count; ++i_5)
-								content.put(((Blob) contentParts_[i_5]).buf());
+							for (int i_4 = 0; i_4 < contentParts_.Count; ++i_4)
+								content.put(((Blob) contentParts_[i_4]).buf());
 							content.flip();
 	
 							try {
 								onComplete_.onComplete(new Blob(content, false));
-							} catch (Exception ex_6) {
-								logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in onComplete", ex_6);
+							} catch (Exception ex_5) {
+								logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in onComplete", ex_5);
 							}
 							return;
 						}
 					}
 	
 					// Fetch the next segment.
-					fetchNextSegment(originalInterest, data.getName(),
+					fetchNextSegment(originalInterest_0, data.getName(),
 							expectedSegmentNumber + 1);
 				}
+			}
+		}
+	
+		public virtual void onDataValidationFailed(Data data, String reason) {
+			try {
+				onError_.onError(net.named_data.jndn.util.SegmentFetcher.ErrorCode.SEGMENT_VERIFICATION_FAILED,
+						"Segment verification failed for " + data.getName().toUri()
+								+ " . Reason: " + reason);
+			} catch (Exception ex) {
+				logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in onError", ex);
 			}
 		}
 	
@@ -287,6 +352,7 @@ namespace net.named_data.jndn.util {
 		// Use a non-template ArrayList so it works with older Java compilers.
 		private readonly ArrayList contentParts_; // of Blob
 		private readonly Face face_;
+		private readonly KeyChain validatorKeyChain_;
 		private readonly SegmentFetcher.VerifySegment  verifySegment_;
 		private readonly SegmentFetcher.OnComplete  onComplete_;
 		private readonly SegmentFetcher.OnError  onError_;

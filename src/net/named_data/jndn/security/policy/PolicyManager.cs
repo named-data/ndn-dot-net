@@ -72,11 +72,12 @@ namespace net.named_data.jndn.security.policy {
 		/// <param name="data">The Data object with the signature to check.</param>
 		/// <param name="stepCount"></param>
 		/// <param name="onVerified">NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
-		/// <param name="onVerifyFailed">NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
+		/// <param name="onValidationFailed">NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
 		/// <returns>the indication of next verification step, null if there is no
 		/// further step.</returns>
 		public abstract ValidationRequest checkVerificationPolicy(Data data,
-				int stepCount, OnVerified onVerified, OnVerifyFailed onVerifyFailed);
+				int stepCount, OnVerified onVerified,
+				OnDataValidationFailed onValidationFailed);
 	
 		/// <summary>
 		/// Check whether the received signed interest complies with the verification
@@ -86,18 +87,18 @@ namespace net.named_data.jndn.security.policy {
 		/// <param name="interest">The interest with the signature to check.</param>
 		/// <param name="stepCount"></param>
 		/// <param name="onVerified">NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
-		/// <param name="onVerifyFailed">NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
+		/// <param name="onValidationFailed">NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
 		/// <returns>the indication of next verification step, null if there is no
 		/// further step.</returns>
 		public abstract ValidationRequest checkVerificationPolicy(
 				Interest interest, int stepCount, OnVerifiedInterest onVerified,
-				OnVerifyInterestFailed onVerifyFailed, WireFormat wireFormat);
+				OnInterestValidationFailed onValidationFailed, WireFormat wireFormat);
 	
 		public ValidationRequest checkVerificationPolicy(Interest interest,
 				int stepCount, OnVerifiedInterest onVerified,
-				OnVerifyInterestFailed onVerifyFailed) {
+				OnInterestValidationFailed onValidationFailed) {
 			return checkVerificationPolicy(interest, stepCount, onVerified,
-					onVerifyFailed, net.named_data.jndn.encoding.WireFormat.getDefaultWireFormat());
+					onValidationFailed, net.named_data.jndn.encoding.WireFormat.getDefaultWireFormat());
 		}
 	
 		/// <summary>

@@ -86,17 +86,17 @@ namespace net.named_data.jndn.encrypt {
 								}
 							}
 		
-				public sealed class Anonymous_C16 : OnVerifyFailed {
+				public sealed class Anonymous_C16 : OnDataValidationFailed {
 								private readonly Consumer.Anonymous_C6  outer_Anonymous_C6;
 					
 								public Anonymous_C16(Consumer.Anonymous_C6  paramouter_Anonymous_C6) {
 									this.outer_Anonymous_C6 = paramouter_Anonymous_C6;
 								}
 					
-								public void onVerifyFailed(Data d) {
+								public void onDataValidationFailed(Data d, String reason) {
 									try {
 										outer_Anonymous_C6.onError.onError(net.named_data.jndn.encrypt.EncryptError.ErrorCode.Validation,
-												"verifyData failed");
+												"verifyData failed. Reason: " + reason);
 									} catch (Exception ex) {
 										net.named_data.jndn.encrypt.Consumer.logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in onError",
 												ex);
@@ -152,15 +152,15 @@ namespace net.named_data.jndn.encrypt {
 							}
 		
 				private readonly Consumer outer_Consumer;
-				internal readonly net.named_data.jndn.encrypt.EncryptError.OnError  onError;
 				internal readonly Interest interest;
 				private readonly OnData onData;
+				internal readonly net.named_data.jndn.encrypt.EncryptError.OnError  onError;
 		
-				public Anonymous_C5(Consumer paramouter_Consumer, net.named_data.jndn.encrypt.EncryptError.OnError  onError_0,
-						Interest interest_1, OnData onData_2) {
-					this.onError = onError_0;
-					this.interest = interest_1;
-					this.onData = onData_2;
+				public Anonymous_C5(Consumer paramouter_Consumer, Interest interest_0,
+						OnData onData_1, net.named_data.jndn.encrypt.EncryptError.OnError  onError_2) {
+					this.interest = interest_0;
+					this.onData = onData_1;
+					this.onError = onError_2;
 					this.outer_Consumer = paramouter_Consumer;
 				}
 		
@@ -201,17 +201,19 @@ namespace net.named_data.jndn.encrypt {
 								}
 							}
 		
-				public sealed class Anonymous_C12 : OnVerifyFailed {
+				public sealed class Anonymous_C12 : OnDataValidationFailed {
 								private readonly Consumer.Anonymous_C4  outer_Anonymous_C4;
 					
 								public Anonymous_C12(Consumer.Anonymous_C4  paramouter_Anonymous_C4) {
 									this.outer_Anonymous_C4 = paramouter_Anonymous_C4;
 								}
 					
-								public void onVerifyFailed(Data d) {
+								public void onDataValidationFailed(Data d,
+										String reason) {
 									try {
 										outer_Anonymous_C4.onError.onError(net.named_data.jndn.encrypt.EncryptError.ErrorCode.Validation,
-												"verifyData failed");
+												"verifyData failed. Reason: "
+														+ reason);
 									} catch (Exception ex) {
 										net.named_data.jndn.encrypt.Consumer.logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE,
 												"Error in onError", ex);
@@ -220,17 +222,17 @@ namespace net.named_data.jndn.encrypt {
 							}
 		
 				internal readonly Consumer outer_Consumer;
+				internal readonly Name cKeyName;
 				internal readonly net.named_data.jndn.encrypt.EncryptError.OnError  onError;
 				internal readonly Consumer.OnPlainText  onPlainText;
-				internal readonly Name cKeyName;
 				internal readonly EncryptedContent dataEncryptedContent;
 		
-				public Anonymous_C4(Consumer paramouter_Consumer, net.named_data.jndn.encrypt.EncryptError.OnError  onError_0,
-						Consumer.OnPlainText  onPlainText_1, Name cKeyName_2,
+				public Anonymous_C4(Consumer paramouter_Consumer, Name cKeyName_0,
+						net.named_data.jndn.encrypt.EncryptError.OnError  onError_1, Consumer.OnPlainText  onPlainText_2,
 						EncryptedContent dataEncryptedContent_3) {
-					this.onError = onError_0;
-					this.onPlainText = onPlainText_1;
-					this.cKeyName = cKeyName_2;
+					this.cKeyName = cKeyName_0;
+					this.onError = onError_1;
+					this.onPlainText = onPlainText_2;
 					this.dataEncryptedContent = dataEncryptedContent_3;
 					this.outer_Consumer = paramouter_Consumer;
 				}
@@ -325,17 +327,19 @@ namespace net.named_data.jndn.encrypt {
 								}
 							}
 		
-				public sealed class Anonymous_C8 : OnVerifyFailed {
+				public sealed class Anonymous_C8 : OnDataValidationFailed {
 								private readonly Consumer.Anonymous_C2  outer_Anonymous_C2;
 					
 								public Anonymous_C8(Consumer.Anonymous_C2  paramouter_Anonymous_C2) {
 									this.outer_Anonymous_C2 = paramouter_Anonymous_C2;
 								}
 					
-								public void onVerifyFailed(Data d) {
+								public void onDataValidationFailed(Data d,
+										String reason) {
 									try {
 										outer_Anonymous_C2.onError.onError(net.named_data.jndn.encrypt.EncryptError.ErrorCode.Validation,
-												"verifyData failed");
+												"verifyData failed. Reason: "
+														+ reason);
 									} catch (Exception ex) {
 										net.named_data.jndn.encrypt.Consumer.logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE,
 												"Error in onError", ex);
@@ -344,18 +348,18 @@ namespace net.named_data.jndn.encrypt {
 							}
 		
 				internal readonly Consumer outer_Consumer;
-				internal readonly EncryptedContent cKeyEncryptedContent;
 				internal readonly net.named_data.jndn.encrypt.EncryptError.OnError  onError;
-				internal readonly Name dKeyName;
 				internal readonly Consumer.OnPlainText  onPlainText;
+				internal readonly Name dKeyName;
+				internal readonly EncryptedContent cKeyEncryptedContent;
 		
-				public Anonymous_C2(Consumer paramouter_Consumer,
-						EncryptedContent cKeyEncryptedContent_0, net.named_data.jndn.encrypt.EncryptError.OnError  onError_1,
-						Name dKeyName_2, Consumer.OnPlainText  onPlainText_3) {
-					this.cKeyEncryptedContent = cKeyEncryptedContent_0;
-					this.onError = onError_1;
+				public Anonymous_C2(Consumer paramouter_Consumer, net.named_data.jndn.encrypt.EncryptError.OnError  onError_0,
+						Consumer.OnPlainText  onPlainText_1, Name dKeyName_2,
+						EncryptedContent cKeyEncryptedContent_3) {
+					this.onError = onError_0;
+					this.onPlainText = onPlainText_1;
 					this.dKeyName = dKeyName_2;
-					this.onPlainText = onPlainText_3;
+					this.cKeyEncryptedContent = cKeyEncryptedContent_3;
 					this.outer_Consumer = paramouter_Consumer;
 				}
 		
@@ -429,14 +433,14 @@ namespace net.named_data.jndn.encrypt {
 	
 		public sealed class Anonymous_C0 : Consumer.OnPlainText {
 			private readonly Consumer.OnPlainText  callerOnPlainText;
-			private readonly net.named_data.jndn.encrypt.EncryptError.OnError  onError;
 			private readonly Blob encryptedPayloadBlob;
+			private readonly net.named_data.jndn.encrypt.EncryptError.OnError  onError;
 	
-			public Anonymous_C0(Consumer.OnPlainText  callerOnPlainText_0, net.named_data.jndn.encrypt.EncryptError.OnError  onError_1,
-					Blob encryptedPayloadBlob_2) {
+			public Anonymous_C0(Consumer.OnPlainText  callerOnPlainText_0,
+					Blob encryptedPayloadBlob_1, net.named_data.jndn.encrypt.EncryptError.OnError  onError_2) {
 				this.callerOnPlainText = callerOnPlainText_0;
-				this.onError = onError_1;
-				this.encryptedPayloadBlob = encryptedPayloadBlob_2;
+				this.encryptedPayloadBlob = encryptedPayloadBlob_1;
+				this.onError = onError_2;
 			}
 	
 			public void onPlainText(Blob nonceKeyBits) {
@@ -464,7 +468,7 @@ namespace net.named_data.jndn.encrypt {
 			// Prepare the callback functions.
 			OnData onData_3 = new Consumer.Anonymous_C6 (this, onConsumeComplete_0, onError_1);
 	
-			OnTimeout onTimeout = new Consumer.Anonymous_C5 (this, onError_1, interest_2, onData_3);
+			OnTimeout onTimeout = new Consumer.Anonymous_C5 (this, interest_2, onData_3, onError_1);
 	
 			// Express the Interest.
 			try {
@@ -639,7 +643,7 @@ namespace net.named_data.jndn.encrypt {
 				Interest interest_4 = new Interest(interestName);
 	
 				// Prepare the callback functions.
-				OnData onData_5 = new Consumer.Anonymous_C4 (this, onError_1, onPlainText_0, cKeyName_3,
+				OnData onData_5 = new Consumer.Anonymous_C4 (this, cKeyName_3, onError_1, onPlainText_0,
 						dataEncryptedContent_2);
 	
 				OnTimeout onTimeout = new Consumer.Anonymous_C3 (this, onData_5, onError_1, interest_4);
@@ -698,8 +702,8 @@ namespace net.named_data.jndn.encrypt {
 				Interest interest_4 = new Interest(interestName);
 	
 				// Prepare the callback functions.
-				OnData onData_5 = new Consumer.Anonymous_C2 (this, cKeyEncryptedContent_2, onError_1, dKeyName_3,
-						onPlainText_0);
+				OnData onData_5 = new Consumer.Anonymous_C2 (this, onError_1, onPlainText_0, dKeyName_3,
+						cKeyEncryptedContent_2);
 	
 				OnTimeout onTimeout = new Consumer.Anonymous_C1 (this, interest_4, onData_5, onError_1);
 	
@@ -786,7 +790,7 @@ namespace net.named_data.jndn.encrypt {
 	
 			// Decrypt the D-KEY.
 			Consumer.OnPlainText  callerOnPlainText_7 = onPlainText_0;
-			decrypt(encryptedNonce, consumerKeyBlob, new Consumer.Anonymous_C0 (callerOnPlainText_7, onError_1, encryptedPayloadBlob_5), onError_1);
+			decrypt(encryptedNonce, consumerKeyBlob, new Consumer.Anonymous_C0 (callerOnPlainText_7, encryptedPayloadBlob_5, onError_1), onError_1);
 		}
 	
 		/// <summary>

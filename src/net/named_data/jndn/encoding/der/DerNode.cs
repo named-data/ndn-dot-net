@@ -370,8 +370,9 @@ namespace net.named_data.jndn.encoding.der {
 				int accSize = 0;
 				while (accSize < size_) {
 					DerNode node = net.named_data.jndn.encoding.der.DerNode.parse(inputBuf, idx);
-					idx += node.getSize();
-					accSize += node.getSize();
+					int size = node.getSize();
+					idx += size;
+					accSize += size;
 					addChild(node, false);
 				}
 			}

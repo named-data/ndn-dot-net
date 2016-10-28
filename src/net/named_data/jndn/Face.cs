@@ -27,19 +27,6 @@ namespace net.named_data.jndn {
 	/// </summary>
 	///
 	public class Face {
-		public sealed class Anonymous_C0 : OnInterestCallback {
-			private readonly OnInterest finalOnInterest;
-	
-			public Anonymous_C0(OnInterest finalOnInterest_0) {
-				this.finalOnInterest = finalOnInterest_0;
-			}
-	
-			public void onInterest(Name localPrefix, Interest interest,
-					Face face, long interestFilterId, InterestFilter filter) {
-				finalOnInterest.onInterest(localPrefix, interest,
-						face.node_.getTransport(), interestFilterId);
-			}
-		}
 		/// <summary>
 		/// Create a new Face for communication with an NDN hub with the given
 		/// Transport object and connectionInfo.
@@ -741,37 +728,6 @@ namespace net.named_data.jndn {
 		public long registerPrefix(Name prefix, OnInterestCallback onInterest,
 				OnRegisterFailed onRegisterFailed) {
 			return registerPrefix(prefix, onInterest, onRegisterFailed, null,
-					new ForwardingFlags(), net.named_data.jndn.encoding.WireFormat.getDefaultWireFormat());
-		}
-	
-		public long registerPrefix(Name prefix, OnInterest onInterest,
-				OnRegisterFailed onRegisterFailed, ForwardingFlags flags,
-				WireFormat wireFormat) {
-			// Wrap the deprecated OnInterest in an OnInterestCallback.
-			OnInterestCallback onInterestCallback = null;
-			OnInterest finalOnInterest_0 = onInterest;
-			if (finalOnInterest_0 != null)
-				onInterestCallback = new Face.Anonymous_C0 (finalOnInterest_0);
-	
-			return registerPrefix(prefix, onInterestCallback, onRegisterFailed,
-					flags, wireFormat);
-		}
-	
-		public long registerPrefix(Name prefix, OnInterest onInterest,
-				OnRegisterFailed onRegisterFailed, ForwardingFlags flags) {
-			return registerPrefix(prefix, onInterest, onRegisterFailed, flags,
-					net.named_data.jndn.encoding.WireFormat.getDefaultWireFormat());
-		}
-	
-		public long registerPrefix(Name prefix, OnInterest onInterest,
-				OnRegisterFailed onRegisterFailed, WireFormat wireFormat) {
-			return registerPrefix(prefix, onInterest, onRegisterFailed,
-					new ForwardingFlags(), wireFormat);
-		}
-	
-		public long registerPrefix(Name prefix, OnInterest onInterest,
-				OnRegisterFailed onRegisterFailed) {
-			return registerPrefix(prefix, onInterest, onRegisterFailed,
 					new ForwardingFlags(), net.named_data.jndn.encoding.WireFormat.getDefaultWireFormat());
 		}
 	

@@ -243,15 +243,15 @@ namespace TestNdnDotNet {
       return finish - start;
     }
 
-    private class VerifyCallbacks : OnVerified, OnVerifyFailed {
+    private class VerifyCallbacks : OnVerified, OnDataValidationFailed {
       public void onVerified(Data data)
       {
       }
 
-      public void onVerifyFailed(Data data)
+      public void onDataValidationFailed(Data data, string reason)
       {
         // Don't expect this to happen.
-        Console.Out.WriteLine("signature verification FAILED");
+        Console.Out.WriteLine("signature verification FAILED. Reason: " + reason);
       }
     }
 

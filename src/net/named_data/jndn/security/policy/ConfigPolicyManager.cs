@@ -283,18 +283,21 @@ namespace net.named_data.jndn.security.policy {
 		/// <param name="data">The Data object with the signature to check.</param>
 		/// <param name="stepCount"></param>
 		/// <param name="onVerified">NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
-		/// <param name="onVerifyFailed">NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
+		/// <param name="onValidationFailed">NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
 		/// <returns>the indication of next verification step, null if there is no
 		/// further step.</returns>
 		public sealed override ValidationRequest checkVerificationPolicy(Data data,
-				int stepCount, OnVerified onVerified, OnVerifyFailed onVerifyFailed) {
+				int stepCount, OnVerified onVerified,
+				OnDataValidationFailed onValidationFailed) {
+			String[] failureReason = new String[] { "unknown" };
 			Interest certificateInterest = getCertificateInterest(stepCount,
-					"data", data.getName(), data.getSignature());
+					"data", data.getName(), data.getSignature(), failureReason);
 			if (certificateInterest == null) {
 				try {
-					onVerifyFailed.onVerifyFailed(data);
+					onValidationFailed.onDataValidationFailed(data,
+							failureReason[0]);
 				} catch (Exception ex) {
-					logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in onVerifyFailed", ex);
+					logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in onDataValidationFailed", ex);
 				}
 				return null;
 			}
@@ -302,12 +305,12 @@ namespace net.named_data.jndn.security.policy {
 			if (certificateInterest.getName().size() > 0)
 				return new ValidationRequest(certificateInterest,
 						new ConfigPolicyManager.OnCertificateDownloadComplete (this, data, stepCount,
-								onVerified, onVerifyFailed), onVerifyFailed, 2,
-						stepCount + 1);
+								onVerified, onValidationFailed),
+						onValidationFailed, 2, stepCount + 1);
 			else {
 				// Certificate is known. Verify the signature.
 				// wireEncode returns the cached encoding if available.
-				if (verify(data.getSignature(), data.wireEncode())) {
+				if (verify(data.getSignature(), data.wireEncode(), failureReason)) {
 					try {
 						onVerified.onVerified(data);
 					} catch (Exception ex_0) {
@@ -315,9 +318,11 @@ namespace net.named_data.jndn.security.policy {
 					}
 				} else {
 					try {
-						onVerifyFailed.onVerifyFailed(data);
+						onValidationFailed.onDataValidationFailed(data,
+								failureReason[0]);
 					} catch (Exception ex_1) {
-						logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in onVerifyFailed", ex_1);
+						logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE,
+								"Error in onDataValidationFailed", ex_1);
 					}
 				}
 	
@@ -333,19 +338,23 @@ namespace net.named_data.jndn.security.policy {
 		/// <param name="interest">The interest with the signature to check.</param>
 		/// <param name="stepCount"></param>
 		/// <param name="onVerified">better error handling the callback should catch and properly handle any exceptions.</param>
-		/// <param name="onVerifyFailed">NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
+		/// <param name="onValidationFailed">NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
 		/// <returns>the indication of next verification step, null if there is no
 		/// further step.</returns>
 		public sealed override ValidationRequest checkVerificationPolicy(Interest interest,
 				int stepCount, OnVerifiedInterest onVerified,
-				OnVerifyInterestFailed onVerifyFailed, WireFormat wireFormat) {
-			Signature signature = extractSignature(interest, wireFormat);
+				OnInterestValidationFailed onValidationFailed, WireFormat wireFormat) {
+			String[] failureReason = new String[] { "unknown" };
+			Signature signature = extractSignature(interest, wireFormat,
+					failureReason);
 			if (signature == null) {
 				// Can't get the signature from the interest name.
 				try {
-					onVerifyFailed.onVerifyInterestFailed(interest);
+					onValidationFailed.onInterestValidationFailed(interest,
+							failureReason[0]);
 				} catch (Exception ex) {
-					logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in onVerifyInterestFailed", ex);
+					logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE,
+							"Error in onInterestValidationFailed", ex);
 				}
 				return null;
 			}
@@ -353,23 +362,25 @@ namespace net.named_data.jndn.security.policy {
 			// For command interests, we need to ignore the last 4 components when
 			//   matching the name.
 			Interest certificateInterest = getCertificateInterest(stepCount,
-					"interest", interest.getName().getPrefix(-4), signature);
+					"interest", interest.getName().getPrefix(-4), signature,
+					failureReason);
 			if (certificateInterest == null) {
 				try {
-					onVerifyFailed.onVerifyInterestFailed(interest);
+					onValidationFailed.onInterestValidationFailed(interest,
+							failureReason[0]);
 				} catch (Exception ex_0) {
-					logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in onVerifyInterestFailed", ex_0);
+					logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE,
+							"Error in onInterestValidationFailed", ex_0);
 				}
 				return null;
 			}
 	
 			if (certificateInterest.getName().size() > 0)
-				return new ValidationRequest(
-						certificateInterest,
+				return new ValidationRequest(certificateInterest,
 						new ConfigPolicyManager.OnCertificateDownloadCompleteForInterest (this, interest,
-								stepCount, onVerified, onVerifyFailed, wireFormat),
-						new ConfigPolicyManager.OnVerifyInterestFailedWrapper (onVerifyFailed, interest),
-						2, stepCount + 1);
+								stepCount, onVerified, onValidationFailed,
+								wireFormat), new ConfigPolicyManager.OnVerifyInterestFailedWrapper (
+								onValidationFailed, interest), 2, stepCount + 1);
 			else {
 				// For interests, we must check that the timestamp is fresh enough.
 				// This is done after (possibly) downloading the certificate to avoid filling
@@ -380,19 +391,20 @@ namespace net.named_data.jndn.security.policy {
 						.certificateNameToPublicKeyName(signatureName);
 				double timestamp = interest.getName().get(-4).toNumber();
 	
-				if (!interestTimestampIsFresh(keyName, timestamp)) {
+				if (!interestTimestampIsFresh(keyName, timestamp, failureReason)) {
 					try {
-						onVerifyFailed.onVerifyInterestFailed(interest);
+						onValidationFailed.onInterestValidationFailed(interest,
+								failureReason[0]);
 					} catch (Exception ex_1) {
 						logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE,
-								"Error in onVerifyInterestFailed", ex_1);
+								"Error in onInterestValidationFailed", ex_1);
 					}
 					return null;
 				}
 	
 				// Certificate is known. Verify the signature.
 				// wireEncode returns the cached encoding if available.
-				if (verify(signature, interest.wireEncode())) {
+				if (verify(signature, interest.wireEncode(), failureReason)) {
 					try {
 						onVerified.onVerifiedInterest(interest);
 					} catch (Exception ex_2) {
@@ -401,10 +413,11 @@ namespace net.named_data.jndn.security.policy {
 					updateTimestampForKey(keyName, timestamp);
 				} else {
 					try {
-						onVerifyFailed.onVerifyInterestFailed(interest);
+						onValidationFailed.onInterestValidationFailed(interest,
+								failureReason[0]);
 					} catch (Exception ex_3) {
 						logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE,
-								"Error in onVerifyInterestFailed", ex_3);
+								"Error in onInterestValidationFailed", ex_3);
 					}
 				}
 	
@@ -634,9 +647,10 @@ namespace net.named_data.jndn.security.policy {
 		/// <param name="signatureName">The certificate name from the KeyLocator.</param>
 		/// <param name="objectName">components.</param>
 		/// <param name="rule"></param>
+		/// <param name="failureReason"></param>
 		/// <returns>True if matches.</returns>
 		private bool checkSignatureMatch(Name signatureName, Name objectName,
-				BoostInfoTree rule) {
+				BoostInfoTree rule, String[] failureReason) {
 			BoostInfoTree checker = (BoostInfoTree) rule.get("checker")[0];
 			String checkerType = checker.getFirstValue("type");
 			if (checkerType.equals("fixed-signer")) {
@@ -644,19 +658,37 @@ namespace net.named_data.jndn.security.policy {
 				String signerType = signerInfo.getFirstValue("type");
 	
 				Certificate cert = null;
-				if (signerType.equals("file"))
+				if (signerType.equals("file")) {
 					cert = lookupCertificate(signerInfo.getFirstValue("file-name"),
 							true);
-				else if (signerType.equals("base64"))
+					if (cert == null) {
+						failureReason[0] = "Can't find fixed-signer certificate file: "
+								+ signerInfo.getFirstValue("file-name");
+						return false;
+					}
+				} else if (signerType.equals("base64")) {
 					cert = lookupCertificate(
 							signerInfo.getFirstValue("base64-string"), false);
-				else
+					if (cert == null) {
+						failureReason[0] = "Can't find fixed-signer certificate base64: "
+								+ signerInfo.getFirstValue("base64-string");
+						return false;
+					}
+				} else {
+					failureReason[0] = "Unrecognized fixed-signer signerType: "
+							+ signerType;
 					return false;
+				}
 	
-				if (cert == null)
+				if (cert.getName().equals(signatureName))
+					return true;
+				else {
+					failureReason[0] = "fixed-signer cert name \""
+							+ cert.getName().toUri()
+							+ "\" does not equal signatureName \""
+							+ signatureName.toUri() + "\"";
 					return false;
-				else
-					return cert.getName().equals(signatureName);
+				}
 			} else if (checkerType.equals("hierarchical")) {
 				// This just means the data/interest name has the signing identity as a prefix.
 				// That means everything before "ksk-?" in the key name.
@@ -666,10 +698,20 @@ namespace net.named_data.jndn.security.policy {
 				if (identityMatch != null) {
 					Name identityPrefix = new Name(identityMatch.Group(1))
 							.append(new Name(identityMatch.Group(2)));
-					return matchesRelation(objectName, identityPrefix,
-							"is-prefix-of");
-				} else
+					if (matchesRelation(objectName, identityPrefix, "is-prefix-of"))
+						return true;
+					else {
+						failureReason[0] = "The hierarchical objectName \""
+								+ objectName.toUri() + "\" is not a prefix of \""
+								+ identityPrefix + "\"";
+						return false;
+					}
+				} else {
+					failureReason[0] = "The hierarchical identityRegex \""
+							+ identityRegex + "\" does not match signatureName \""
+							+ signatureName.toUri() + "\"";
 					return false;
+				}
 			} else if (checkerType.equals("customized")) {
 				BoostInfoTree keyLocatorInfo = (BoostInfoTree) checker.get(
 									"key-locator")[0];
@@ -680,14 +722,32 @@ namespace net.named_data.jndn.security.policy {
 						.getFirstValue("relation");
 				if (simpleRelationType != null) {
 					Name matchName = new Name(keyLocatorInfo.getFirstValue("name"));
-					return matchesRelation(signatureName, matchName,
-							simpleRelationType);
+					if (matchesRelation(signatureName, matchName,
+							simpleRelationType))
+						return true;
+					else {
+						failureReason[0] = "The custom signatureName \""
+								+ signatureName.toUri()
+								+ "\" does not match matchName \""
+								+ matchName.toUri() + "\" using relation "
+								+ simpleRelationType;
+						return false;
+					}
 				}
 	
 				// Is this a simple regex?
 				String simpleKeyRegex = keyLocatorInfo.getFirstValue("regex");
-				if (simpleKeyRegex != null)
-					return net.named_data.jndn.util.NdnRegexMatcher.match(simpleKeyRegex, signatureName) != null;
+				if (simpleKeyRegex != null) {
+					if (net.named_data.jndn.util.NdnRegexMatcher.match(simpleKeyRegex, signatureName) != null)
+						return true;
+					else {
+						failureReason[0] = "The custom signatureName \""
+								+ signatureName.toUri()
+								+ "\" does not regex match simpleKeyRegex \""
+								+ simpleKeyRegex + "\"";
+						return false;
+					}
+				}
 	
 				// Is this a hyper-relation?
 				ArrayList hyperRelationList = keyLocatorInfo.get("hyper-relation");
@@ -704,23 +764,43 @@ namespace net.named_data.jndn.security.policy {
 							&& relationType != null) {
 						Matcher keyMatch = net.named_data.jndn.util.NdnRegexMatcher.match(keyRegex,
 								signatureName);
-						if (keyMatch == null || keyMatch.groupCount() < 1)
+						if (keyMatch == null || keyMatch.groupCount() < 1) {
+							failureReason[0] = "The custom hyper-relation signatureName \""
+									+ signatureName.toUri()
+									+ "\" does not match the keyRegex \""
+									+ keyRegex + "\"";
 							return false;
+						}
 						String keyMatchPrefix = expand(keyMatch, keyExpansion);
 	
 						Matcher nameMatch = net.named_data.jndn.util.NdnRegexMatcher.match(nameRegex,
 								objectName);
-						if (nameMatch == null || nameMatch.groupCount() < 1)
+						if (nameMatch == null || nameMatch.groupCount() < 1) {
+							failureReason[0] = "The custom hyper-relation objectName \""
+									+ objectName.toUri()
+									+ "\" does not match the nameRegex \""
+									+ nameRegex + "\"";
 							return false;
+						}
 						String nameMatchStr = expand(nameMatch, nameExpansion);
 	
-						return matchesRelation(new Name(nameMatchStr), new Name(
-								keyMatchPrefix), relationType);
+						if (matchesRelation(new Name(nameMatchStr), new Name(
+								keyMatchPrefix), relationType))
+							return true;
+						else {
+							failureReason[0] = "The custom hyper-relation nameMatch \""
+									+ nameMatchStr
+									+ "\" does not match the keyMatchPrefix \""
+									+ keyMatchPrefix
+									+ "\" using relation "
+									+ relationType;
+							return false;
+						}
 					}
 				}
 			}
 	
-			// unknown type
+			failureReason[0] = "Unrecognized checkerType: " + checkerType;
 			return false;
 		}
 	
@@ -873,17 +953,23 @@ namespace net.named_data.jndn.security.policy {
 		///
 		/// <param name="interest">The interest whose signature is needed.</param>
 		/// <param name="wireFormat"></param>
+		/// <param name="failureReason"></param>
 		/// <returns>A shared_ptr for the Signature object. This is null if can't decode.</returns>
 		private static Signature extractSignature(Interest interest,
-				WireFormat wireFormat) {
-			if (interest.getName().size() < 2)
+				WireFormat wireFormat, String[] failureReason) {
+			if (interest.getName().size() < 2) {
+				failureReason[0] = "The signed interest has less than 2 components: "
+						+ interest.getName().toUri();
 				return null;
+			}
 	
 			try {
 				return wireFormat.decodeSignatureInfoAndValue(interest.getName()
 						.get(-2).getValue().buf(), interest.getName().get(-1)
 						.getValue().buf(), false);
 			} catch (EncodingException ex) {
+				failureReason[0] = "Error decoding the signed interest signature: "
+						+ ex;
 				return null;
 			}
 		}
@@ -895,17 +981,29 @@ namespace net.named_data.jndn.security.policy {
 		///
 		/// <param name="keyName">The name of the public key used to sign the interest.</param>
 		/// <param name="timestamp">The timestamp extracted from the interest name.</param>
+		/// <param name="failureReason"></param>
 		/// <returns>True if timestamp is fresh as described above.</returns>
-		private bool interestTimestampIsFresh(Name keyName, double timestamp) {
+		private bool interestTimestampIsFresh(Name keyName, double timestamp,
+				String[] failureReason) {
 			String keyNameUri = keyName.toUri();
 			if (!keyTimestamps_.Contains(keyNameUri)) {
 				double now = net.named_data.jndn.util.Common.getNowMilliseconds();
 				double notBefore = now - keyGraceInterval_;
 				double notAfter = now + keyGraceInterval_;
-				return timestamp > notBefore && timestamp < notAfter;
+	
+				if (!(timestamp > notBefore && timestamp < notAfter)) {
+					failureReason[0] = "The command interest timestamp is not within the first use grace period of"
+							+ keyGraceInterval_ + " milliseconds.";
+					return false;
+				}
+				return true;
 			} else {
 				double lastTimestamp = (double) (Double) ILOG.J2CsMapping.Collections.Collections.Get(keyTimestamps_,keyNameUri);
-				return timestamp > lastTimestamp;
+				if (timestamp <= lastTimestamp) {
+					failureReason[0] = "The command interest timestamp is not newer than the previous timestamp";
+					return false;
+				}
+				return true;
 			}
 		}
 	
@@ -963,8 +1061,10 @@ namespace net.named_data.jndn.security.policy {
 		///
 		/// <param name="signatureInfo"></param>
 		/// <param name="signedBlob">the SignedBlob with the signed portion to verify.</param>
+		/// <param name="failureReason"></param>
 		/// <returns>True if the signature verifies, False if not.</returns>
-		private bool verify(Signature signatureInfo, SignedBlob signedBlob) {
+		private bool verify(Signature signatureInfo, SignedBlob signedBlob,
+				String[] failureReason) {
 			// We have already checked once that there is a key locator.
 			KeyLocator keyLocator = net.named_data.jndn.KeyLocator.getFromSignature(signatureInfo);
 	
@@ -975,18 +1075,30 @@ namespace net.named_data.jndn.security.policy {
 						.getCertificate(signatureName);
 				if (certificate == null)
 					certificate = certificateCache_.getCertificate(signatureName);
-				if (certificate == null)
+				if (certificate == null) {
+					failureReason[0] = "Cannot find a certificate with name "
+							+ signatureName.toUri();
 					return false;
+				}
 	
 				Blob publicKeyDer = certificate.getPublicKeyInfo().getKeyDer();
-				if (publicKeyDer.isNull())
-					// Can't find the public key with the name.
+				if (publicKeyDer.isNull()) {
+					// We don't expect this to happen.
+					failureReason[0] = "There is no public key in the certificate with name "
+							+ certificate.getName().toUri();
 					return false;
+				}
 	
-				return net.named_data.jndn.security.policy.PolicyManager.verifySignature(signatureInfo, signedBlob, publicKeyDer);
-			} else
-				// Can't find a key to verify.
+				if (net.named_data.jndn.security.policy.PolicyManager.verifySignature(signatureInfo, signedBlob, publicKeyDer))
+					return true;
+				else {
+					failureReason[0] = "The signature did not verify with the given public key";
+					return false;
+				}
+			} else {
+				failureReason[0] = "The KeyLocator does not have a key name";
 				return false;
+			}
 		}
 	
 		/// <summary>
@@ -999,36 +1111,47 @@ namespace net.named_data.jndn.security.policy {
 		/// <param name="matchType">Either "data" or "interest".</param>
 		/// <param name="objectName">The name of the data or interest packet.</param>
 		/// <param name="signature">The Signature object for the data or interest packet.</param>
+		/// <param name="failureReason"></param>
 		/// <returns>null if validation failed, otherwise the interest for the
 		/// ValidationRequest to fetch the next certificate. However, if the interest
 		/// has an empty name, the validation succeeded and no need to fetch a
 		/// certificate.</returns>
 		private Interest getCertificateInterest(int stepCount, String matchType,
-				Name objectName, Signature signature) {
-			if (stepCount > maxDepth_)
+				Name objectName, Signature signature, String[] failureReason) {
+			if (stepCount > maxDepth_) {
+				failureReason[0] = "The verification stepCount " + stepCount
+						+ " exceeded the maxDepth " + maxDepth_;
 				return null;
+			}
 	
-			if (!net.named_data.jndn.KeyLocator.canGetFromSignature(signature))
+			if (!net.named_data.jndn.KeyLocator.canGetFromSignature(signature)) {
 				// We only support signature types with key locators.
+				failureReason[0] = "The signature type does not support a KeyLocator";
 				return null;
+			}
 	
 			KeyLocator keyLocator;
 			keyLocator = net.named_data.jndn.KeyLocator.getFromSignature(signature);
 	
 			Name signatureName = keyLocator.getKeyName();
 			// No key name in KeyLocator -> fail.
-			if (signatureName.size() == 0)
+			if (signatureName.size() == 0) {
+				failureReason[0] = "The signature KeyLocator doesn't have a key name";
 				return null;
+			}
 	
 			// first see if we can find a rule to match this packet
 			BoostInfoTree matchedRule = findMatchingRule(objectName, matchType);
 	
 			// No matching rule -> fail.
-			if (matchedRule == null)
+			if (matchedRule == null) {
+				failureReason[0] = "No matching rule found for "
+						+ objectName.toUri();
 				return null;
+			}
 	
 			bool signatureMatches = checkSignatureMatch(signatureName,
-					objectName, matchedRule);
+					objectName, matchedRule, failureReason);
 			if (!signatureMatches)
 				return null;
 	
@@ -1059,16 +1182,16 @@ namespace net.named_data.jndn.security.policy {
 		/// <param name="originalData">The original data from checkVerificationPolicy.</param>
 		/// <param name="stepCount">The value from checkVerificationPolicy.</param>
 		/// <param name="onVerified">The value from checkVerificationPolicy.</param>
-		/// <param name="onVerifyFailed">The value from checkVerificationPolicy.</param>
+		/// <param name="onValidationFailed">The value from checkVerificationPolicy.</param>
 			internal class OnCertificateDownloadComplete : OnVerified {
 				private ConfigPolicyManager outer_ConfigPolicyManager;
 				public OnCertificateDownloadComplete(ConfigPolicyManager manager, Data originalData, int stepCount,
-						OnVerified onVerified, OnVerifyFailed onVerifyFailed) {
+						OnVerified onVerified, OnDataValidationFailed onValidationFailed) {
 					outer_ConfigPolicyManager = manager;
 					originalData_ = originalData;
 					stepCount_ = stepCount;
 					onVerified_ = onVerified;
-					onVerifyFailed_ = onVerifyFailed;
+					onValidationFailed_ = onValidationFailed;
 				}
 		
 				public void onVerified(Data data) {
@@ -1077,10 +1200,12 @@ namespace net.named_data.jndn.security.policy {
 						certificate = new IdentityCertificate(data);
 					} catch (DerDecodingException ex) {
 						try {
-							onVerifyFailed_.onVerifyFailed(originalData_);
+							onValidationFailed_.onDataValidationFailed(originalData_,
+									"Cannot decode certificate "
+											+ data.getName().toUri());
 						} catch (Exception exception) {
-							net.named_data.jndn.security.policy.ConfigPolicyManager.logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in onVerifyFailed",
-									exception);
+							net.named_data.jndn.security.policy.ConfigPolicyManager.logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE,
+									"Error in onDataValidationFailed", exception);
 						}
 						return;
 					}
@@ -1090,13 +1215,14 @@ namespace net.named_data.jndn.security.policy {
 						// Now that we stored the needed certificate, increment stepCount and try again
 						//   to verify the originalData.
 						outer_ConfigPolicyManager.checkVerificationPolicy(originalData_, stepCount_ + 1,
-								onVerified_, onVerifyFailed_);
+								onVerified_, onValidationFailed_);
 					} catch (SecurityException ex_0) {
 						try {
-							onVerifyFailed_.onVerifyFailed(originalData_);
+							onValidationFailed_.onDataValidationFailed(originalData_,
+									"Error in checkVerificationPolicy: " + ex_0);
 						} catch (Exception exception_1) {
-							net.named_data.jndn.security.policy.ConfigPolicyManager.logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in onVerifyFailed",
-									exception_1);
+							net.named_data.jndn.security.policy.ConfigPolicyManager.logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE,
+									"Error in onDataValidationFailed", exception_1);
 						}
 					}
 				}
@@ -1104,7 +1230,7 @@ namespace net.named_data.jndn.security.policy {
 				private readonly Data originalData_;
 				private readonly int stepCount_;
 				private readonly OnVerified onVerified_;
-				private readonly OnVerifyFailed onVerifyFailed_;
+				private readonly OnDataValidationFailed onValidationFailed_;
 			}
 	
 		/// <summary>
@@ -1119,18 +1245,19 @@ namespace net.named_data.jndn.security.policy {
 		/// <param name="originalInterest">The original interest from checkVerificationPolicy.</param>
 		/// <param name="stepCount">The value from checkVerificationPolicy.</param>
 		/// <param name="onVerified">The value from checkVerificationPolicy.</param>
-		/// <param name="onVerifyFailed">The value from checkVerificationPolicy.</param>
+		/// <param name="onValidationFailed">The value from checkVerificationPolicy.</param>
 			internal class OnCertificateDownloadCompleteForInterest : 				OnVerified {
 				private ConfigPolicyManager outer_ConfigPolicyManager;
 				public OnCertificateDownloadCompleteForInterest(
 						ConfigPolicyManager manager, Interest originalInterest, int stepCount,
 						OnVerifiedInterest onVerified,
-						OnVerifyInterestFailed onVerifyFailed, WireFormat wireFormat) {
+						OnInterestValidationFailed onValidationFailed,
+						WireFormat wireFormat) {
 					outer_ConfigPolicyManager = manager;
 					originalInterest_ = originalInterest;
 					stepCount_ = stepCount;
 					onVerified_ = onVerified;
-					onVerifyFailed_ = onVerifyFailed;
+					onValidationFailed_ = onValidationFailed;
 					wireFormat_ = wireFormat;
 				}
 		
@@ -1140,10 +1267,12 @@ namespace net.named_data.jndn.security.policy {
 						certificate = new IdentityCertificate(data);
 					} catch (DerDecodingException ex) {
 						try {
-							onVerifyFailed_.onVerifyInterestFailed(originalInterest_);
+							onValidationFailed_.onInterestValidationFailed(
+									originalInterest_, "Cannot decode certificate "
+											+ data.getName().toUri());
 						} catch (Exception exception) {
 							net.named_data.jndn.security.policy.ConfigPolicyManager.logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE,
-									"Error in onVerifyInterestFailed", exception);
+									"Error in onInterestValidationFailed", exception);
 						}
 						return;
 					}
@@ -1151,15 +1280,17 @@ namespace net.named_data.jndn.security.policy {
 		
 					try {
 						// Now that we stored the needed certificate, increment stepCount and try again
-						//   to verify the originalData.
+						//   to verify the originalInterest.
 						outer_ConfigPolicyManager.checkVerificationPolicy(originalInterest_, stepCount_ + 1,
-								onVerified_, onVerifyFailed_, wireFormat_);
+								onVerified_, onValidationFailed_, wireFormat_);
 					} catch (SecurityException ex_0) {
 						try {
-							onVerifyFailed_.onVerifyInterestFailed(originalInterest_);
+							onValidationFailed_.onInterestValidationFailed(
+									originalInterest_,
+									"Error in checkVerificationPolicy: " + ex_0);
 						} catch (Exception exception_1) {
 							net.named_data.jndn.security.policy.ConfigPolicyManager.logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE,
-									"Error in onVerifyInterestFailed", exception_1);
+									"Error in onInterestValidationFailed", exception_1);
 						}
 					}
 				}
@@ -1167,27 +1298,28 @@ namespace net.named_data.jndn.security.policy {
 				private readonly Interest originalInterest_;
 				private readonly int stepCount_;
 				private readonly OnVerifiedInterest onVerified_;
-				private readonly OnVerifyInterestFailed onVerifyFailed_;
+				private readonly OnInterestValidationFailed onValidationFailed_;
 				private readonly WireFormat wireFormat_;
 			}
 	
 		/// <summary>
-		/// Ignore data and call onVerifyFailed(interest). This is so that an
-		/// OnVerifyInterestFailed can be passed as an OnVerifyFailed.
+		/// Ignore data and call onInterestValidationFailed(interest, reason). This is
+		/// so that an OnInterestValidationFailed can be passed as an
+		/// OnDataValidationFailed.
 		/// </summary>
 		///
-		private class OnVerifyInterestFailedWrapper : OnVerifyFailed {
+		private class OnVerifyInterestFailedWrapper : 			OnDataValidationFailed {
 			public OnVerifyInterestFailedWrapper(
-					OnVerifyInterestFailed onVerifyFailed, Interest interest) {
-				onVerifyFailed_ = onVerifyFailed;
+					OnInterestValidationFailed onValidationFailed, Interest interest) {
+				onValidationFailed_ = onValidationFailed;
 				interest_ = interest;
 			}
 	
-			public void onVerifyFailed(Data data) {
-				onVerifyFailed_.onVerifyInterestFailed(interest_);
+			public void onDataValidationFailed(Data data, String reason) {
+				onValidationFailed_.onInterestValidationFailed(interest_, reason);
 			}
 	
-			private readonly OnVerifyInterestFailed onVerifyFailed_;
+			private readonly OnInterestValidationFailed onValidationFailed_;
 			private readonly Interest interest_;
 		}
 	
@@ -1231,7 +1363,7 @@ namespace net.named_data.jndn.security.policy {
 	
 			public abstract bool checkSignatureMatch(
 					ConfigPolicyManager policyManager, Name signatureName,
-					Name objectName, BoostInfoTree rule);
+					Name objectName, BoostInfoTree rule, String[] failureReason);
 		}
 	
 		/// <summary>
@@ -1247,9 +1379,10 @@ namespace net.named_data.jndn.security.policy {
 			}
 	
 			public override bool checkSignatureMatch(ConfigPolicyManager policyManager,
-					Name signatureName, Name objectName, BoostInfoTree rule) {
+					Name signatureName, Name objectName, BoostInfoTree rule,
+					String[] failureReason) {
 				return policyManager.checkSignatureMatch(signatureName, objectName,
-						rule);
+						rule, failureReason);
 			}
 		}
 	

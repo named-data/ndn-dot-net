@@ -19,17 +19,17 @@ namespace net.named_data.jndn.security {
 	
 	public class ValidationRequest {
 		public ValidationRequest(Interest interest, OnVerified onVerified,
-				OnVerifyFailed onVerifyFailed, int retry, int stepCount) {
+				OnDataValidationFailed onValidationFailed, int retry, int stepCount) {
 			interest_ = interest;
 			onVerified_ = onVerified;
-			onVerifyFailed_ = onVerifyFailed;
+			onValidationFailed_ = onValidationFailed;
 			retry_ = retry;
 			stepCount_ = stepCount;
 		}
 	
 		public readonly Interest interest_; // An interest packet to fetch the requested data.
 		public readonly OnVerified onVerified_; // A callback function if the requested certificate has been validated.
-		public readonly OnVerifyFailed onVerifyFailed_; // A callback function if the requested certificate cannot be validated.
+		public readonly OnDataValidationFailed onValidationFailed_; // A callback function if the requested certificate cannot be validated.
 		public readonly int retry_; // The number of retrials when there is an interest timeout.
 		public readonly int stepCount_;
 	}
