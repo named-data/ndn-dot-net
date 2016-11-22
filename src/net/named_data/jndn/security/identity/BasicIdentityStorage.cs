@@ -68,7 +68,7 @@ namespace net.named_data.jndn.security.identity {
 				database_ = System.Data.SqlClient.DriverManager.getConnection("jdbc:sqlite:"
 						+ databaseFilePath);
 	
-				SqlCommand statement = database_.CreateCommand();
+        Statement statement = database_.CreateCommand();
 				// Use "try/finally instead of "try-with-resources" or "using" which are not supported before Java 7.
 				try {
 					// Check if the TpmInfo table exists.
@@ -458,7 +458,7 @@ namespace net.named_data.jndn.security.identity {
 		/// <exception cref="System.Security.SecurityException">if the TPM locator doesn't exist.</exception>
 		public sealed override String getTpmLocator() {
 			try {
-				SqlCommand statement = database_.CreateCommand();
+				Statement statement = database_.CreateCommand();
 				try {
 					SqlDataReader result = statement.executeQuery(net.named_data.jndn.security.identity.Sqlite3IdentityStorageBase.SELECT_getTpmLocator);
 	
@@ -488,7 +488,7 @@ namespace net.named_data.jndn.security.identity {
 		/// <exception cref="System.Security.SecurityException">if the default identity is not set.</exception>
 		public sealed override Name getDefaultIdentity() {
 			try {
-				SqlCommand statement = database_.CreateCommand();
+				Statement statement = database_.CreateCommand();
 				try {
 					SqlDataReader result = statement
 							.executeQuery(net.named_data.jndn.security.identity.Sqlite3IdentityStorageBase.SELECT_getDefaultIdentity);
