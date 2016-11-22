@@ -19,6 +19,8 @@
 
 using System;
 using System.IO;
+using System.Data;
+using System.Data.Common;
 using System.Collections;
 using System.Text;
 using System.Globalization;
@@ -27,9 +29,11 @@ using System.Security.Cryptography;
 using ILOG.J2CsMapping.NIO;
 using net.named_data.jndn;
 using net.named_data.jndn.encoding;
-using net.named_data.jndn.util;
 using net.named_data.jndn.encoding.der;
 using net.named_data.jndn.encrypt.algo;
+using net.named_data.jndn.security;
+using net.named_data.jndn.util;
+using Mono.Data.Sqlite;
 
 namespace net.named_data.jndn.util {
   /// <summary>
@@ -67,6 +71,21 @@ namespace net.named_data.jndn.util {
       else
         throw new NotImplementedException
         ("getNumericType: Unrecognized Name.Component.ComponentType: " + componentType);
+    }
+
+    public static int 
+    getNumericType(this KeyType keyType) 
+    {
+      // The C# enum values are automatically assigned 0, 1, 2, etc. We must be explicit.
+      if (keyType == KeyType.RSA)
+        return 0;
+      else if (keyType ==  KeyType.ECDSA)
+        return 1;
+      else if (keyType ==  KeyType.AES)
+        return 128;
+      else
+        throw new NotImplementedException
+          ("getNumericType: Unrecognized KeyType: " + keyType);
     }
 
     public static int 
@@ -774,6 +793,355 @@ namespace System.Collections {
         throw new NotSupportedException
           ("TimeZone.getTimeZone does not support timeZone " + timeZone);
     }
+  }
+}
+
+namespace System.Data.SqlClient {
+  public class DriverManager {
+    /// <summary>
+    /// Check the url and return the appropriate connection type.
+    /// </summary>
+    /// <returns>The SqlConnection.</returns>
+    /// <param name="url">If url starts with "jdbc:sqlite:", return an
+    /// SQLiteSqlConnection. Otherwise throw an exception</param>
+    /// <exception cref="NotSupportedException">for an unrecognized URL.</exception>
+    public static SqlConnection 
+    getConnection(string url)
+    {
+      if (url.StartsWith("jdbc:sqlite:"))
+        return new SQLiteSqlConnection(url.Substring("jdbc:sqlite:".Length));
+      else
+        throw new NotSupportedException
+          ("System.Data.SqlClient: Unrecognized URL: " + url);
+    }
+  }
+
+  public interface Statement {
+    void
+    close();
+
+    SqlDataReader
+    executeQuery(string sql);
+
+    void
+    executeUpdate(string sql);
+  }
+
+  public interface PreparedStatement : Statement {
+    SqlDataReader
+    executeQuery();
+
+    void
+    executeUpdate();
+
+    void
+    setBytes(int index, byte[] value);
+
+    void
+    setInt(int index, int value);
+
+    void
+    setLong(int index, long value);
+
+    void
+    setString(int index, string value);
+  }
+
+  public interface SqlConnection {
+    Statement
+    CreateCommand();
+
+    PreparedStatement
+    prepareStatement(string sql);
+  }
+
+  public interface SqlDataReader {
+    void
+    close();
+
+    byte[]
+    getBytes(string name);
+
+    int
+    getInt(int index);
+
+    string
+    getString(string name);
+
+    bool
+    NextResult();
+
+    string this [string name] { get; }
+  }
+
+  /// <summary>
+  /// The converted Java code expects SQLException.
+  /// </summary>
+  class SQLException : Exception {
+    public SQLException(string message) : base(message) {}
+  }
+
+  /// <summary>
+  /// SQLiteStatement extends Statement and works with a Mono SqliteCommand.
+  /// In all methods, a thrown DbException is converted to an SQLException.
+  /// </summary>
+  public class SQLiteStatement : Statement {
+    public SQLiteStatement(SqliteConnection connection)
+    {
+      connection_ = connection;
+    }
+
+    public void
+    close()
+    { 
+      if (connectionIsOpen_) {
+        connectionIsOpen_ = false;
+        connection_.Close();
+      }
+    }
+
+    public SqlDataReader
+    executeQuery(string sql)
+    {
+      try {
+        connection_.Open();
+        connectionIsOpen_ = true;
+        return new SQLiteSqlDataReader(makeCommand(sql).ExecuteReader(), this);
+      } catch (DbException ex) {
+        throw new SQLException("Error in executeQuery: " + ex);
+      }
+    }
+
+    public void
+    executeUpdate(string sql)
+    {
+      try {
+        connection_.Open();
+        connectionIsOpen_ = true;
+        makeCommand(sql).ExecuteNonQuery();
+        close();
+      } catch (DbException ex) {
+        throw new SQLException("Error in executeQuery: " + ex);
+      }
+    }
+
+    /// <summary>
+    /// Replace each "?" in sql with @1, @2, etc. and return a new SqliteCommand.
+    /// </summary>
+    /// <returns>The SqliteCommand.</returns>
+    /// <param name="sql">The SQL query with "?"</param>
+    protected SqliteCommand 
+    makeCommand(string sql)
+    {
+      if (sql.IndexOf('@') >= 0)
+        throw new NotSupportedException
+        ("makeCommand: @ is not allowed in the sql " + sql);
+      string[] splitSql = sql.Split(new char[] { '?' });
+      string parameterizedSql = splitSql[0];
+      for (int i = 1; i < splitSql.Length; ++i)
+        parameterizedSql += "@" + i + splitSql[i];
+
+      try {
+        SqliteCommand command = connection_.CreateCommand();
+        command.CommandText = parameterizedSql;
+        return command;
+      } catch (DbException ex) {
+        throw new SQLException("Error in makeCommand: " + ex);
+      }
+    }
+
+    protected SqliteConnection connection_;
+    protected bool connectionIsOpen_;
+  }
+
+  /// <summary>
+  /// SQLitePreparedStatement extends PreparedStatement and wraps a Mono SqliteCommand.
+  /// In all methods, a thrown DbException is converted to an SQLException.
+  /// </summary>
+  public class SQLitePreparedStatement : SQLiteStatement, PreparedStatement {
+    public SQLitePreparedStatement(SqliteConnection connection, string sql)
+      : base(connection)
+    {
+      command_ = makeCommand(sql);
+    }
+
+    public SqlDataReader
+    executeQuery()
+    {
+      try {
+        connection_.Open();
+        connectionIsOpen_ = true;
+        return new SQLiteSqlDataReader(command_.ExecuteReader(), this);
+      } catch (DbException ex) {
+        throw new SQLException("Error in executeQuery: " + ex);
+      }
+    }
+
+    public void
+    executeUpdate()
+    {
+      try {
+        connection_.Open();
+        connectionIsOpen_ = true;
+        command_.ExecuteNonQuery();
+        close();
+      } catch (DbException ex) {
+        throw new SQLException("Error in executeUpdate: " + ex);
+      }
+    }
+
+    public void
+    setBytes(int index, byte[] value)
+    {
+      try {
+        command_.Parameters.AddWithValue("@" + index, value);
+      } catch (DbException ex) {
+        throw new SQLException("Error in setBytes: " + ex);
+      }
+    }
+
+    public void
+    setInt(int index, int value)
+    {
+      try {
+        command_.Parameters.AddWithValue("@" + index, value);
+      } catch (DbException ex) {
+        throw new SQLException("Error in setInt: " + ex);
+      }
+    }
+
+    public void
+    setLong(int index, long value)
+    {
+      try {
+        command_.Parameters.AddWithValue("@" + index, value);
+      } catch (DbException ex) {
+        throw new SQLException("Error in setLong: " + ex);
+      }
+    }
+
+    public void
+    setString(int index, string value)
+    {
+      try {
+        command_.Parameters.AddWithValue("@" + index, value);
+      } catch (DbException ex) {
+        throw new SQLException("Error in setString: " + ex);
+      }
+    }
+
+    private SqliteCommand command_;
+  }
+
+  /// <summary>
+  /// SQLiteSqlConnection extends SqlConnection and wraps a Mono SqliteConnection.
+  /// In all methods, a thrown DbException is converted to an SQLException.
+  /// </summary>
+  public class SQLiteSqlConnection : SqlConnection {
+    public SQLiteSqlConnection(string databaseFilePath) {
+      connection_ = new SqliteConnection("URI=file:" + databaseFilePath);
+    }
+
+    public Statement
+    CreateCommand() { return new SQLiteStatement(connection_); }
+
+    public PreparedStatement
+    prepareStatement(string sql)
+    {
+      return new SQLitePreparedStatement(connection_, sql);
+    }
+
+    private SqliteConnection connection_;
+  }
+
+  /// <summary>
+  /// SQLiteSqlDataReader extends SqlDataReader and wraps a Mono SqliteDataReader.
+  /// In all methods, a thrown DbException is converted to an SQLException.
+  /// </summary>
+  public class SQLiteSqlDataReader : SqlDataReader {
+    public SQLiteSqlDataReader(SqliteDataReader reader, SQLiteStatement statement)
+    {
+      reader_ = reader;
+      isReaderOpen_ = true;
+      statement_ = statement;
+    }
+
+    public void
+    close()
+    {
+      try {
+        if (isReaderOpen_) {
+          isReaderOpen_ = false;
+          reader_.Close();
+        }
+
+        // This closes the connection if it is still open.
+        statement_.close();
+      } catch (DbException ex) {
+        throw new SQLException("Error in close: " + ex);
+      }
+    }
+
+    public byte[]
+    getBytes(int index)
+    {
+      try {
+        int nBytes = (int)reader_.GetBytes(index - 1, 0, null, 0, 0);
+        byte[] result = new byte[nBytes];
+
+        reader_.GetBytes(index - 1, 0, result, 0, nBytes);
+        return result;
+      } catch (DbException ex) {
+        throw new SQLException("Error in getBytes: " + ex);
+      }
+    }
+
+    public byte[]
+    getBytes(string name)
+    {
+      try {
+        // Add 1 to the index to make it 1-based as expected.
+        return getBytes(reader_.GetOrdinal(name) + 1);
+      } catch (DbException ex) {
+        throw new SQLException("Error in getBytes: " + ex);
+      }
+    }
+
+    public int
+    getInt(int index)
+    { 
+      try {
+        return reader_.GetInt32(index - 1); 
+      } catch (DbException ex) {
+        throw new SQLException("Error in getInt: " + ex);
+      }
+    }
+
+    public string
+    getString(string name)
+    {
+      try {
+        return reader_.GetString(reader_.GetOrdinal(name)); 
+      } catch (DbException ex) {
+        throw new SQLException("Error in getString: " + ex);
+      }
+    }
+
+    public bool
+    NextResult() 
+    {
+      try {
+        return reader_.Read(); 
+      } catch (DbException ex) {
+        throw new SQLException("Error in NextResult: " + ex);
+      }
+    }
+
+    public string this [string name] { get { return getString(name); } }
+
+    private SqliteDataReader reader_;
+    private bool isReaderOpen_;
+    private SQLiteStatement statement_;
   }
 }
 
