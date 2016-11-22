@@ -455,6 +455,9 @@ namespace ILOG.J2CsMapping.Reflect {
       if (type == "javax.xml.bind.DatatypeConverter")
         // This is used in Common.establishBase64Converter.
         return typeof(DatatypeConverter);
+      else if (type == "org.sqlite.JDBC")
+        // This is called by Sqlite3 code, but is not used.
+        return null;
       else
         throw new NotSupportedException
           ("Reflect.Helper.GetNativeType does not support type " + type);
