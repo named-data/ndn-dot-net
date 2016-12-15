@@ -40,7 +40,8 @@ namespace net.named_data.jndn.util {
 	
 			pattern = pattern.Replace("<>", "(?:<.+?>)");
 			pattern = pattern.Replace(">", "");
-			pattern = pattern.Replace("<(?!!)", "/");
+			// Explicitly use regex replace for portability.
+			pattern = ILOG.J2CsMapping.Text.Pattern.Compile("<(?!!)").Matcher(pattern).replaceAll("/");
 	
 			Matcher match = ILOG.J2CsMapping.Text.Pattern.Compile(pattern).Matcher(nameUri);
 			if (match.Find())
