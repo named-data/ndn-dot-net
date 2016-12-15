@@ -491,9 +491,12 @@ namespace ILOG.J2CsMapping.Reflect {
 
 namespace ILOG.J2CsMapping.Text {
   public class Matcher {
-    public Matcher(Match match)
+    public Matcher(Regex regex, string input)
     {
-      match_ = match;
+      // Save regex and input in case we need it for replaceAll.
+      regex_ = regex;
+      input_ = input;
+      match_ = regex.Match(input);
     }
 
     public bool
@@ -522,6 +525,11 @@ namespace ILOG.J2CsMapping.Text {
     public string
     Group(int groupNumber) { return match_.Groups[groupNumber].Value; }
 
+    public string
+    replaceAll(string text) { return regex_.Replace(input_, text); }
+
+    private Regex regex_;
+    private string input_;
     private Match match_;
     private bool didFirstFind_ = false;
   }
@@ -536,7 +544,7 @@ namespace ILOG.J2CsMapping.Text {
     Compile(string pattern) { return new Pattern(new Regex(pattern)); }
 
     public Matcher
-    Matcher(string text) { return new Matcher(regex_.Match(text)); }
+    Matcher(string input) { return new Matcher(regex_, input); }
 
     private Regex regex_;
   }
