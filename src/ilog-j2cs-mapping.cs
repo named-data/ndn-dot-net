@@ -30,6 +30,15 @@ using System.Text.RegularExpressions;
 
 namespace ILOG.J2CsMapping.Collections {
   public class Arrays {
+    public static ArrayList
+    AsList(object[] array) {
+      var result = new ArrayList();
+      foreach (var x in array)
+        result.Add(x);
+      
+      return result;
+    }
+
     public static bool
     Equals(byte[] array1, byte[] array2)
     {
@@ -654,6 +663,8 @@ namespace ILOG.J2CsMapping.Util.Logging {
     }
 
     public void log(Level level, string message) { log(level, message, null); }
+
+    public void setLevel(Level level) {}
 
     private string className_;
   }
