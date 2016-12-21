@@ -34,6 +34,7 @@ Java to C# Translation
   globally capitalize the override methods `equals` and `toString`,
   globally rename classes Signature and PublicKey in the System namespace which conflict,
   globally fix the translation to FileReader,
+  globally put test assertions in the Assert class,
   fix the use of DateTime.Now.Millisecond, fix .length and .parseInt in OID.cs,
   fix the erroneous translation to @"\0",
   fix the erroneous translation to MD5,
@@ -49,6 +50,11 @@ In a terminal change directory to `ndn-dot-net/src/net` and enter:
     (unset LANG; find . -type f -exec sed -i '' 's/System\.Signature/System.SecuritySignature/g' {} +)
     (unset LANG; find . -type f -exec sed -i '' 's/System\.PublicKey/System.SecurityPublicKey/g' {} +)
     (unset LANG; find . -type f -exec sed -i '' 's/BufferedStream writer = new BufferedStream/var writer = /g' {} +)
+    (unset LANG; find . -name "Test*.cs" -exec sed -i '' 's/AssertArrayEquals(/Assert.AssertArrayEquals(/g' {} +)
+    (unset LANG; find . -name "Test*.cs" -exec sed -i '' 's/AssertEquals(/Assert.AssertEquals(/g' {} +)
+    (unset LANG; find . -name "Test*.cs" -exec sed -i '' 's/AssertFalse(/Assert.AssertFalse(/g' {} +)
+    (unset LANG; find . -name "Test*.cs" -exec sed -i '' 's/AssertTrue(/Assert.AssertTrue(/g' {} +)
+    (unset LANG; find . -name "Test*.cs" -exec sed -i '' 's/Fail(/Assert.Fail(/g' {} +)
     sed -i '' 's/DateTime\.Now\.Millisecond/(DateTime.Now - new DateTime(1970, 1, 1)).TotalMilliseconds/g' named_data/jndn/util/Common.cs
     sed -i '' 's/\.length/.Length/g' named_data/jndn/encoding/OID.cs
     sed -i '' 's/\.parseInt/.Parse/g' named_data/jndn/encoding/OID.cs
