@@ -448,6 +448,15 @@ namespace ILOG.J2CsMapping.NIO {
       return compareTo((ByteBuffer)other);
     }
 
+    public override int GetHashCode() {
+      int hash = 1;
+      int p = position();
+      for (int i = limit() - 1; i >= p; i--)
+        hash = 31 * hash + (int)get(i);
+
+      return hash;
+    }
+
     private byte[] array_;
     private int arrayOffset_; // get(0) returns array_[arrayOffset_].
     private int capacity_;
