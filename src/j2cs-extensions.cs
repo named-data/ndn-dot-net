@@ -221,6 +221,72 @@ namespace net.named_data.jndn.util {
     }
   }
 
+  public class Assert {
+    public static void
+    AssertArrayEquals(string message, object[] expected, object[] actual)
+    {
+      if (expected.Length != actual.Length)
+        throw new Exception("Array lengths not equal: " + message);
+      
+      for (int i = 0; i < expected.Length; ++i) {
+        if (!expected[i].Equals(actual[i]))
+          throw new Exception("Not equal at index " + i + ": " + message);
+      }
+    }
+
+    public static void
+    AssertEquals(string message, object expected, object actual)
+    {
+      if (expected == null) {
+        if (actual != null)
+          throw new Exception("Not equal: " + message);
+      } 
+      else {
+        if (!expected.Equals(actual))
+          throw new Exception("Not equal: " + message);
+      }
+    }
+
+    public static void
+    AssertEquals(object expected, object actual)
+    {
+      AssertEquals("The expected value is not equal to the actual. Expected: " +
+        expected + ", actual: " + actual, expected, actual);
+    }
+
+    public static void
+    AssertFalse(string message, bool condition)
+    {
+      if (condition)
+        throw new Exception("Not false: " + message);
+    }
+
+    public static void
+    AssertFalse(bool condition)
+    {
+      AssertFalse("The value is not false as expected.", condition);
+    }
+
+    public static void
+    AssertTrue(string message, bool condition)
+    {
+      if (!condition)
+        throw new Exception("Not true: " + message);
+    }
+
+    public static void
+    AssertTrue(bool condition)
+    {
+      AssertTrue("The value is not true as expected.", condition);
+    }
+
+    public static void
+    Fail(string message)
+    {
+      throw new Exception("Fail: " + message);
+    }
+  }
+
   public class BufferUnderflowException : Exception {
     public BufferUnderflowException(string message) : base(message) {}
   }
