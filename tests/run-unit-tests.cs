@@ -38,11 +38,17 @@ namespace TestNdnDotNet {
             type.Name.StartsWith("Test")) {
           var testInstance = type.GetConstructor(new Type[0]).Invoke(null);
 
+          var setUpMethod = type.GetMethod("setUp", new Type[0]);
+          var tearDownMethod = type.GetMethod("tearDown", new Type[0]);
+
           // Find each method that starts with "test" and takes no arguments.
           foreach (var methodInfo in type.GetMethods()) {
             if (!methodInfo.IsStatic && methodInfo.Name.StartsWith("test") &&
                 methodInfo.GetParameters().Length == 0) {
               Console.Out.WriteLine("Running test " + type.Name + "." + methodInfo.Name);
+
+              if (setUpMethod != null)
+                setUpMethod.Invoke(testInstance, null);
 
               // Invoke the test and print any error.
               try {
@@ -51,6 +57,9 @@ namespace TestNdnDotNet {
                 ++nFailed;
                 Console.Out.WriteLine("FAIL: " + ex.InnerException.Message);
               }
+
+              if (tearDownMethod != null)
+                tearDownMethod.Invoke(testInstance, null);
             }
           }
         }
