@@ -179,6 +179,19 @@ namespace net.named_data.jndn.util
     ///
     public const int MAX_NDN_PACKET_SIZE = 8800;
 
+    /// <summary>
+    /// Convert the milliseconds to a DateTime object. This is a centralized utility
+    /// method to support portability.
+    /// </summary>
+    ///
+    /// <param name="millisecondsSince1970">The milliseconds since 1970.</param>
+    /// <returns>A new DateTime object.</returns>
+    public static DateTime 
+    millisecondsSince1970ToDate(long millisecondsSince1970) 
+    {
+      return unixEpoch_.AddMilliseconds(millisecondsSince1970);
+    }
+
     private static SecureRandom randomNumberGenerator_;
     private static SHA256 sha256_ = SHA256Managed.Create();
     private static DateTime unixEpoch_ = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
