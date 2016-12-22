@@ -469,18 +469,6 @@ namespace ILOG.J2CsMapping.NIO {
 
 namespace ILOG.J2CsMapping.Reflect {
   public class Helper {
-    public static MethodInfo
-    GetMethod(Type type, string name, Type arg1Type) 
-    { 
-      return type.GetMethod(name, new Type[] { arg1Type });
-    }
-
-    public static MethodInfo
-    GetMethod(Type type, string name, Type arg1Type, Type arg2Type) 
-    { 
-      return type.GetMethod(name, new Type[] { arg1Type, arg2Type });
-    }
-
     public static Type
     GetNativeType(String type) 
     { 
@@ -490,18 +478,6 @@ namespace ILOG.J2CsMapping.Reflect {
       else
         throw new NotSupportedException
           ("Reflect.Helper.GetNativeType does not support type " + type);
-    }
-
-    public static object
-    Invoke(MethodInfo methodInfo, object obj, object arg1) 
-    { 
-      return methodInfo.Invoke(obj, new object[] { arg1 });
-    }
-
-    public static object
-    Invoke(MethodInfo methodInfo, object obj, object arg1, object arg2) 
-    { 
-      return methodInfo.Invoke(obj, new object[] { arg1, arg2 });
     }
   }
 }
