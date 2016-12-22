@@ -484,10 +484,7 @@ namespace ILOG.J2CsMapping.Reflect {
     public static Type
     GetNativeType(String type) 
     { 
-      if (type == "javax.xml.bind.DatatypeConverter")
-        // This is used in Common.establishBase64Converter.
-        return typeof(DatatypeConverter);
-      else if (type == "org.sqlite.JDBC")
+      if (type == "org.sqlite.JDBC")
         // This is called by Sqlite3 code, but is not used.
         return null;
       else
@@ -506,18 +503,6 @@ namespace ILOG.J2CsMapping.Reflect {
     { 
       return methodInfo.Invoke(obj, new object[] { arg1, arg2 });
     }
-  }
-
-  /// <summary>
-  /// This emulates javax.xml.bind.DatatypeConverter.
-  /// These methods are invoked by Common.base64Encode and base64Decode.
-  /// </summary>
-  public class DatatypeConverter {
-    public static string
-    printBase64Binary(byte[] array) { return System.Convert.ToBase64String(array); }
-
-    public static byte[]
-    parseBase64Binary(string encoding) { return System.Convert.FromBase64String(encoding); }
   }
 }
 
