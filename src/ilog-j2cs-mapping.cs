@@ -27,6 +27,7 @@ using System.Text;
 using System.Collections;
 using System.Reflection;
 using System.Text.RegularExpressions;
+using net.named_data.jndn.util;
 
 namespace ILOG.J2CsMapping.Collections {
   public class Arrays {
@@ -231,7 +232,7 @@ namespace ILOG.J2CsMapping.NIO {
     get() 
     {
       if (position_ >= limit_)
-        throw new Exception(
+        throw new BufferUnderflowException(
           "ByteBuffer.get: position() must be < limit().");
 
       return get(position_++);
@@ -344,7 +345,7 @@ namespace ILOG.J2CsMapping.NIO {
     put(byte b) 
     {
       if (position_ >= limit_)
-        throw new Exception(
+        throw new BufferOverflowException(
           "ByteBuffer.put: position() must be < limit().");
 
       return put(position_++, b);

@@ -287,6 +287,10 @@ namespace net.named_data.jndn.util {
     }
   }
 
+  public class BufferOverflowException : Exception {
+    public BufferOverflowException(string message) : base(message) {}
+  }
+
   public class BufferUnderflowException : Exception {
     public BufferUnderflowException(string message) : base(message) {}
   }
