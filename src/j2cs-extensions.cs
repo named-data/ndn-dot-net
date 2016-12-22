@@ -812,42 +812,6 @@ namespace System {
   }
 }
 
-namespace System.Security.Cryptography {
-  /// <summary>
-  /// j2cstranslator naively converts java.security.MessageDigest to MD5 (!) and uses the
-  /// Java interface. The INSTALL file instructions replace MD5 with this class.
-  /// </summary>
-  class SecuritySHA256 {
-    public static SecuritySHA256
-    Create() { return new SecuritySHA256(); }
-
-    public void
-    update(byte[] data) { memoryStream_.Write(data, 0, data.Length); }
-
-    public void
-    update(ByteBuffer data)
-    {
-      memoryStream_.Write(data.array(), data.arrayOffset(), data.remaining());
-    }
-
-    public byte[] Hash {
-      get { 
-        memoryStream_.Flush();
-        var result = sha256_.ComputeHash(memoryStream_.ToArray());
-
-        // We don't need the data in the stream any more.
-        memoryStream_.Dispose();
-        memoryStream_ = null;
-
-        return result;
-      }
-    }
-
-    private SHA256 sha256_ = SHA256Managed.Create();
-    private MemoryStream memoryStream_ = new MemoryStream();
-  }
-}
-
 namespace System.Collections {
   /// <summary>
   /// This is used with SimpleDateFormat.
@@ -1218,62 +1182,6 @@ namespace System.spec {
 }
 
 namespace javax.crypto {
-  public abstract class Mac {
-    public static Mac 
-    getInstance(string algorithm)
-    {
-      if (algorithm == "HmacSHA256")
-        return new HmacSHA256Mac();
-      else
-        throw new NotSupportedException
-          ("Mac.getInstance does not algorithm " + algorithm);
-    }
-
-    public abstract void 
-    init(Key keySpec);
-
-    public abstract void 
-    update(ByteBuffer data);
-
-    public abstract byte[] 
-    doFinal();
-
-    class HmacSHA256Mac : Mac {
-      public override void
-      init(Key key)
-      {
-        if (!(key is javax.crypto.spec.SecretKeySpec))
-          throw new net.named_data.jndn.util.InvalidKeyException
-            ("HmacSHA256Mac.init expects a SecretKeySpec");
-
-        key_ = ((javax.crypto.spec.SecretKeySpec)key).Key;
-      }
-
-      public override void 
-      update(ByteBuffer data)
-      {
-        memoryStream_.Write(data.array(), data.arrayOffset(), data.remaining());
-      }
-
-      public override byte[] 
-      doFinal()
-      {
-        using (var hmac = new HMACSHA256(key_)) {
-          memoryStream_.Flush();
-          var result = hmac.ComputeHash(memoryStream_.ToArray());
-
-          // We don't need the data in the stream any more.
-          memoryStream_.Dispose();
-          memoryStream_ = null;
-          return result;
-        }
-      }
-
-      private byte[] key_;
-      private MemoryStream memoryStream_ = new MemoryStream();
-    }
-  }
-
   public interface Key {
   }
 
