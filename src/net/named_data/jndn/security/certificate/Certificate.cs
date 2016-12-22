@@ -247,8 +247,10 @@ namespace net.named_data.jndn.security.certificate {
 	
 			SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMdd'T'HHmmss");
 			dateFormat.setTimeZone(System.Collections.TimeZone.getTimeZone("UTC"));
-			String notBeforeStr = dateFormat.format(new DateTime(((long) Math.Round(notBefore_,MidpointRounding.AwayFromZero))*10000));
-			String notAfterStr = dateFormat.format(new DateTime(((long) Math.Round(notAfter_,MidpointRounding.AwayFromZero))*10000));
+			String notBeforeStr = dateFormat.format(net.named_data.jndn.util.Common
+					.millisecondsSince1970ToDate((long) Math.Round(notBefore_,MidpointRounding.AwayFromZero)));
+			String notAfterStr = dateFormat.format(net.named_data.jndn.util.Common
+					.millisecondsSince1970ToDate((long) Math.Round(notAfter_,MidpointRounding.AwayFromZero)));
 	
 			s += "  NotBefore: " + notBeforeStr + "\n";
 			s += "  NotAfter: " + notAfterStr + "\n";

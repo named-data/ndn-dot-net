@@ -783,7 +783,7 @@ namespace net.named_data.jndn.encoding.der {
 			/// <param name="msSince1970">Timestamp as milliseconds since Jan 1, 1970.</param>
 			/// <returns>The string representation.</returns>
 			public static String toDerTimeString(double msSince1970) {
-				DateTime utcTime = new DateTime(((long) Math.Round(msSince1970,MidpointRounding.AwayFromZero))*10000);
+				DateTime utcTime = net.named_data.jndn.util.Common.millisecondsSince1970ToDate((long) Math.Round(msSince1970,MidpointRounding.AwayFromZero));
 				return dateFormat_.format(utcTime);
 			}
 	
