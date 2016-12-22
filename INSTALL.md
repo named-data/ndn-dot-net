@@ -35,12 +35,11 @@ Java to C# Translation
   globally rename classes Signature and PublicKey in the System namespace which conflict,
   globally fix the translation to FileReader,
   globally put test assertions in the Assert class,
-  fix the use of DateTime.Now.Millisecond, fix .length and .parseInt in OID.cs,
+  fix .length and .parseInt in OID.cs,
   fix the erroneous translation to @"\0",
-  fix the erroneous translation to MD5,
-  fix the erroneous translation of System.currentTimeMillis(),
   fix the erroneous translation to SqlCommand,
   remove the generated TcpTransport.cs since we use src/tcp-transport.cs:
+  remove the generated Common.cs since we use src/util-common.cs:
 
 In a terminal change directory to `ndn-dot-net/src/net` and enter:
 
@@ -55,12 +54,9 @@ In a terminal change directory to `ndn-dot-net/src/net` and enter:
     (unset LANG; find . -name "Test*.cs" -exec sed -i '' 's/AssertFalse(/Assert.AssertFalse(/g' {} +)
     (unset LANG; find . -name "Test*.cs" -exec sed -i '' 's/AssertTrue(/Assert.AssertTrue(/g' {} +)
     (unset LANG; find . -name "Test*.cs" -exec sed -i '' 's/Fail(/Assert.Fail(/g' {} +)
-    sed -i '' 's/DateTime\.Now\.Millisecond/(DateTime.Now - new DateTime(1970, 1, 1)).TotalMilliseconds/g' named_data/jndn/util/Common.cs
     sed -i '' 's/\.length/.Length/g' named_data/jndn/encoding/OID.cs
     sed -i '' 's/\.parseInt/.Parse/g' named_data/jndn/encoding/OID.cs
     sed -i '' 's/@"\\0"/"\\0"/g' named_data/jndn/util/BoostInfoTree.cs
-    sed -i '' 's/MD5/SecuritySHA256/g' named_data/jndn/util/Common.cs
-    sed -i '' 's/sha256\.ComputeHash/sha256\.update/g' named_data/jndn/util/Common.cs
-    sed -i '' 's/DateTime.Now - new DateTime(1970, 1, 1)/DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)/g' named_data/jndn/util/Common.cs
     sed -i '' 's/SqlCommand/Statement/g' named_data/jndn/security/identity/BasicIdentityStorage.cs
     rm named_data/jndn/transport/TcpTransport.cs
+    rm named_data/jndn/util/Common.cs
