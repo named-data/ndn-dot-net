@@ -808,7 +808,7 @@ namespace net.named_data.jndn.encoding.der {
 				String timeStr = "" + new Blob(payload_.flippedBuffer(), false);
 				try {
 					DateTime date = dateFormat_.parse(timeStr);
-					return (double) (date.Ticks/10000);
+					return (double) net.named_data.jndn.util.Common.dateToMillisecondsSince1970(date);
 				} catch (ParseException ex) {
 					throw new DerDecodingException(
 							"DerGeneralizedTime: Error decoding the date string: "

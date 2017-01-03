@@ -331,7 +331,8 @@ namespace net.named_data.jndn.encrypt {
 	
 		public static double fromIsoString(String dateString) {
 			try {
-				return (double) (dateFormat.parse(dateString).Ticks/10000);
+				return (double) net.named_data.jndn.util.Common.dateToMillisecondsSince1970(dateFormat
+						.parse(dateString));
 			} catch (ParseException ex) {
 				throw new EncodingException("Cannot parse date string "
 						+ dateString);
@@ -339,7 +340,7 @@ namespace net.named_data.jndn.encrypt {
 		}
 	
 		public static String toIsoString(double msSince1970) {
-			return dateFormat.format(new DateTime(((long) Math.Round(msSince1970,MidpointRounding.AwayFromZero))*10000));
+			return dateFormat.format(net.named_data.jndn.util.Common.millisecondsSince1970ToDate((long) Math.Round(msSince1970,MidpointRounding.AwayFromZero)));
 		}
 	
 		private static SimpleDateFormat getDateFormat() {
