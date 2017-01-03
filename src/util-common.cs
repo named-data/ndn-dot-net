@@ -192,6 +192,19 @@ namespace net.named_data.jndn.util
       return unixEpoch_.AddMilliseconds(millisecondsSince1970);
     }
 
+    /// <summary>
+    /// Convert a Date object milliseconds. This is a centralized utility method to 
+    /// support portability.
+    /// </summary>
+    ///
+    /// <param name="date">The Date object.</param>
+    /// <returnsThe milliseconds since 1970.</returns>
+    public static long 
+    dateToMillisecondsSince1970(DateTime date) 
+    {
+      return (long)(date - unixEpoch_).TotalMilliseconds;
+    }
+
     private static SecureRandom randomNumberGenerator_;
     private static SHA256 sha256_ = SHA256Managed.Create();
     private static DateTime unixEpoch_ = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
