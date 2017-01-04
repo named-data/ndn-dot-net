@@ -33,7 +33,7 @@ namespace net.named_data.jndn.encrypt {
 		/// </summary>
 		///
 		public EncryptedContent() {
-			this.algorithmType_ =  default(EncryptAlgorithmType)/* was: null */;
+			this.algorithmType_ = net.named_data.jndn.encrypt.algo.EncryptAlgorithmType.NONE;
 			this.keyLocator_ = new KeyLocator();
 			this.initialVector_ = new Blob();
 			this.payload_ = new Blob();
@@ -45,7 +45,7 @@ namespace net.named_data.jndn.encrypt {
 		///
 		/// <param name="encryptedContent">The other encryptedContent to copy.</param>
 		public EncryptedContent(EncryptedContent encryptedContent) {
-			this.algorithmType_ =  default(EncryptAlgorithmType)/* was: null */;
+			this.algorithmType_ = net.named_data.jndn.encrypt.algo.EncryptAlgorithmType.NONE;
 			this.keyLocator_ = new KeyLocator();
 			this.initialVector_ = new Blob();
 			this.payload_ = new Blob();
@@ -59,7 +59,8 @@ namespace net.named_data.jndn.encrypt {
 		/// Get the algorithm type.
 		/// </summary>
 		///
-		/// <returns>The algorithm type. If not specified, return null.</returns>
+		/// <returns>The algorithm type. If not specified, return
+		/// EncryptAlgorithmType.NONE.</returns>
 		public EncryptAlgorithmType getAlgorithmType() {
 			return algorithmType_;
 		}
@@ -95,7 +96,7 @@ namespace net.named_data.jndn.encrypt {
 		/// Set the algorithm type.
 		/// </summary>
 		///
-		/// <param name="algorithmType">The algorithm type. If not specified, set to null.</param>
+		/// <param name="algorithmType"></param>
 		/// <returns>This EncryptedContent so that you can chain calls to update values.</returns>
 		public EncryptedContent setAlgorithmType(
 				EncryptAlgorithmType algorithmType) {
