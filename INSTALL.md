@@ -34,6 +34,7 @@ Java to C# Translation
   globally capitalize the override methods `equals` and `toString`,
   globally rename classes Signature and PublicKey in the System namespace which conflict,
   globally fix the translation to FileReader,
+  globally fix the use of static System.Array.sort.
   globally put test assertions in the Assert class,
   fix .length and .parseInt in OID.cs,
   fix the erroneous translation to @"\0",
@@ -49,6 +50,7 @@ In a terminal change directory to `ndn-dot-net/src/net` and enter:
     (unset LANG; find . -type f -exec sed -i '' 's/System\.Signature/System.SecuritySignature/g' {} +)
     (unset LANG; find . -type f -exec sed -i '' 's/System\.PublicKey/System.SecurityPublicKey/g' {} +)
     (unset LANG; find . -type f -exec sed -i '' 's/BufferedStream writer = new BufferedStream/var writer = /g' {} +)
+    (unset LANG; find . -type f -exec sed -i '' 's/System\.Array\.sort/System.Array.Sort/g' {} +)
     (unset LANG; find . -name "Test*.cs" -exec sed -i '' 's/AssertArrayEquals(/Assert.AssertArrayEquals(/g' {} +)
     (unset LANG; find . -name "Test*.cs" -exec sed -i '' 's/AssertEquals(/Assert.AssertEquals(/g' {} +)
     (unset LANG; find . -name "Test*.cs" -exec sed -i '' 's/AssertFalse(/Assert.AssertFalse(/g' {} +)
