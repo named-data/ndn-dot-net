@@ -17,6 +17,7 @@ namespace net.named_data.jndn.encrypt.algo {
 	using System.Runtime.CompilerServices;
 	
 	public enum EncryptAlgorithmType {
+		NONE,
 		// These correspond to the TLV codes.
 		AesEcb, AesCbc, RsaPkcs, RsaOaep}
 }

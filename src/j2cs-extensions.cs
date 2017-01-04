@@ -58,7 +58,23 @@ namespace net.named_data.jndn.util {
     }
 
     public static int 
-    getNumericType(this EncryptAlgorithmType algorithmType) { return (int)algorithmType; }
+    getNumericType(this EncryptAlgorithmType algorithmType)
+    {
+      // The C# enum values are automatically assigned 0, 1, 2, etc. We must be explicit.
+      if (algorithmType == EncryptAlgorithmType.NONE)
+        return -1;
+      else if (algorithmType ==  EncryptAlgorithmType.AesEcb)
+        return 0;
+      else if (algorithmType ==  EncryptAlgorithmType.AesCbc)
+        return 1;
+      else if (algorithmType ==  EncryptAlgorithmType.RsaPkcs)
+        return 2;
+      else if (algorithmType ==  EncryptAlgorithmType.RsaOaep)
+        return 3;
+      else
+        throw new NotImplementedException
+        ("getNumericType: Unrecognized EncryptAlgorithmType: " + algorithmType);
+    }
 
     public static int 
     getNumericType(this Name.Component.ComponentType componentType) 
