@@ -115,6 +115,10 @@ namespace net.named_data.jndn.encoding.tlv {
 		public const int Encrypt_NRepeats = 138;
 		public const int Encrypt_RepeatUnit = 139;
 		public const int Encrypt_RepetitiveInterval = 140;
+		public const int Encrypt_RepeatUnit_NONE = 0;
+		public const int Encrypt_RepeatUnit_DAY = 1;
+		public const int Encrypt_RepeatUnit_MONTH = 2;
+		public const int Encrypt_RepeatUnit_YEAR = 3;
 	
 		// For Schedule.
 		public const int Encrypt_WhiteIntervalList = 141;
