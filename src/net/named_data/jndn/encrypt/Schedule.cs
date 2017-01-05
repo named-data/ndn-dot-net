@@ -231,7 +231,8 @@ namespace net.named_data.jndn.encrypt {
 	
 			// Encode backwards.
 			encoder.writeNonNegativeIntegerTlv(net.named_data.jndn.encoding.tlv.Tlv.Encrypt_RepeatUnit,
-					repetitiveInterval.getRepeatUnit().getNumericType());
+					net.named_data.jndn.encrypt.RepetitiveInterval.getRepeatUnitNumericType(repetitiveInterval
+							.getRepeatUnit()));
 			encoder.writeNonNegativeIntegerTlv(net.named_data.jndn.encoding.tlv.Tlv.Encrypt_NRepeats,
 					repetitiveInterval.getNRepeats());
 			encoder.writeNonNegativeIntegerTlv(net.named_data.jndn.encoding.tlv.Tlv.Encrypt_IntervalEndHour,
@@ -274,17 +275,13 @@ namespace net.named_data.jndn.encrypt {
 			int repeatUnitCode = (int) decoder
 					.readNonNegativeIntegerTlv(net.named_data.jndn.encoding.tlv.Tlv.Encrypt_RepeatUnit);
 			RepetitiveInterval.RepeatUnit repeatUnit;
-			if (repeatUnitCode == net.named_data.jndn.encrypt.RepetitiveInterval.RepeatUnit.NONE
-					.getNumericType())
+			if (repeatUnitCode == net.named_data.jndn.encoding.tlv.Tlv.Encrypt_RepeatUnit_NONE)
 				repeatUnit = net.named_data.jndn.encrypt.RepetitiveInterval.RepeatUnit.NONE;
-			else if (repeatUnitCode == net.named_data.jndn.encrypt.RepetitiveInterval.RepeatUnit.DAY
-					.getNumericType())
+			else if (repeatUnitCode == net.named_data.jndn.encoding.tlv.Tlv.Encrypt_RepeatUnit_DAY)
 				repeatUnit = net.named_data.jndn.encrypt.RepetitiveInterval.RepeatUnit.DAY;
-			else if (repeatUnitCode == net.named_data.jndn.encrypt.RepetitiveInterval.RepeatUnit.MONTH
-					.getNumericType())
+			else if (repeatUnitCode == net.named_data.jndn.encoding.tlv.Tlv.Encrypt_RepeatUnit_MONTH)
 				repeatUnit = net.named_data.jndn.encrypt.RepetitiveInterval.RepeatUnit.MONTH;
-			else if (repeatUnitCode == net.named_data.jndn.encrypt.RepetitiveInterval.RepeatUnit.YEAR
-					.getNumericType())
+			else if (repeatUnitCode == net.named_data.jndn.encoding.tlv.Tlv.Encrypt_RepeatUnit_YEAR)
 				repeatUnit = net.named_data.jndn.encrypt.RepetitiveInterval.RepeatUnit.YEAR;
 			else
 				throw new EncodingException(

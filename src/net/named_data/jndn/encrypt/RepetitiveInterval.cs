@@ -25,7 +25,26 @@ namespace net.named_data.jndn.encrypt {
 	/// @note This class is an experimental feature. The API may change.
 	public class RepetitiveInterval : IComparable {
 		public enum RepeatUnit {
-			NONE, DAY, MONTH, YEAR	}
+			NONE, DAY, MONTH, YEAR
+		}
+	
+		/// <summary>
+		/// Get the numeric value associated with the repeatUnit. This is a separate
+		/// method for portability.
+		/// </summary>
+		///
+		/// <param name="repeatUnit">The RepeatUnit.</param>
+		/// <returns>The numeric value for repeatUnit.</returns>
+		public static int getRepeatUnitNumericType(RepetitiveInterval.RepeatUnit  repeatUnit) {
+			if (repeatUnit == net.named_data.jndn.encrypt.RepetitiveInterval.RepeatUnit.DAY)
+				return 1;
+			else if (repeatUnit == net.named_data.jndn.encrypt.RepetitiveInterval.RepeatUnit.MONTH)
+				return 2;
+			else if (repeatUnit == net.named_data.jndn.encrypt.RepetitiveInterval.RepeatUnit.YEAR)
+				return 3;
+			else
+				return 0;
+		}
 	
 		public class Result {
 			public Result(bool isPositive, Interval interval) {
@@ -211,7 +230,14 @@ namespace net.named_data.jndn.encrypt {
 			if (nRepeats_ > other.nRepeats_)
 				return 1;
 	
-			return repeatUnit_.compare(other.repeatUnit_);
+			// Lastly, compare the repeat units.
+			// Compare without using Integer.compare so it works in older Java compilers.
+			if (getRepeatUnitNumericType(repeatUnit_) < getRepeatUnitNumericType(other.repeatUnit_))
+				return -1;
+			else if (getRepeatUnitNumericType(repeatUnit_) == getRepeatUnitNumericType(other.repeatUnit_))
+				return 0;
+			else
+				return 1;
 		}
 	
 		public virtual int compareTo(Object other) {
@@ -234,14 +260,14 @@ namespace net.named_data.jndn.encrypt {
 			int hash = 3;
 			hash = 73
 					* hash
-					+ (int) (BitConverter.DoubleToInt64Bits(startDate_) ^ ((long) (((ulong) System.Double.doubleToLongBits(startDate_)) >> 32)));
+					+ (int) (BitConverter.DoubleToInt64Bits(startDate_) ^ ((long) (((ulong) (startDate_)) >> 32)));
 			hash = 73
 					* hash
-					+ (int) (BitConverter.DoubleToInt64Bits(endDate_) ^ ((long) (((ulong) System.Double.doubleToLongBits(endDate_)) >> 32)));
+					+ (int) (BitConverter.DoubleToInt64Bits(endDate_) ^ ((long) (((ulong) (endDate_)) >> 32)));
 			hash = 73 * hash + intervalStartHour_;
 			hash = 73 * hash + intervalEndHour_;
 			hash = 73 * hash + nRepeats_;
-			hash = 73 * hash + repeatUnit_.getNumericType();
+			hash = 73 * hash + getRepeatUnitNumericType(repeatUnit_);
 			return hash;
 		}
 	
