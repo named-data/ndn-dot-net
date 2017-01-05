@@ -556,12 +556,25 @@ namespace ILOG.J2CsMapping.Util {
     }
 
     public static readonly int YEAR = 1;
+    public static readonly int MONTH = 2;
+    public static readonly int DAY_OF_MONTH = 5;
 
     public static  Calendar
     getInstance() { return new Calendar(DateTime.Now); }
 
-    public double
-    getTimeInMillis() { return (dateTime_ - epoch_).TotalMilliseconds; }
+    public static  Calendar
+    getInstance(string timeZone) 
+    { 
+      // We always use UTC.
+      if (timeZone != "UTC")
+        throw new NotSupportedException
+          ("Calendar.getInstance does not support timeZone " + timeZone);
+
+      return new Calendar(DateTime.Now); 
+    }
+
+    public long
+    getTimeInMillis() { return (long)(dateTime_ - epoch_).TotalMilliseconds; }
 
     public void
     add(int field, int amount)
@@ -570,8 +583,26 @@ namespace ILOG.J2CsMapping.Util {
         dateTime_ = dateTime_.AddYears(amount);
       else
         throw new NotSupportedException
-        ("Calendar does not support field " + field);
+          ("Calendar add does not support field " + field);
     }
+
+    public int
+    get(int field)
+    {
+      if (field == YEAR)
+        return dateTime_.Year;
+      else if (field == MONTH)
+        // The C# Month starts at 1 but the Java Calendar MONTH starts at 0.
+        return dateTime_.Month - 1;
+      else if (field == DAY_OF_MONTH)
+        return dateTime_.Day;
+      else
+        throw new NotSupportedException
+          ("Calendar get does not support field " + field);
+    }
+
+    public void
+    setTimeInMillis(long millis) { dateTime_ = epoch_.AddSeconds(millis / 1000.0); }
 
     private DateTime dateTime_;
     private static DateTime epoch_ = new DateTime(1970, 1, 1);
