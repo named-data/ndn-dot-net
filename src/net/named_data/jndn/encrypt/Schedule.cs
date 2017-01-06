@@ -304,8 +304,9 @@ namespace net.named_data.jndn.encrypt {
 		/// <param name="negativeResult">The negative result which is updated.</param>
 		private static void calculateIntervalResult(SortedSet list, double timeStamp,
 				Interval positiveResult, Interval negativeResult) {
-			for (IIterator i = new ILOG.J2CsMapping.Collections.IteratorAdapter(list.GetEnumerator()); i.HasNext();) {
-				RepetitiveInterval element = (RepetitiveInterval) i.Next();
+			/* foreach */
+			foreach (Object elementObj  in  list) {
+				RepetitiveInterval element = (RepetitiveInterval) elementObj;
 	
 				RepetitiveInterval.Result result = element.getInterval(timeStamp);
 				Interval tempInterval = result.interval;
