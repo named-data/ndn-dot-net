@@ -305,24 +305,24 @@ namespace net.named_data.jndn.tests.unit_tests {
 	
 			double notBefore = net.named_data.jndn.tests.unit_tests.UnitTestsCommon.fromIsoString("20150819T120000");
 			double notAfter = net.named_data.jndn.tests.unit_tests.UnitTestsCommon.fromIsoString("20150823T120000");
-			signatureInfo.GetValidityPeriod().SetPeriod(notBefore, notAfter);
+			signatureInfo.getValidityPeriod().setPeriod(notBefore, notAfter);
 	
 			signatureInfo.setSignature(new Blob(SIG_VALUE, false));
 	
 			Assert.AssertEquals(false,
 					certificate
-							.IsInValidityPeriod(net.named_data.jndn.tests.unit_tests.UnitTestsCommon.fromIsoString("20150819T115959")));
+							.isInValidityPeriod(net.named_data.jndn.tests.unit_tests.UnitTestsCommon.fromIsoString("20150819T115959")));
 			Assert.AssertEquals(true,
 					certificate
-							.IsInValidityPeriod(net.named_data.jndn.tests.unit_tests.UnitTestsCommon.fromIsoString("20150819T120000")));
+							.isInValidityPeriod(net.named_data.jndn.tests.unit_tests.UnitTestsCommon.fromIsoString("20150819T120000")));
 			Assert.AssertEquals(true,
 					certificate
-							.IsInValidityPeriod(net.named_data.jndn.tests.unit_tests.UnitTestsCommon.fromIsoString("20150823T120000")));
+							.isInValidityPeriod(net.named_data.jndn.tests.unit_tests.UnitTestsCommon.fromIsoString("20150823T120000")));
 			Assert.AssertEquals(false,
 					certificate
-							.IsInValidityPeriod(net.named_data.jndn.tests.unit_tests.UnitTestsCommon.fromIsoString("20150823T120001")));
+							.isInValidityPeriod(net.named_data.jndn.tests.unit_tests.UnitTestsCommon.fromIsoString("20150823T120001")));
 			Assert.AssertEquals(false,
 					certificate
-							.IsInValidityPeriod(net.named_data.jndn.tests.unit_tests.UnitTestsCommon.fromIsoString("20150921T130000")));
+							.isInValidityPeriod(net.named_data.jndn.tests.unit_tests.UnitTestsCommon.fromIsoString("20150921T130000")));
 		}
 	}}

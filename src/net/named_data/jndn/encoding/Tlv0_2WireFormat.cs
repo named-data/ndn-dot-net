@@ -21,6 +21,7 @@ namespace net.named_data.jndn.encoding {
 	using net.named_data.jndn.encrypt;
 	using net.named_data.jndn.encrypt.algo;
 	using net.named_data.jndn.lp;
+	using net.named_data.jndn.security;
 	using net.named_data.jndn.util;
 	
 	/// <summary>
@@ -857,6 +858,42 @@ namespace net.named_data.jndn.encoding {
 			decoder.finishNestedTlvs(endOffset);
 		}
 	
+		private static void encodeValidityPeriod(ValidityPeriod validityPeriod,
+				TlvEncoder encoder) {
+			int saveLength = encoder.getLength();
+	
+			// Encode backwards.
+			encoder.writeBlobTlv(net.named_data.jndn.encoding.tlv.Tlv.ValidityPeriod_NotAfter,
+					new Blob(net.named_data.jndn.encrypt.Schedule.toIsoString(validityPeriod.getNotAfter()))
+							.buf());
+			encoder.writeBlobTlv(net.named_data.jndn.encoding.tlv.Tlv.ValidityPeriod_NotBefore,
+					new Blob(net.named_data.jndn.encrypt.Schedule.toIsoString(validityPeriod.getNotBefore()))
+							.buf());
+	
+			encoder.writeTypeAndLength(net.named_data.jndn.encoding.tlv.Tlv.ValidityPeriod_ValidityPeriod,
+					encoder.getLength() - saveLength);
+		}
+	
+		private static void decodeValidityPeriod(ValidityPeriod validityPeriod,
+				TlvDecoder decoder) {
+			int endOffset = decoder
+					.readNestedTlvsStart(net.named_data.jndn.encoding.tlv.Tlv.ValidityPeriod_ValidityPeriod);
+	
+			validityPeriod.clear();
+	
+			// Set copy false since we just immediately get the string.
+			Blob isoString = new Blob(
+					decoder.readBlobTlv(net.named_data.jndn.encoding.tlv.Tlv.ValidityPeriod_NotBefore), false);
+			double notBefore = net.named_data.jndn.encrypt.Schedule.fromIsoString("" + isoString);
+			isoString = new Blob(decoder.readBlobTlv(net.named_data.jndn.encoding.tlv.Tlv.ValidityPeriod_NotAfter),
+					false);
+			double notAfter = net.named_data.jndn.encrypt.Schedule.fromIsoString("" + isoString);
+	
+			validityPeriod.setPeriod(notBefore, notAfter);
+	
+			decoder.finishNestedTlvs(endOffset);
+		}
+	
 		/// <summary>
 		/// An internal method to encode signature as the appropriate form of
 		/// SignatureInfo in NDN-TLV.
@@ -890,12 +927,24 @@ namespace net.named_data.jndn.encoding {
 	
 			// Encode backwards.
 			if (signature  is  Sha256WithRsaSignature) {
+				if (((Sha256WithRsaSignature) signature).getValidityPeriod()
+						.hasPeriod())
+					encodeValidityPeriod(
+							((Sha256WithRsaSignature) signature)
+									.getValidityPeriod(),
+							encoder);
 				encodeKeyLocator(net.named_data.jndn.encoding.tlv.Tlv.KeyLocator,
 						((Sha256WithRsaSignature) signature).getKeyLocator(),
 						encoder);
 				encoder.writeNonNegativeIntegerTlv(net.named_data.jndn.encoding.tlv.Tlv.SignatureType,
 						net.named_data.jndn.encoding.tlv.Tlv.SignatureType_SignatureSha256WithRsa);
 			} else if (signature  is  Sha256WithEcdsaSignature) {
+				if (((Sha256WithEcdsaSignature) signature).getValidityPeriod()
+						.hasPeriod())
+					encodeValidityPeriod(
+							((Sha256WithEcdsaSignature) signature)
+									.getValidityPeriod(),
+							encoder);
 				encodeKeyLocator(net.named_data.jndn.encoding.tlv.Tlv.KeyLocator,
 						((Sha256WithEcdsaSignature) signature).getKeyLocator(),
 						encoder);
@@ -933,12 +982,16 @@ namespace net.named_data.jndn.encoding {
 						.getSignature();
 				decodeKeyLocator(net.named_data.jndn.encoding.tlv.Tlv.KeyLocator, signatureInfo.getKeyLocator(),
 						decoder, copy);
+				if (decoder.peekType(net.named_data.jndn.encoding.tlv.Tlv.ValidityPeriod_ValidityPeriod, endOffset))
+					decodeValidityPeriod(signatureInfo.getValidityPeriod(), decoder);
 			} else if (signatureType == net.named_data.jndn.encoding.tlv.Tlv.SignatureType_SignatureSha256WithEcdsa) {
 				signatureHolder.setSignature(new Sha256WithEcdsaSignature());
 				Sha256WithEcdsaSignature signatureInfo_0 = (Sha256WithEcdsaSignature) signatureHolder
 						.getSignature();
 				decodeKeyLocator(net.named_data.jndn.encoding.tlv.Tlv.KeyLocator, signatureInfo_0.getKeyLocator(),
 						decoder, copy);
+				if (decoder.peekType(net.named_data.jndn.encoding.tlv.Tlv.ValidityPeriod_ValidityPeriod, endOffset))
+					decodeValidityPeriod(signatureInfo_0.getValidityPeriod(), decoder);
 			} else if (signatureType == net.named_data.jndn.encoding.tlv.Tlv.SignatureType_SignatureHmacWithSha256) {
 				signatureHolder.setSignature(new HmacWithSha256Signature());
 				HmacWithSha256Signature signatureInfo_1 = (HmacWithSha256Signature) signatureHolder

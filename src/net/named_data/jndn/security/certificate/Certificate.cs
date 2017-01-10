@@ -148,6 +148,12 @@ namespace net.named_data.jndn.security.certificate {
 			return now > notAfter_;
 		}
 	
+		public bool isInValidityPeriod(double time) {
+			// Debug: Generalize this from Sha256WithRsaSignature.
+			return ((Sha256WithRsaSignature) getSignature()).getValidityPeriod()
+					.isValid(time);
+		}
+	
 		/// <summary>
 		/// Encode the certificate fields in DER format.
 		/// </summary>

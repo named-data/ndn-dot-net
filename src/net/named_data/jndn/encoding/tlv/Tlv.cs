@@ -124,5 +124,9 @@ namespace net.named_data.jndn.encoding.tlv {
 		public const int Encrypt_WhiteIntervalList = 141;
 		public const int Encrypt_BlackIntervalList = 142;
 		public const int Encrypt_Schedule = 143;
+	
+		public const int ValidityPeriod_ValidityPeriod = 253;
+		public const int ValidityPeriod_NotBefore = 254;
+		public const int ValidityPeriod_NotAfter = 255;
 	}
 }

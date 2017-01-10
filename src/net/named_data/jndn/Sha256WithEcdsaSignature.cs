@@ -15,6 +15,7 @@ namespace net.named_data.jndn {
 	using System.ComponentModel;
 	using System.IO;
 	using System.Runtime.CompilerServices;
+	using net.named_data.jndn.security;
 	using net.named_data.jndn.util;
 	
 	/// <summary>
@@ -31,6 +32,8 @@ namespace net.named_data.jndn {
 			this.signature_ = new Blob();
 			this.keyLocator_ = new ChangeCounter(
 					new KeyLocator());
+			this.validityPeriod_ = new ChangeCounter(
+					new ValidityPeriod());
 			this.changeCount_ = 0;
 		}
 	
@@ -44,6 +47,8 @@ namespace net.named_data.jndn {
 			this.signature_ = new Blob();
 			this.keyLocator_ = new ChangeCounter(
 					new KeyLocator());
+			this.validityPeriod_ = new ChangeCounter(
+					new ValidityPeriod());
 			this.changeCount_ = 0;
 			signature_ = signature.signature_;
 			keyLocator_.set(new KeyLocator(signature.getKeyLocator()));
@@ -73,6 +78,15 @@ namespace net.named_data.jndn {
 		}
 	
 		/// <summary>
+		/// Get the validity period.
+		/// </summary>
+		///
+		/// <returns>The validity period.</returns>
+		public ValidityPeriod getValidityPeriod() {
+			return (ValidityPeriod) validityPeriod_.get();
+		}
+	
+		/// <summary>
 		/// Set the signature bytes to the given value.
 		/// </summary>
 		///
@@ -97,6 +111,7 @@ namespace net.named_data.jndn {
 		public sealed override long getChangeCount() {
 			// Make sure each of the checkChanged is called.
 			bool changed = keyLocator_.checkChanged();
+			changed = validityPeriod_.checkChanged() || changed;
 			if (changed)
 				// A child object has changed, so update the change count.
 				++changeCount_;
@@ -106,6 +121,7 @@ namespace net.named_data.jndn {
 	
 		private Blob signature_;
 		private readonly ChangeCounter keyLocator_;
+		private readonly ChangeCounter validityPeriod_;
 		private long changeCount_;
 	}
 }
