@@ -31,6 +31,7 @@ namespace net.named_data.jndn.encrypt {
 	///
 	/// @note This class is an experimental feature. The API may change.
 	public class Schedule {
+#if false // debug
 		public class Result {
 			public Result(bool isPositive, Interval interval) {
 				this.isPositive = isPositive;
@@ -326,7 +327,8 @@ namespace net.named_data.jndn.encrypt {
 				}
 			}
 		}
-	
+#endif
+
 		public static double fromIsoString(String dateString) {
 			try {
 				return (double) net.named_data.jndn.util.Common.dateToMillisecondsSince1970(dateFormat
@@ -347,9 +349,11 @@ namespace net.named_data.jndn.encrypt {
 			return dateFormat;
 		}
 	
+#if false // debug
 		// Use TreeSet without generics so it works with older Java compilers.
 		private readonly SortedSet whiteIntervalList_; // of RepetitiveInterval
 		private readonly SortedSet blackIntervalList_; // of RepetitiveInterval
+#endif
 		private static readonly SimpleDateFormat dateFormat = getDateFormat();
 		private const long MILLISECONDS_IN_DAY = 24 * 3600 * 1000;
 	}
