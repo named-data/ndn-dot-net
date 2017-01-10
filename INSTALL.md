@@ -17,7 +17,8 @@ These steps are only needed to do the translation from jNDN Java files to C#
 Java to C# Translation
 ======================
 * Replace the snapshot in `ndn-dot-net/eclipse/jndn/src/net` with the updated jNDN
-  files from `jndn/src/net` .
+  files from `jndn/src/net` . Also replace `ndn-dot-net/eclipse/jndn/src/net/named_data/jndn/tests`
+  with the files from `jndn/tests/src/net/named_data/jndn/tests` .
 * Remove the old C# output folder `ndn-dot-net/src/net` so we can rebuild.
 * Start Eclipse 3.6.0. (If necessary, follow the instructions to install the Java 6 runtime.)
   Note that the Eclipse project excludes Java files that we don't translate (such as Android code).
