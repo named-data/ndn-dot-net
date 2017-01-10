@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2015-2016 Regents of the University of California.
+ * Copyright (C) 2015-2017 Regents of the University of California.
  * @author: Jeff Thompson <jefft0@remap.ucla.edu>
  * @author: From ndn-cxx util/segment-fetcher https://github.com/named-data/ndn-cxx
  *
@@ -174,7 +174,7 @@ public class SegmentFetcher implements OnData, OnDataValidationFailed, OnTimeout
    * initial Interest will be forced to include selectors "ChildSelector=1" and
    * "MustBeFresh=true" which will be turned off in subsequent Interests.
    * @param validatorKeyChain When a Data packet is received this calls
-   * validatorKeyChain->verifyData(data). If validation fails then abort
+   * validatorKeyChain.verifyData(data). If validation fails then abort
    * fetching and call onError with SEGMENT_VERIFICATION_FAILED. This does not
    * make a copy of the KeyChain; the object must remain valid while fetching.
    * If validatorKeyChain is null, this does not validate the data packet.

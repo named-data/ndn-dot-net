@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2014-2016 Regents of the University of California.
+ * Copyright (C) 2014-2017 Regents of the University of California.
  * @author: Jeff Thompson <jefft0@remap.ucla.edu>
  * @author: From code in ndn-cxx by Yingdi Yu <yingdi@cs.ucla.edu>
  *
@@ -761,7 +761,7 @@ public class KeyChain {
 
   /**
    * Check the signature on the Data object and call either onVerify.onVerify or
-   * onVerifyFailed.onVerifyFailed.
+   * onValidationFailed.onDataValidationFailed.
    * We use callback functions because verify may fetch information to check the
    * signature.
    * @param data The Data object with the signature to check. It is an error if
@@ -869,7 +869,8 @@ public class KeyChain {
 
   /**
    * Check the signature on the signed interest and call either
-   * onVerify.onVerifiedInterest or onVerifyFailed.onVerifyInterestFailed. We
+   * onVerify.onVerifiedInterest or 
+   * onValidationFailed.onInterestValidationFailed. We
    * use callback functions because verify may fetch information to check the
    * signature.
    * @param interest The interest with the signature to check.

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2014-2016 Regents of the University of California.
+ * Copyright (C) 2014-2017 Regents of the University of California.
  * @author: Jeff Thompson <jefft0@remap.ucla.edu>
  *
  * This program is free software: you can redistribute it and/or modify
@@ -126,4 +126,8 @@ public class Tlv {
   public static final int Encrypt_WhiteIntervalList = 141;
   public static final int Encrypt_BlackIntervalList = 142;
   public static final int Encrypt_Schedule = 143;
+
+  public static final int ValidityPeriod_ValidityPeriod = 253;
+  public static final int ValidityPeriod_NotBefore = 254;
+  public static final int ValidityPeriod_NotAfter = 255;
 }

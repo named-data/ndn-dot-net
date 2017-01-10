@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2014-2016 Regents of the University of California.
+ * Copyright (C) 2014-2017 Regents of the University of California.
  * @author: Jeff Thompson <jefft0@remap.ucla.edu>
  * @author: From PyNDN certificate.py by Adeola Bannis <thecodemaiden@gmail.com>.
  * @author: Originally from code in ndn-cxx by Yingdi Yu <yingdi@cs.ucla.edu>
@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.TimeZone;
 import net.named_data.jndn.ContentType;
 import net.named_data.jndn.Data;
+import net.named_data.jndn.Sha256WithRsaSignature;
 import net.named_data.jndn.encoding.EncodingException;
 import net.named_data.jndn.encoding.WireFormat;
 import net.named_data.jndn.encoding.der.DerDecodingException;
@@ -178,6 +179,14 @@ public class Certificate extends Data {
   {
     double now = Common.getNowMilliseconds();
     return now > notAfter_;
+  }
+
+  public final boolean
+  isInValidityPeriod(double time)
+  {
+    // Debug: Generalize this from Sha256WithRsaSignature.
+    return ((Sha256WithRsaSignature)getSignature()).getValidityPeriod().isValid
+      (time);
   }
 
   /**
