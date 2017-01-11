@@ -315,6 +315,9 @@ namespace net.named_data.jndn.util {
     public FileReader(string filename) : base(filename) {}
   }
 
+  public class HashedSet<T> : System.Collections.Generic.HashSet<T> {
+  }
+
   public class InvalidKeyException : Exception {
     public InvalidKeyException(string message) : base(message) {}
   }
