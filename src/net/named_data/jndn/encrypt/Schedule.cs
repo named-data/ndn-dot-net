@@ -31,7 +31,6 @@ namespace net.named_data.jndn.encrypt {
 	///
 	/// @note This class is an experimental feature. The API may change.
 	public class Schedule {
-#if false // debug
 		public class Result {
 			public Result(bool isPositive, Interval interval) {
 				this.isPositive = isPositive;
@@ -47,8 +46,8 @@ namespace net.named_data.jndn.encrypt {
 		/// </summary>
 		///
 		public Schedule() {
-			this.whiteIntervalList_ = new SortedSet();
-			this.blackIntervalList_ = new SortedSet();
+			this.whiteIntervalList_ = new HashedSet<RepetitiveInterval>();
+			this.blackIntervalList_ = new HashedSet<RepetitiveInterval>();
 		}
 	
 		/// <summary>
@@ -57,8 +56,8 @@ namespace net.named_data.jndn.encrypt {
 		///
 		/// <param name="schedule">The Schedule to copy values from.</param>
 		public Schedule(Schedule schedule) {
-			this.whiteIntervalList_ = new SortedSet();
-			this.blackIntervalList_ = new SortedSet();
+			this.whiteIntervalList_ = new HashedSet<RepetitiveInterval>();
+			this.blackIntervalList_ = new HashedSet<RepetitiveInterval>();
 			// RepetitiveInterval is immutable, so we don't need to make a deep copy.
 			ILOG.J2CsMapping.Collections.Collections.AddAll(schedule.whiteIntervalList_,whiteIntervalList_);
 			ILOG.J2CsMapping.Collections.Collections.AddAll(schedule.blackIntervalList_,blackIntervalList_);
@@ -156,8 +155,10 @@ namespace net.named_data.jndn.encrypt {
 			// Encode backwards.
 			// Encode the blackIntervalList.
 			int saveLengthForList = encoder.getLength();
-			for (IIterator i = blackIntervalList_.descendingIterator(); i.HasNext();) {
-				RepetitiveInterval element = (RepetitiveInterval) i.Next();
+			Object[] array = ILOG.J2CsMapping.Collections.Collections.ToArray(blackIntervalList_);
+			System.Array.Sort(array);
+			for (int i = array.Length - 1; i >= 0; --i) {
+				RepetitiveInterval element = (RepetitiveInterval) array[i];
 				encodeRepetitiveInterval(element, encoder);
 			}
 			encoder.writeTypeAndLength(net.named_data.jndn.encoding.tlv.Tlv.Encrypt_BlackIntervalList,
@@ -165,8 +166,10 @@ namespace net.named_data.jndn.encrypt {
 	
 			// Encode the whiteIntervalList.
 			saveLengthForList = encoder.getLength();
-			for (IIterator i_0 = whiteIntervalList_.descendingIterator(); i_0.HasNext();) {
-				RepetitiveInterval element_1 = (RepetitiveInterval) i_0.Next();
+			array = ILOG.J2CsMapping.Collections.Collections.ToArray(whiteIntervalList_);
+			System.Array.Sort(array);
+			for (int i_0 = array.Length - 1; i_0 >= 0; --i_0) {
+				RepetitiveInterval element_1 = (RepetitiveInterval) array[i_0];
 				encodeRepetitiveInterval(element_1, encoder);
 			}
 			encoder.writeTypeAndLength(net.named_data.jndn.encoding.tlv.Tlv.Encrypt_WhiteIntervalList,
@@ -192,7 +195,7 @@ namespace net.named_data.jndn.encrypt {
 			int endOffset = decoder.readNestedTlvsStart(net.named_data.jndn.encoding.tlv.Tlv.Encrypt_Schedule);
 	
 			// Decode the whiteIntervalList.
-			ILOG.J2CsMapping.Collections.Collections.Clear(whiteIntervalList_);
+  		ILOG.J2CsMapping.Collections.Collections.Clear(whiteIntervalList_);
 			int listEndOffset = decoder
 					.readNestedTlvsStart(net.named_data.jndn.encoding.tlv.Tlv.Encrypt_WhiteIntervalList);
 			while (decoder.getOffset() < listEndOffset)
@@ -303,10 +306,13 @@ namespace net.named_data.jndn.encrypt {
 		/// <param name="timeStamp">The time stamp as milliseconds since Jan 1, 1970 UTC.</param>
 		/// <param name="positiveResult">The positive result which is updated.</param>
 		/// <param name="negativeResult">The negative result which is updated.</param>
-		private static void calculateIntervalResult(SortedSet list, double timeStamp,
+		private static void calculateIntervalResult(
+				HashedSet<RepetitiveInterval> list, double timeStamp,
 				Interval positiveResult, Interval negativeResult) {
+			Object[] array = ILOG.J2CsMapping.Collections.Collections.ToArray(list);
+			System.Array.Sort(array);
 			/* foreach */
-			foreach (Object elementObj  in  list) {
+			foreach (Object elementObj  in  array) {
 				RepetitiveInterval element = (RepetitiveInterval) elementObj;
 	
 				RepetitiveInterval.Result result = element.getInterval(timeStamp);
@@ -327,8 +333,7 @@ namespace net.named_data.jndn.encrypt {
 				}
 			}
 		}
-#endif
-
+	
 		public static double fromIsoString(String dateString) {
 			try {
 				return (double) net.named_data.jndn.util.Common.dateToMillisecondsSince1970(dateFormat
@@ -349,11 +354,8 @@ namespace net.named_data.jndn.encrypt {
 			return dateFormat;
 		}
 	
-#if false // debug
-		// Use TreeSet without generics so it works with older Java compilers.
-		private readonly SortedSet whiteIntervalList_; // of RepetitiveInterval
-		private readonly SortedSet blackIntervalList_; // of RepetitiveInterval
-#endif
+		private readonly HashedSet<RepetitiveInterval> whiteIntervalList_;
+		private readonly HashedSet<RepetitiveInterval> blackIntervalList_;
 		private static readonly SimpleDateFormat dateFormat = getDateFormat();
 		private const long MILLISECONDS_IN_DAY = 24 * 3600 * 1000;
 	}
