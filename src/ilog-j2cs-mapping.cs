@@ -72,7 +72,19 @@ namespace ILOG.J2CsMapping.Collections {
     Add(IList list, object value) { list.Add(value); }
 
     public static void 
-    Clear(IList list) { list.Clear(); }
+    Add<T>(System.Collections.Generic.ICollection<T> list, T value) { list.Add(value); }
+
+    public static void 
+    AddAll<T>
+      (System.Collections.Generic.ICollection<T> toList, 
+       System.Collections.Generic.ICollection<T> fromList) 
+    { 
+      foreach (T item in fromList)
+        toList.Add(item);
+    }
+
+    public static void 
+    Clear<T>(System.Collections.Generic.ICollection<T> collection) { collection.Clear(); }
 
     public static object
     Get(Hashtable map, object key) { return map[key]; }
@@ -110,6 +122,14 @@ namespace ILOG.J2CsMapping.Collections {
     ToArray(ICollection collection)
     { 
       var result = new Object[collection.Count];
+      collection.CopyTo(result, 0);
+      return result;
+    }
+
+    public static T[]
+    ToArray<T>(System.Collections.Generic.ICollection<T> collection)
+    { 
+      var result = new T[collection.Count];
       collection.CopyTo(result, 0);
       return result;
     }
