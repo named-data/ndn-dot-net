@@ -45,7 +45,6 @@ namespace net.named_data.jndn.security.identity {
 			// Don't call checkTpm() when using a custom PrivateKeyStorage.
 		}
 	
-#if false
 		/// <summary>
 		/// Create a new IdentityManager to use the given IdentityStorage and
 		/// the default PrivateKeyStorage for your system, which is
@@ -90,7 +89,6 @@ namespace net.named_data.jndn.security.identity {
 	
 			checkTpm(canonicalTpmLocator[0]);
 		}
-#endif
 	
 		/// <summary>
 		/// Create an identity by creating a pair of Key-Signing-Key (KSK) for this
@@ -1071,7 +1069,6 @@ namespace net.named_data.jndn.security.identity {
 				throw new SecurityException("Key type is not recognized");
 		}
 	
-#if false
 		/// <summary>
 		/// Get the IdentityStorage from the pib value in the configuration file if
 		/// supplied. Otherwise, get the default for this platform.
@@ -1106,7 +1103,7 @@ namespace net.named_data.jndn.security.identity {
 	
 			if (tpmLocator.equals("")) {
 				// Use the system default.
-				if (System.Environment.GetEnvironmentVariable("os.name").equals("Mac OS X")) {
+				if (Common.PlatformIsOSX()) {
 					canonicalTpmLocator[0] = "tpm-osxkeychain:";
 					throw new SecurityException(
 							"OSXPrivateKeyStorage is not implemented yet. You must create an IdentityManager with a different PrivateKeyStorage.");
@@ -1126,7 +1123,6 @@ namespace net.named_data.jndn.security.identity {
 				throw new SecurityException("Invalid config file tpm value: "
 						+ tpmLocator);
 		}
-#endif
 	
 		/// <summary>
 		/// Check that identityStorage_.getTpmLocator() (if defined) matches the
