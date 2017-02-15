@@ -89,8 +89,17 @@ namespace ILOG.J2CsMapping.Collections {
     public static object
     Get(Hashtable map, object key) { return map[key]; }
 
+    public static TValue
+    Get<TKey, TValue>(IDictionary<TKey, TValue> dictionary, TKey key) { return dictionary[key]; }
+
     public static void
     Put(Hashtable map, object key, object value) { map[key] = value; }
+
+    public static void
+    Put<TKey, TValue>(IDictionary<TKey, TValue> dictionary, TKey key, TValue value) 
+    { 
+      dictionary[key] = value; 
+    }
 
     public static object 
     Remove(Hashtable map, object key) 
