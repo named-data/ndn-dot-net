@@ -205,6 +205,20 @@ namespace net.named_data.jndn.util
       return (long)(date - unixEpoch_).TotalMilliseconds;
     }
 
+    /// <summary>
+    /// Return true if the platform is OS X.
+    /// </summary>
+    /// <returns>True if OS X, false if not.</returns>
+    public static bool 
+    PlatformIsOSX()
+    {
+      // This is kind of a hack, but on OS X, Environment.OSVersion.Platform is Unix!
+      return Directory.Exists("/Applications") &&
+             Directory.Exists("/System") &&
+             Directory.Exists("/Users") &&
+             Directory.Exists("/Volumes");
+    }
+
     private static SecureRandom randomNumberGenerator_;
     private static SHA256 sha256_ = SHA256Managed.Create();
     private static DateTime unixEpoch_ = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
