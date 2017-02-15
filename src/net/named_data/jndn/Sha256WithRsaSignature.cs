@@ -53,6 +53,7 @@ namespace net.named_data.jndn {
 			this.changeCount_ = 0;
 			signature_ = signature.signature_;
 			keyLocator_.set(new KeyLocator(signature.getKeyLocator()));
+			validityPeriod_.set(new ValidityPeriod(signature.getValidityPeriod()));
 		}
 	
 		/// <summary>
@@ -98,8 +99,19 @@ namespace net.named_data.jndn {
 		}
 	
 		public void setKeyLocator(KeyLocator keyLocator) {
-			keyLocator_.set(((keyLocator == null) ? new KeyLocator()
-					: new KeyLocator(keyLocator)));
+			keyLocator_.set((keyLocator == null) ? new KeyLocator() : new KeyLocator(
+					keyLocator));
+			++changeCount_;
+		}
+	
+		/// <summary>
+		/// Set the validity period to a copy of the given ValidityPeriod.
+		/// </summary>
+		///
+		/// <param name="validityPeriod">The ValidityPeriod which is copied.</param>
+		public void setValidityPeriod(ValidityPeriod validityPeriod) {
+			validityPeriod_.set((validityPeriod == null) ? new ValidityPeriod()
+					: new ValidityPeriod(validityPeriod));
 			++changeCount_;
 		}
 	

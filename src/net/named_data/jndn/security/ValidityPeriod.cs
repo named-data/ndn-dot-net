@@ -34,6 +34,20 @@ namespace net.named_data.jndn.security {
 		}
 	
 		/// <summary>
+		/// Create a new ValidityPeriod with a copy of the fields in the given
+		/// validityPeriod.
+		/// </summary>
+		///
+		/// <param name="validityPeriod">The ValidityPeriod to copy.</param>
+		public ValidityPeriod(ValidityPeriod validityPeriod) {
+			this.notBefore_ = System.Double.MaxValue;
+			this.notAfter_ = -System.Double.MaxValue;
+			this.changeCount_ = 0;
+			notBefore_ = validityPeriod.notBefore_;
+			notAfter_ = validityPeriod.notAfter_;
+		}
+	
+		/// <summary>
 		/// Check if the period has been set.
 		/// </summary>
 		///

@@ -687,7 +687,7 @@ namespace net.named_data.jndn.security {
 	
 		/// <summary>
 		/// Check the signature on the Data object and call either onVerify.onVerify or
-		/// onVerifyFailed.onVerifyFailed.
+		/// onValidationFailed.onDataValidationFailed.
 		/// We use callback functions because verify may fetch information to check the
 		/// signature.
 		/// </summary>
@@ -763,7 +763,8 @@ namespace net.named_data.jndn.security {
 	
 		/// <summary>
 		/// Check the signature on the signed interest and call either
-		/// onVerify.onVerifiedInterest or onVerifyFailed.onVerifyInterestFailed. We
+		/// onVerify.onVerifiedInterest or 
+		/// onValidationFailed.onInterestValidationFailed. We
 		/// use callback functions because verify may fetch information to check the
 		/// signature.
 		/// </summary>

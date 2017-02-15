@@ -19,6 +19,7 @@ namespace net.named_data.jndn.tests.unit_tests {
 	using System.Runtime.CompilerServices;
 	using net.named_data.jndn;
 	using net.named_data.jndn.encoding;
+	using net.named_data.jndn.security;
 	using net.named_data.jndn.security.certificate;
 	using net.named_data.jndn.util;
 	
@@ -82,7 +83,7 @@ namespace net.named_data.jndn.tests.unit_tests {
 				0x01,
 				0xBB, // Data
 				0x07,
-				0x33, // Name /ndn/site1/ksk-1416425377094/KEY/0123/%FD%00%00%01I%C9%8B
+				0x33, // Name /ndn/site1/KEY/ksk-1416425377094/0123/%FD%00%00%01I%C9%8B
 				0x08,
 				0x03,
 				0x6E,
@@ -95,6 +96,11 @@ namespace net.named_data.jndn.tests.unit_tests {
 				0x74,
 				0x65,
 				0x31,
+				0x08,
+				0x03,
+				0x4B,
+				0x45,
+				0x59,
 				0x08,
 				0x11,
 				0x6B,
@@ -114,11 +120,6 @@ namespace net.named_data.jndn.tests.unit_tests {
 				0x30,
 				0x39,
 				0x34,
-				0x08,
-				0x03,
-				0x4B,
-				0x45,
-				0x59,
 				0x08,
 				0x04,
 				0x30,
@@ -157,7 +158,10 @@ namespace net.named_data.jndn.tests.unit_tests {
 				0x08, 0x1D, 0x8B, 0x43, 0x9A, 0x33, 0x67, 0x44, 0x6D, 0x21, 0xA3,
 				0x1B, 0x88, 0x9A, 0x97, 0x5E, 0x59, 0xC4, 0x15, 0x0B, 0xD9, 0x2C,
 				0xBD, 0x51, 0x07, 0x61, 0x82, 0xAD, 0xC1, 0xB8, 0xD7, 0xBF, 0x9B,
-				0xCF, 0x7D, 0x24, 0xC2, 0x63,
+				0xCF, 0x7D,
+				0x24,
+				0xC2,
+				0x63,
 				0xF3,
 				0x97,
 				0x17,
@@ -209,13 +213,10 @@ namespace net.named_data.jndn.tests.unit_tests {
 				0x01,
 				0x01, // SignatureType
 				0x1C,
-				0x26, // KeyLocator: /ndn/site1/ksk-2516425377094/KEY
+				0x26, // KeyLocator: /ndn/site1/KEY/ksk-2516425377094
 				0x07, 0x24, 0x08, 0x03, 0x6E, 0x64, 0x6E, 0x08, 0x05, 0x73, 0x69,
-				0x74, 0x65, 0x31, 0x08, 0x11, 0x6B, 0x73,
-				0x6B,
-				0x2D,
-				0x32,
-				0x35,
+				0x74, 0x65, 0x31, 0x08, 0x03, 0x4B, 0x45, 0x59, 0x08, 0x11, 0x6B,
+				0x73, 0x6B, 0x2D, 0x32, 0x35,
 				0x31,
 				0x36,
 				0x34,
@@ -227,34 +228,13 @@ namespace net.named_data.jndn.tests.unit_tests {
 				0x30,
 				0x39,
 				0x34,
-				0x08,
-				0x03,
-				0x4B,
-				0x45,
-				0x59,
 				0xFD,
 				0x00,
 				0xFD,
-				0x26, // ValidityPeriod
-				0xFD,
-				0x00,
-				0xFE,
-				0x0F, // NotBefore = 20150814T223739
-				0x32, 0x30, 0x31, 0x35, 0x30, 0x38,
-				0x31,
-				0x34,
-				0x54,
-				0x32,
-				0x32,
-				0x33,
-				0x37,
-				0x33,
-				0x39,
-				0xFD,
-				0x00,
-				0xFF,
-				0x0F, // NotAfter =  20150818T223739
-				0x32, 0x30, 0x31, 0x35, 0x30,
+				0x26, // ValidityPeriod: (20150814T223739, 20150818T223738)
+				0xFD, 0x00, 0xFE, 0x0F, 0x32, 0x30, 0x31, 0x35, 0x30, 0x38, 0x31,
+				0x34, 0x54, 0x32, 0x32, 0x33, 0x37, 0x33, 0x39, 0xFD, 0x00, 0xFF,
+				0x0F, 0x32, 0x30, 0x31, 0x35, 0x30,
 				0x38,
 				0x31,
 				0x38,
@@ -280,6 +260,26 @@ namespace net.named_data.jndn.tests.unit_tests {
 				0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
 				0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF });
 	
+		private static Sha256WithRsaSignature generateFakeSignature() {
+			Sha256WithRsaSignature signatureInfo = new Sha256WithRsaSignature();
+	
+			Name keyLocatorName = new Name("/ndn/site1/KEY/ksk-2516425377094");
+			KeyLocator keyLocator = new KeyLocator();
+			keyLocator.setType(net.named_data.jndn.KeyLocatorType.KEYNAME);
+			keyLocator.setKeyName(keyLocatorName);
+			signatureInfo.setKeyLocator(keyLocator);
+	
+			ValidityPeriod period = new ValidityPeriod();
+			period.setPeriod(net.named_data.jndn.tests.unit_tests.UnitTestsCommon.fromIsoString("20141111T050000"),
+					net.named_data.jndn.tests.unit_tests.UnitTestsCommon.fromIsoString("20141111T060000"));
+			signatureInfo.setValidityPeriod(period);
+	
+			Blob block2 = new Blob(SIG_VALUE, false);
+			signatureInfo.setSignature(block2);
+	
+			return signatureInfo;
+		}
+	
 		public void testConstruction() {
 			// Debug: This should be a Certificate.
 			Data certificate = new Data();
@@ -291,38 +291,22 @@ namespace net.named_data.jndn.tests.unit_tests {
 		public void testValidityPeriodChecking() {
 			Certificate certificate = new Certificate();
 			certificate.setName(new Name(
-					"/ndn/site1/ksk-1416425377094/KEY/0123/%FD%00%00%01I%C9%8B"));
+					"/ndn/site1/KEY/ksk-1416425377094/0123/%FD%00%00%01I%C9%8B"));
 			certificate.getMetaInfo().setFreshnessPeriod(3600 * 1000.0d);
 			certificate.setContent(new Blob(PUBLIC_KEY, false));
+			certificate.setSignature(generateFakeSignature());
 	
-			certificate.setSignature(new Sha256WithRsaSignature());
-			Sha256WithRsaSignature signatureInfo = (Sha256WithRsaSignature) certificate
-					.getSignature();
-	
-			signatureInfo.getKeyLocator().setType(net.named_data.jndn.KeyLocatorType.KEYNAME);
-			signatureInfo.getKeyLocator().setKeyName(
-					new Name("/ndn/site1/ksk-2516425377094/KEY"));
-	
-			double notBefore = net.named_data.jndn.tests.unit_tests.UnitTestsCommon.fromIsoString("20150819T120000");
-			double notAfter = net.named_data.jndn.tests.unit_tests.UnitTestsCommon.fromIsoString("20150823T120000");
-			signatureInfo.getValidityPeriod().setPeriod(notBefore, notAfter);
-	
-			signatureInfo.setSignature(new Blob(SIG_VALUE, false));
-	
-			Assert.AssertEquals(false,
-					certificate
-							.isInValidityPeriod(net.named_data.jndn.tests.unit_tests.UnitTestsCommon.fromIsoString("20150819T115959")));
 			Assert.AssertEquals(true,
 					certificate
-							.isInValidityPeriod(net.named_data.jndn.tests.unit_tests.UnitTestsCommon.fromIsoString("20150819T120000")));
+							.isInValidityPeriod(net.named_data.jndn.tests.unit_tests.UnitTestsCommon.fromIsoString("20141111T050000")));
 			Assert.AssertEquals(true,
 					certificate
-							.isInValidityPeriod(net.named_data.jndn.tests.unit_tests.UnitTestsCommon.fromIsoString("20150823T120000")));
+							.isInValidityPeriod(net.named_data.jndn.tests.unit_tests.UnitTestsCommon.fromIsoString("20141111T060000")));
 			Assert.AssertEquals(false,
 					certificate
-							.isInValidityPeriod(net.named_data.jndn.tests.unit_tests.UnitTestsCommon.fromIsoString("20150823T120001")));
+							.isInValidityPeriod(net.named_data.jndn.tests.unit_tests.UnitTestsCommon.fromIsoString("20141111T045959")));
 			Assert.AssertEquals(false,
 					certificate
-							.isInValidityPeriod(net.named_data.jndn.tests.unit_tests.UnitTestsCommon.fromIsoString("20150921T130000")));
+							.isInValidityPeriod(net.named_data.jndn.tests.unit_tests.UnitTestsCommon.fromIsoString("20141111T060001")));
 		}
 	}}

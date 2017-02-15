@@ -224,7 +224,6 @@ namespace net.named_data.jndn.util {
 		/// </summary>
 		///
 		/// <param name="buffer">The buffer.</param>
-		/// <returns>A string of hex bytes.</returns>
 		/// <param name="output">The StringBuffer to write to.</param>
 		public static void toHex(ByteBuffer buffer, StringBuilder output) {
 			for (int i = buffer.position(); i < buffer.limit(); ++i) {
