@@ -60,7 +60,6 @@ namespace net.named_data.jndn.security {
 			policyManager_ = new NoVerifyPolicyManager();
 		}
 	
-#if false
 		/// <summary>
 		/// Create a new KeyChain with the the default IdentityManager and a
 		/// NoVerifyPolicyManager.
@@ -71,7 +70,6 @@ namespace net.named_data.jndn.security {
 			identityManager_ = new IdentityManager();
 			policyManager_ = new NoVerifyPolicyManager();
 		}
-#endif
 	
 		/*****************************************
 		 *          Identity Management          *
