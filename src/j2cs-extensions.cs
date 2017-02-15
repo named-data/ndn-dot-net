@@ -42,7 +42,7 @@ namespace net.named_data.jndn.util {
   /// uncapitalized methods to call the capitalized ones.
   /// </summary>
   public static class J2CsExtensions {
-    // ArrayList extensions.
+    // ArrayList<T> extensions.
     public static int 
     indexOf<T>(this ArrayList<T> array, T value) { return array.IndexOf(value); }
 
@@ -123,16 +123,23 @@ namespace net.named_data.jndn.util {
           ("getNumericType: Unrecognized NetworkNack.Reason: " + reason);
     }
 
-    // Hashtable extensions.
-    public static void 
-    clear(this Hashtable map) { map.Clear(); }
-
     // FileInfo extensions.
     public static void 
     delete(this FileInfo fileInfo) { fileInfo.Delete(); }
 
     public static FileInfo[] 
     listFiles(this FileInfo fileInfo) { return new DirectoryInfo(fileInfo.FullName).GetFiles(); }
+
+    // Hashtable extensions.
+    public static void 
+    clear(this Hashtable map) { map.Clear(); }
+
+    // IDictionary<TKey, TValue> extensions.
+    public static bool
+    Contains<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key) 
+    { 
+      return dictionary.ContainsKey(key); 
+    }
 
     // Random extensions.
     public static void
@@ -316,6 +323,15 @@ namespace net.named_data.jndn.util {
   }
 
   public class HashedSet<T> : System.Collections.Generic.HashSet<T> {
+  }
+
+  // We need a generic version of Hashtable, which is j2cstranslator's conversion of HashMap.
+  public class Hashtable<TKey, TValue> 
+    : System.Collections.Generic.Dictionary<TKey, TValue>, IDictionary<TKey, TValue> {
+  }
+
+  // We need a generic version of IDictionary, which is j2cstranslator's conversion of Map.
+  public interface IDictionary<TKey, TValue> : System.Collections.Generic.IDictionary<TKey, TValue> {
   }
 
   public class InvalidKeyException : Exception {
