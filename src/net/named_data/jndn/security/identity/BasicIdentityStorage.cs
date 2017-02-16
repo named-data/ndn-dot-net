@@ -38,7 +38,7 @@ namespace net.named_data.jndn.security.identity {
 		public BasicIdentityStorage() {
 			this.database_ = null;
 			// NOTE: Use File because java.nio.file.Path is not available before Java 7.
-			FileInfo identityDir = new FileInfo(net.named_data.jndn.util.Common.getHomeDirectory()+".ndn");
+			FileInfo identityDir = new FileInfo(System.IO.Path.Combine(net.named_data.jndn.util.Common.getHomeDirectory(),".ndn"));
 			System.IO.Directory.CreateDirectory(identityDir.FullName);
 			FileInfo databasePath = new FileInfo(System.IO.Path.Combine(identityDir.FullName,"ndnsec-public-info.db"));
 			construct(databasePath.FullName);
