@@ -92,7 +92,7 @@ namespace net.named_data.jndn.util
     {
       // Copy the buffer to an array.
       var array = new byte[data.remaining()];
-      int savePosition = data.position();
+      var savePosition = data.position();
       data.get(array);
       data.position(savePosition);
 
@@ -122,7 +122,7 @@ namespace net.named_data.jndn.util
       using (var hmac = new HMACSHA256(key)) {
         // Copy the buffer to an array.
         var array = new byte[data.remaining()];
-        int savePosition = data.position();
+        var savePosition = data.position();
         data.get(array);
         data.position(savePosition);
 
@@ -139,9 +139,9 @@ namespace net.named_data.jndn.util
     public static string
     toHex(byte[] buffer)
     {
-      StringBuilder output = new StringBuilder(buffer.Length * 2);
+      var output = new StringBuilder(buffer.Length * 2);
       for (int i = 0; i < buffer.Length; ++i) {
-        string hex = ((int)buffer[i] & 0xff).ToString("x");
+        var hex = ((int)buffer[i] & 0xff).ToString("x");
         if (hex.Length <= 1)
           // Append the leading zero.
           output.append("0");
@@ -210,13 +210,28 @@ namespace net.named_data.jndn.util
     /// </summary>
     /// <returns>True if OS X, false if not.</returns>
     public static bool 
-    PlatformIsOSX()
+    platformIsOSX()
     {
       // This is kind of a hack, but on OS X, Environment.OSVersion.Platform is Unix!
       return Directory.Exists("/Applications") &&
              Directory.Exists("/System") &&
              Directory.Exists("/Users") &&
              Directory.Exists("/Volumes");
+    }
+
+    public static string
+    getHomeDirectory()
+    {
+      if (Environment.OSVersion.Platform == PlatformID.Unix ||
+          Environment.OSVersion.Platform == PlatformID.MacOSX) {
+        var result = Environment.GetEnvironmentVariable("HOME");
+        if (result == null)
+          result = ".";
+        return result;
+      }
+      else
+        // Windows.
+        return Environment.ExpandEnvironmentVariables("%HOMEDRIVE%%HOMEPATH%");
     }
 
     private static SecureRandom randomNumberGenerator_;
