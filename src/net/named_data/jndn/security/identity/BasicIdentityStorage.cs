@@ -38,7 +38,7 @@ namespace net.named_data.jndn.security.identity {
 		public BasicIdentityStorage() {
 			this.database_ = null;
 			// NOTE: Use File because java.nio.file.Path is not available before Java 7.
-			FileInfo identityDir = new FileInfo(System.Environment.GetEnvironmentVariable("user.home")+".ndn");
+			FileInfo identityDir = new FileInfo(net.named_data.jndn.util.Common.getHomeDirectory()+".ndn");
 			System.IO.Directory.CreateDirectory(identityDir.FullName);
 			FileInfo databasePath = new FileInfo(System.IO.Path.Combine(identityDir.FullName,"ndnsec-public-info.db"));
 			construct(databasePath.FullName);
@@ -68,7 +68,7 @@ namespace net.named_data.jndn.security.identity {
 				database_ = System.Data.SqlClient.DriverManager.getConnection("jdbc:sqlite:"
 						+ databaseFilePath);
 	
-        Statement statement = database_.CreateCommand();
+				Statement statement = database_.CreateCommand();
 				// Use "try/finally instead of "try-with-resources" or "using" which are not supported before Java 7.
 				try {
 					// Check if the TpmInfo table exists.

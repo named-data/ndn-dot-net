@@ -1103,7 +1103,7 @@ namespace net.named_data.jndn.security.identity {
 	
 			if (tpmLocator.equals("")) {
 				// Use the system default.
-				if (Common.PlatformIsOSX()) {
+				if (net.named_data.jndn.util.Common.platformIsOSX()) {
 					canonicalTpmLocator[0] = "tpm-osxkeychain:";
 					throw new SecurityException(
 							"OSXPrivateKeyStorage is not implemented yet. You must create an IdentityManager with a different PrivateKeyStorage.");

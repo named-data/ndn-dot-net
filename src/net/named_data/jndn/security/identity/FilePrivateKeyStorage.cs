@@ -38,7 +38,8 @@ namespace net.named_data.jndn.security.identity {
 		/// </summary>
 		///
 		public FilePrivateKeyStorage() {
-			keyStorePath_ = new FileInfo(getDefaultDirecoryPath(System.Environment.GetEnvironmentVariable("user.home")));
+			keyStorePath_ = new FileInfo(
+					getDefaultDirecoryPath(net.named_data.jndn.util.Common.getHomeDirectory()));
 			System.IO.Directory.CreateDirectory(keyStorePath_.FullName);
 		}
 	
