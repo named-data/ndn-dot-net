@@ -219,6 +219,10 @@ namespace net.named_data.jndn.util
              Directory.Exists("/Volumes");
     }
 
+    /// <summary>
+    /// Get the user's home directory.
+    /// </summary>
+    /// <returns>The home directory, or "." if unknown.</returns>
     public static string
     getHomeDirectory()
     {
