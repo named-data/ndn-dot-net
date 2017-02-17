@@ -68,12 +68,12 @@ namespace src.net.named_data.jndn.tests.integration_tests {
 		}
 	
 		public sealed class Anonymous_C1 : OnData {
-			private readonly Data[] receivedData;
 			private readonly int[] dataCallbackCount;
+			private readonly Data[] receivedData;
 	
-			public Anonymous_C1(Data[] receivedData_0, int[] dataCallbackCount_1) {
-				this.receivedData = receivedData_0;
-				this.dataCallbackCount = dataCallbackCount_1;
+			public Anonymous_C1(int[] dataCallbackCount_0, Data[] receivedData_1) {
+				this.dataCallbackCount = dataCallbackCount_0;
+				this.receivedData = receivedData_1;
 			}
 	
 			public void onData(Interest interest, Data data) {
@@ -146,7 +146,7 @@ namespace src.net.named_data.jndn.tests.integration_tests {
 			int[] timeoutCallbackCount_5 = new int[] { 0 };
 			Data[] receivedData_6 = new Data[1];
 			Name interestName = prefixName.append("hello" + getNowMilliseconds());
-			faceOut.expressInterest(interestName, new TestFaceCallRegisterMethods.Anonymous_C1 (receivedData_6, dataCallbackCount_4), new TestFaceCallRegisterMethods.Anonymous_C0 (timeoutCallbackCount_5));
+			faceOut.expressInterest(interestName, new TestFaceCallRegisterMethods.Anonymous_C1 (dataCallbackCount_4, receivedData_6), new TestFaceCallRegisterMethods.Anonymous_C0 (timeoutCallbackCount_5));
 	
 			// Process events for the in and out faces.
 			timeout = 10000;

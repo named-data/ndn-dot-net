@@ -46,6 +46,7 @@ Java to C# Translation
 In a terminal change directory to `ndn-dot-net/src/net` and enter:
 
     (unset LANG; find . -type f -exec sed -i '' 's/^\/\/ [0-9][0-9]*\/[0-9][0-9]*\/[0-9][0-9] [0-9][0-9]*:[0-9][0-9] [AP]M *$/\/\//g' {} +)
+    (unset LANG; find ../src -type f -exec sed -i '' 's/^\/\/ [0-9][0-9]*\/[0-9][0-9]*\/[0-9][0-9] [0-9][0-9]*:[0-9][0-9] [AP]M *$/\/\//g' {} +)
     (unset LANG; find . -type f -exec sed -i '' 's/public override bool equals(Object other)/public override bool Equals(Object other)/g' {} +)
     (unset LANG; find . -type f -exec sed -i '' 's/public override String toString()/public override String ToString()/g' {} +)
     (unset LANG; find . -type f -exec sed -i '' 's/System\.Signature/System.SecuritySignature/g' {} +)
