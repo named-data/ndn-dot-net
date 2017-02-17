@@ -407,6 +407,10 @@ namespace net.named_data.jndn.util {
 /// name space, so we have to pollute the System name space with them.
 /// </summary>
 namespace System {
+  public interface
+  AlgorithmParameterSpec {
+  }
+
   /// <summary>
   /// j2cstranslator naively converts java.security.KeyFactory to System.KeyFactory.
   /// </summary>
@@ -1217,6 +1221,123 @@ namespace System.spec {
 }
 
 namespace javax.crypto {
+  public abstract class Cipher {
+    public const int DECRYPT_MODE = 1;
+    public const int ENCRYPT_MODE = 2;
+
+    public static Cipher 
+    getInstance(string type)
+    {
+      if (type == "AES/ECB/PKCS5PADDING")
+        return new AesEcbPkcs5PaddingCipher();
+      if (type == "AES/CBC/PKCS5PADDING")
+        return new AesCbcPkcs5PaddingCipher();
+      else
+        throw new NotImplementedException("Cipher type is not implemented: " + type);
+    }
+
+    public abstract void
+    init(int mode, Key key);
+
+    public abstract void
+    init(int mode, Key key, AlgorithmParameterSpec parameters);
+
+    public abstract byte[]
+    doFinal(byte[] data);
+  }
+
+  // An abstract base class for AesEcbPkcs5PaddingCipher, etc.
+  public abstract class CryptoTransformCipher : Cipher {
+    public override byte[]
+    doFinal(byte[] data)
+    {
+      if (mode_ == DECRYPT_MODE) {
+        using (MemoryStream inStream = new MemoryStream(data)) {
+          using (CryptoStream decrypt = new CryptoStream
+                 (inStream, transform_, CryptoStreamMode.Read)) {
+            using (MemoryStream result = new MemoryStream()) {
+              // Copy the decrypt stream to the result stream.
+              int value;
+              while ((value = decrypt.ReadByte()) >= 0)
+                result.WriteByte((byte)value);
+              
+              return result.ToArray();
+            }
+          }
+        }
+      } else if (mode_ == ENCRYPT_MODE) {
+        using (MemoryStream result = new MemoryStream()) {
+          using (CryptoStream encrypt = new CryptoStream
+                 (result, transform_, CryptoStreamMode.Write)) {
+            encrypt.Write(data, 0, data.Length);
+            encrypt.FlushFinalBlock();
+            return result.ToArray();
+          }
+        }
+      }
+      else
+        // We don't expect this.
+        throw new Exception("Unrecognized Cipher mode " + mode_);
+    }
+
+    protected int mode_;
+    protected ICryptoTransform transform_;
+  }
+
+  public class AesEcbPkcs5PaddingCipher : CryptoTransformCipher {
+    public override void
+    init(int mode, Key key)
+    {
+      mode_ = mode;
+
+      var aes = new AesManaged();
+      aes.Mode = CipherMode.ECB;
+      aes.Padding = PaddingMode.PKCS7;
+      aes.Key = ((javax.crypto.spec.SecretKeySpec)key).Key;
+
+      if (mode == DECRYPT_MODE)
+        // CreateDecryptor wants an IV, even though ECB doesn't use it.
+        transform_ = aes.CreateDecryptor(aes.Key, new byte[16]);
+      else if (mode == ENCRYPT_MODE)
+        transform_ = aes.CreateEncryptor(aes.Key, new byte[16]);
+      else
+        // We don't expect this.
+        throw new Exception("Unrecognized Cipher mode " + mode);
+    }
+
+    public override void
+    init(int mode, Key key, AlgorithmParameterSpec parameters) { init(mode, key); }
+  }
+
+  public class AesCbcPkcs5PaddingCipher : CryptoTransformCipher {
+    public override void
+    init(int mode, Key key)
+    {
+      throw new Exception("AesCbcPkcs5PaddingCipher.init requires an IV");
+    }
+
+    public override void
+    init(int mode, Key key, AlgorithmParameterSpec parameters)
+    {
+      mode_ = mode;
+
+      var aes = new AesManaged();
+      aes.Mode = CipherMode.CBC;
+      aes.Padding = PaddingMode.PKCS7;
+      aes.Key = ((javax.crypto.spec.SecretKeySpec)key).Key;
+
+      if (mode == DECRYPT_MODE)
+        transform_ = aes.CreateDecryptor
+          (aes.Key, ((javax.crypto.spec.IvParameterSpec)parameters).IV);
+      else if (mode == ENCRYPT_MODE)
+        transform_ = aes.CreateEncryptor
+          (aes.Key, ((javax.crypto.spec.IvParameterSpec)parameters).IV);
+      else
+        // We don't expect this.
+        throw new Exception("Unrecognized Cipher mode " + mode);
+    }
+  }
+
   public interface Key {
   }
 
@@ -1225,6 +1346,15 @@ namespace javax.crypto {
 }
 
 namespace javax.crypto.spec {
+  public class IvParameterSpec : AlgorithmParameterSpec {
+    public IvParameterSpec(byte[] iv)
+    {
+      IV = iv;
+    }
+
+    public readonly byte[] IV;
+  }
+
   public class SecretKeySpec : KeySpec, SecretKey {
     public SecretKeySpec(byte[] key, string algorithm)
     {
