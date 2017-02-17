@@ -478,37 +478,44 @@ namespace System {
     public override SecurityPublicKey
     generatePublic(KeySpec keySpec)
     {
-      if (!(keySpec is X509EncodedKeySpec))
-        throw new net.named_data.jndn.util.InvalidKeySpecException
-        ("RsaKeyFactory.generatePublic expects a X509EncodedKeySpec");
+      if (keySpec is X509EncodedKeySpec) {
+        try {
+          // Decode the X.509 public key.
+          var parsedNode = DerNode.parse(new ByteBuffer(((X509EncodedKeySpec)keySpec).KeyDer), 0);
+          var rootChildren = parsedNode.getChildren();
+          var algorithmIdChildren = DerNode.getSequence(rootChildren, 0).getChildren();
+          var oidString = ((DerNode.DerOid)algorithmIdChildren[0]).toVal().ToString();
+          var rsaPublicKeyDerBitString = ((DerNode)rootChildren[1]).getPayload();
 
-      try {
-        // Decode the X.509 public key.
-        var parsedNode = DerNode.parse(new ByteBuffer(((X509EncodedKeySpec)keySpec).KeyDer), 0);
-        var rootChildren = parsedNode.getChildren();
-        var algorithmIdChildren = DerNode.getSequence(rootChildren, 0).getChildren();
-        var oidString = ((DerNode.DerOid)algorithmIdChildren[0]).toVal().ToString();
-        var rsaPublicKeyDerBitString = ((DerNode)rootChildren[1]).getPayload();
+          if (oidString != RSA_ENCRYPTION_OID)
+            throw new net.named_data.jndn.util.InvalidKeySpecException("The PKCS #8 private key is not RSA_ENCRYPTION");
 
-        if (oidString != RSA_ENCRYPTION_OID)
-          throw new net.named_data.jndn.util.InvalidKeySpecException
-          ("The PKCS #8 private key is not RSA_ENCRYPTION");
+          // Decode the PKCS #1 RSAPublicKey.
+          // Skip the leading 0 byte in the DER BitString.
+          parsedNode = DerNode.parse(rsaPublicKeyDerBitString.buf(), 1);
+          var rsaPublicKeyChildren = parsedNode.getChildren();
 
-        // Decode the PKCS #1 RSAPublicKey.
-        // Skip the leading 0 byte in the DER BitString.
-        parsedNode = DerNode.parse(rsaPublicKeyDerBitString.buf(), 1);
-        var rsaPublicKeyChildren = parsedNode.getChildren();
+          // Copy the parameters.
+          var parameters = new RSAParameters();
+          parameters.Modulus = getIntegerArrayWithoutLeadingZero(((DerNode)rsaPublicKeyChildren[0]).getPayload());
+          parameters.Exponent = getIntegerArrayWithoutLeadingZero(((DerNode)rsaPublicKeyChildren[1]).getPayload());
 
-        // Copy the parameters.
-        RSAParameters parameters = new RSAParameters();
-        parameters.Modulus = getIntegerArrayWithoutLeadingZero(((DerNode)rsaPublicKeyChildren[0]).getPayload());
-        parameters.Exponent = getIntegerArrayWithoutLeadingZero(((DerNode)rsaPublicKeyChildren[1]).getPayload());
+          return new RsaSecurityPublicKey(parameters);
+        }
+        catch (DerDecodingException ex) {
+          throw new net.named_data.jndn.util.InvalidKeySpecException("RsaKeyFactory.generatePublic error decoding the public key DER: " + ex);
+        }
+      }
+      else if (keySpec is RSAPublicKeySpec) {
+        var parameters = new RSAParameters();
+        parameters.Modulus = ((RSAPublicKeySpec)keySpec).Modulus;
+        parameters.Exponent = ((RSAPublicKeySpec)keySpec).Exponent;
 
         return new RsaSecurityPublicKey(parameters);
-        } catch (DerDecodingException ex) {
-          throw new net.named_data.jndn.util.InvalidKeySpecException
-          ("RsaKeyFactory.generatePublic error decoding the public key DER: " + ex);
       }
+      else
+        throw new net.named_data.jndn.util.InvalidKeySpecException
+          ("RsaKeyFactory.generatePublic unrecognized KeySpec");
     }
 
     /// <summary>
@@ -634,6 +641,17 @@ namespace System {
   /// j2cstranslator naively converts java.security.KeySpec to System.KeySpec.
   /// </summary>
   public interface KeySpec {
+  }
+
+  public class RSAPublicKeySpec : KeySpec {
+    public RSAPublicKeySpec(byte[] modulus, byte[] exponent)
+    {
+      Modulus = modulus;
+      Exponent = exponent;
+    }
+
+    public readonly byte[] Modulus;
+    public readonly byte[] Exponent;
   }
 
   public class PKCS8EncodedKeySpec : KeySpec {
