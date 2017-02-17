@@ -57,8 +57,8 @@ namespace net.named_data.jndn.encrypt.algo {
 			IList pkcs8Children = parsedNode.getChildren();
 			IList algorithmIdChildren = net.named_data.jndn.encoding.der.DerNode.getSequence(pkcs8Children, 1)
 					.getChildren();
-			String oidString = ((DerNode.DerOid) algorithmIdChildren[0])
-					.toVal().toString();
+			String oidString = ""
+					+ ((DerNode.DerOid) algorithmIdChildren[0]).toVal();
 			Blob rsaPrivateKeyDer = ((DerNode) pkcs8Children[2]).getPayload();
 	
 			String RSA_ENCRYPTION_OID = "1.2.840.113549.1.1.1";
