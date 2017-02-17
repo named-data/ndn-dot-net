@@ -80,7 +80,7 @@ namespace net.named_data.jndn.encrypt.algo {
 							keyName, paras);
 					data.setContent(content_0.wireEncode(net.named_data.jndn.encoding.TlvWireFormat.get()));
 					return;
-				} catch (IllegalBlockSizeException ex) {
+				} catch (System.Security.Cryptography.CryptographicException ex) {
 					// The payload is larger than the maximum plaintext size. Continue.
 				}
 	
