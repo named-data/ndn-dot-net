@@ -1218,6 +1218,7 @@ namespace System.Data.SqlClient {
 }
 
 namespace System.spec {
+  class SystemSpecStubClass {}
 }
 
 namespace javax.crypto {
