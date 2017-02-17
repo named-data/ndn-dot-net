@@ -44,7 +44,7 @@ namespace net.named_data.jndn.tests.unit_tests {
 			return result;
 		}
 	
-		interface SymmetricEncryptInput {
+		public interface SymmetricEncryptInput {
 			String testName();
 	
 			Name keyName();
@@ -175,7 +175,7 @@ namespace net.named_data.jndn.tests.unit_tests {
 			}
 		}
 	
-		interface AsymmetricEncryptInput {
+		public interface AsymmetricEncryptInput {
 			String testName();
 	
 			EncryptAlgorithmType type();
