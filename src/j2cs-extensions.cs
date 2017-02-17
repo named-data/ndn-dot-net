@@ -657,7 +657,7 @@ namespace System {
   /// <summary>
   /// j2cstranslator naively converts java.security.PrivateKey to System.PrivateKey.
   /// </summary>
-  public abstract class PrivateKey {
+  public abstract class PrivateKey : javax.crypto.Key {
     public abstract byte[]
     getEncoded();
   }
@@ -716,7 +716,7 @@ namespace System {
   /// We also globally rename System.SecurityPublicKey to System.SecurityPublicKey to not
   /// conclict with PublicKey when using net.named_data.security.certificate.
   /// </summary>
-  public abstract class SecurityPublicKey {
+  public abstract class SecurityPublicKey : javax.crypto.Key {
     public abstract byte[]
     getEncoded();
   }
@@ -1231,8 +1231,12 @@ namespace javax.crypto {
     {
       if (type == "AES/ECB/PKCS5PADDING")
         return new AesEcbPkcs5PaddingCipher();
-      if (type == "AES/CBC/PKCS5PADDING")
+      else if (type == "AES/CBC/PKCS5PADDING")
         return new AesCbcPkcs5PaddingCipher();
+      else if (type == "RSA/ECB/PKCS1Padding")
+        return new RsaCipher(false);
+      else if (type == "RSA/ECB/OAEPWithSHA-1AndMGF1Padding")
+        return new RsaCipher(true);
       else
         throw new NotImplementedException("Cipher type is not implemented: " + type);
     }
@@ -1301,6 +1305,9 @@ namespace javax.crypto {
       var aes = new AesManaged();
       aes.Mode = CipherMode.ECB;
       aes.Padding = PaddingMode.PKCS7;
+      if (!(key is javax.crypto.spec.SecretKeySpec))
+        throw new net.named_data.jndn.util.InvalidKeyException
+          ("AesEcbPkcs5PaddingCipher expects a SecretKeySpec");
       aes.Key = ((javax.crypto.spec.SecretKeySpec)key).Key;
 
       if (mode == DECRYPT_MODE)
@@ -1323,6 +1330,9 @@ namespace javax.crypto {
       var aes = new AesManaged();
       aes.Mode = CipherMode.CBC;
       aes.Padding = PaddingMode.PKCS7;
+      if (!(key is javax.crypto.spec.SecretKeySpec))
+        throw new net.named_data.jndn.util.InvalidKeyException
+          ("AesCbcPkcs5PaddingCipher expects a SecretKeySpec");
       aes.Key = ((javax.crypto.spec.SecretKeySpec)key).Key;
 
       if (mode == DECRYPT_MODE)
@@ -1335,6 +1345,52 @@ namespace javax.crypto {
         // We don't expect this.
         throw new Exception("Unrecognized Cipher mode " + mode);
     }
+  }
+      
+  public class RsaCipher : Cipher {
+    /// <summary>
+    /// Create an RsaCipher to do PKCS1 or OAEP padding based on useOAEP.
+    /// </summary>
+    /// <param name="useOAEP">True to use OAEP padding, false to use PKCS1.</param>
+    public RsaCipher(bool useOAEP) { useOAEP_ = useOAEP; }
+
+    public override byte[]
+    doFinal(byte[] data)
+    {
+      using (RSACryptoServiceProvider rsa = new RSACryptoServiceProvider())
+      {
+        if (mode_ == DECRYPT_MODE) {
+          if (!(key_ is RsaSecurityPrivateKey))
+            throw new net.named_data.jndn.util.InvalidKeyException
+              ("RsaCipher expects a RsaSecurityPrivateKey");
+
+          rsa.ImportParameters(((RsaSecurityPrivateKey)key_).Parameters);
+          return rsa.Decrypt(data, useOAEP_);
+        } 
+        else if (mode_ == ENCRYPT_MODE) {
+          if (!(key_ is RsaSecurityPublicKey))
+            throw new net.named_data.jndn.util.InvalidKeyException
+            ("RsaCipher expects an RsaSecurityPublicKey");
+
+          rsa.ImportParameters(((RsaSecurityPublicKey)key_).Parameters);
+          return rsa.Encrypt(data, useOAEP_);
+        }
+        else
+          // We don't expect this.
+          throw new Exception("Unrecognized Cipher mode " + mode_);
+      }
+    }
+
+    public override void
+    init(int mode, Key key)
+    {
+      mode_ = mode;
+      key_ = key;
+    }
+
+    private bool useOAEP_;
+    private int mode_;
+    private Key key_;
   }
 
   public interface Key {
