@@ -1237,11 +1237,18 @@ namespace javax.crypto {
         throw new NotImplementedException("Cipher type is not implemented: " + type);
     }
 
-    public abstract void
-    init(int mode, Key key);
+    public virtual void
+    init(int mode, Key key)
+    {
+      throw new NotImplementedException("Cipher.init(int mode, Key key) is not implemented");
+    }
 
-    public abstract void
-    init(int mode, Key key, AlgorithmParameterSpec parameters);
+    public virtual void
+    init(int mode, Key key, AlgorithmParameterSpec parameters)
+    {
+      throw new NotImplementedException
+        ("Cipher.init(int mode, Key key, AlgorithmParameterSpec parameters) is not implemented");
+    }
 
     public abstract byte[]
     doFinal(byte[] data);
@@ -1305,18 +1312,9 @@ namespace javax.crypto {
         // We don't expect this.
         throw new Exception("Unrecognized Cipher mode " + mode);
     }
-
-    public override void
-    init(int mode, Key key, AlgorithmParameterSpec parameters) { init(mode, key); }
   }
 
   public class AesCbcPkcs5PaddingCipher : CryptoTransformCipher {
-    public override void
-    init(int mode, Key key)
-    {
-      throw new Exception("AesCbcPkcs5PaddingCipher.init requires an IV");
-    }
-
     public override void
     init(int mode, Key key, AlgorithmParameterSpec parameters)
     {
