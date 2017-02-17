@@ -40,6 +40,7 @@ Java to C# Translation
   fix .length and .parseInt in OID.cs,
   fix the erroneous translation to @"\0",
   fix the erroneous translation to SqlCommand,
+  fix the erroneous conversion of BigInteger to Int64,
   remove the generated TcpTransport.cs since we use src/tcp-transport.cs:
   remove the generated Common.cs since we use src/util-common.cs:
 
@@ -62,5 +63,6 @@ In a terminal change directory to `ndn-dot-net/src/net` and enter:
     sed -i '' 's/\.parseInt/.Parse/g' named_data/jndn/encoding/OID.cs
     sed -i '' 's/@"\\0"/"\\0"/g' named_data/jndn/util/BoostInfoTree.cs
     sed -i '' 's/SqlCommand/Statement/g' named_data/jndn/security/identity/BasicIdentityStorage.cs
+    sed -i '' 's/new Int64//g' named_data/jndn/encrypt/algo/RsaAlgorithm.cs
     rm named_data/jndn/transport/TcpTransport.cs
     rm named_data/jndn/util/Common.cs

@@ -74,13 +74,13 @@ namespace net.named_data.jndn.encrypt.algo {
 					.getPayload();
 	
 			System.SecurityPublicKey publicKey = keyFactory_
-					.generatePublic(new RSAPublicKeySpec(new Int64(modulus
-							.getImmutableArray()), new Int64(publicExponent
+					.generatePublic(new RSAPublicKeySpec((modulus
+							.getImmutableArray()), (publicExponent
 							.getImmutableArray())));
 	
 			return new EncryptKey(new Blob(publicKey.getEncoded(), false));
 		}
-	
+
 		/// <summary>
 		/// Decrypt the encryptedData using the keyBits according the encrypt params.
 		/// </summary>
