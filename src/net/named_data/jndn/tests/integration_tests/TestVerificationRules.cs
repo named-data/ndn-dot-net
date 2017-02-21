@@ -8,7 +8,7 @@
 /// Copyright (C) 2015-2017 Regents of the University of California.
 /// </summary>
 ///
-namespace src.net.named_data.jndn.tests.integration_tests {
+namespace net.named_data.jndn.tests.integration_tests {
 	
 	using ILOG.J2CsMapping.NIO;
 	using System;
@@ -329,11 +329,11 @@ namespace src.net.named_data.jndn.tests.integration_tests {
 					.getKeyLocator().getKeyName();
 	
 			String[] failureReason = new String[] { "unknown" };
-			AssertFalse(
+			Assert.AssertFalse(
 					"Hierarchical matcher matched short data name to long key name",
 					friendAccess.checkSignatureMatch(policyManager, signatureName1,
 							dataName1, matchedRule, failureReason));
-			AssertTrue(friendAccess.checkSignatureMatch(policyManager,
+			Assert.AssertTrue(friendAccess.checkSignatureMatch(policyManager,
 					signatureName2, dataName2, matchedRule, failureReason));
 	
 			keyChain.sign(data1, shortCertName);
@@ -344,9 +344,9 @@ namespace src.net.named_data.jndn.tests.integration_tests {
 			signatureName2 = ((Sha256WithRsaSignature) data1.getSignature())
 					.getKeyLocator().getKeyName();
 	
-			AssertTrue(friendAccess.checkSignatureMatch(policyManager,
+			Assert.AssertTrue(friendAccess.checkSignatureMatch(policyManager,
 					signatureName1, dataName1, matchedRule, failureReason));
-			AssertTrue(friendAccess.checkSignatureMatch(policyManager,
+			Assert.AssertTrue(friendAccess.checkSignatureMatch(policyManager,
 					signatureName2, dataName2, matchedRule, failureReason));
 		}
 	
@@ -368,9 +368,9 @@ namespace src.net.named_data.jndn.tests.integration_tests {
 					.getKeyLocator().getKeyName();
 	
 			String[] failureReason = new String[] { "unknown" };
-			AssertTrue(friendAccess.checkSignatureMatch(policyManager,
+			Assert.AssertTrue(friendAccess.checkSignatureMatch(policyManager,
 					signatureName1, dataName, matchedRule, failureReason));
-			AssertFalse(friendAccess.checkSignatureMatch(policyManager,
+			Assert.AssertFalse(friendAccess.checkSignatureMatch(policyManager,
 					signatureName2, dataName, matchedRule, failureReason));
 	
 			dataName = new Name("/SecurityTestSecRule/Basic/Other/Data1");
@@ -387,9 +387,9 @@ namespace src.net.named_data.jndn.tests.integration_tests {
 			signatureName2 = ((Sha256WithRsaSignature) data2.getSignature())
 					.getKeyLocator().getKeyName();
 	
-			AssertFalse(friendAccess.checkSignatureMatch(policyManager,
+			Assert.AssertFalse(friendAccess.checkSignatureMatch(policyManager,
 					signatureName1, dataName, matchedRule, failureReason));
-			AssertTrue(friendAccess.checkSignatureMatch(policyManager,
+			Assert.AssertTrue(friendAccess.checkSignatureMatch(policyManager,
 					signatureName2, dataName, matchedRule, failureReason));
 		}
 	}

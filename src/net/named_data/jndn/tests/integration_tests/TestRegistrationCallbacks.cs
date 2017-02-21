@@ -8,7 +8,7 @@
 /// Copyright (C) 2015-2017 Regents of the University of California.
 /// </summary>
 ///
-namespace src.net.named_data.jndn.tests.integration_tests {
+namespace net.named_data.jndn.tests.integration_tests {
 	
 	using ILOG.J2CsMapping.Threading;
 	using ILOG.J2CsMapping.Util.Logging;
@@ -19,7 +19,6 @@ namespace src.net.named_data.jndn.tests.integration_tests {
 	using System.Runtime.CompilerServices;
 	using net.named_data.jndn;
 	using net.named_data.jndn.security;
-	using net.named_data.jndn.tests.integration_tests;
 	
 	/// <summary>
 	/// Test that registration callbacks work as expected; optionally can use a
@@ -61,7 +60,7 @@ namespace src.net.named_data.jndn.tests.integration_tests {
 				ILOG.J2CsMapping.Threading.ThreadWrapper.sleep(PROCESS_EVENTS_INTERVAL_MS);
 			}
 	
-			Assert.AssertEquals(1, counter.count);
+			Assert.Assert.AssertEquals(1, counter.count);
 		}
 	
 		public sealed class Anonymous_C1 : OnRegisterFailed {

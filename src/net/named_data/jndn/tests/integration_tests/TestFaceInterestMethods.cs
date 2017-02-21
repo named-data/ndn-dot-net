@@ -8,7 +8,7 @@
 /// Copyright (C) 2014-2017 Regents of the University of California.
 /// </summary>
 ///
-namespace src.net.named_data.jndn.tests.integration_tests {
+namespace net.named_data.jndn.tests.integration_tests {
 	
 	using ILOG.J2CsMapping.Threading;
 	using ILOG.J2CsMapping.Util.Logging;
@@ -19,7 +19,7 @@ namespace src.net.named_data.jndn.tests.integration_tests {
 	using System.Runtime.CompilerServices;
 	using System.Threading;
 	using net.named_data.jndn;
-	using net.named_data.jndn.encoding;
+  using net.named_data.jndn.encoding;
 	
 	internal class CallbackCounter : OnData, OnTimeout, OnNetworkNack {
 		public CallbackCounter() {
@@ -120,16 +120,16 @@ namespace src.net.named_data.jndn.tests.integration_tests {
 		public void testAnyInterest() {
 			String uri = "/";
 			CallbackCounter counter = runExpressNameTest(face, uri);
-			AssertTrue("Timeout on expressed interest",
+			Assert.AssertTrue("Timeout on expressed interest",
 					counter.onTimeoutCallCount_ == 0);
 	
 			// check that the callback was correct
-			AssertEquals("Expected 1 onData callback, got "
+			Assert.AssertEquals("Expected 1 onData callback, got "
 					+ counter.onDataCallCount_, 1, counter.onDataCallCount_);
 	
 			// just check that the interest was returned correctly.
 			Interest callbackInterest = counter.interest_;
-			AssertTrue("Interest returned on callback had different name",
+			Assert.AssertTrue("Interest returned on callback had different name",
 					callbackInterest.getName().equals(new Name(uri)));
 		}
 	
@@ -155,15 +155,15 @@ namespace src.net.named_data.jndn.tests.integration_tests {
 			CallbackCounter counter = runExpressNameTest(face, uri);
 	
 			// we're expecting a timeout callback, and only 1
-			AssertEquals("Data callback called for invalid interest", 0,
+			Assert.AssertEquals("Data callback called for invalid interest", 0,
 					counter.onDataCallCount_);
 	
-			AssertTrue("Expected 1 timeout call, got "
+			Assert.AssertTrue("Expected 1 timeout call, got "
 					+ counter.onTimeoutCallCount_, counter.onTimeoutCallCount_ == 1);
 	
 			// just check that the interest was returned correctly.
 			Interest callbackInterest = counter.interest_;
-			AssertTrue("Interest returned on callback had different name",
+			Assert.AssertTrue("Interest returned on callback had different name",
 					callbackInterest.getName().equals(new Name(uri)));
 		}
 	
@@ -174,7 +174,7 @@ namespace src.net.named_data.jndn.tests.integration_tests {
 			try {
 				interestID = face.expressInterest(name, counter, counter);
 			} catch (IOException ex) {
-				Fail("Error in expressInterest: " + ex);
+				Assert.Fail("Error in expressInterest: " + ex);
 				return;
 			}
 	
@@ -188,10 +188,10 @@ namespace src.net.named_data.jndn.tests.integration_tests {
 				try {
 					face.processEvents();
 				} catch (IOException ex_0) {
-					Fail("Error in processEvents: " + ex_0);
+					Assert.Fail("Error in processEvents: " + ex_0);
 					return;
 				} catch (EncodingException ex_1) {
-					Fail("Error in processEvents: " + ex_1);
+					Assert.Fail("Error in processEvents: " + ex_1);
 					return;
 				}
 	
@@ -199,15 +199,15 @@ namespace src.net.named_data.jndn.tests.integration_tests {
 					// We need to sleep for a few milliseconds so we don't use 100% of the CPU.
 					ILOG.J2CsMapping.Threading.ThreadWrapper.sleep(10);
 				} catch (ThreadInterruptedException ex_2) {
-					Fail("Error in sleep: " + ex_2);
+					Assert.Fail("Error in sleep: " + ex_2);
 					return;
 				}
 			}
 	
-			AssertEquals(
+			Assert.AssertEquals(
 					"Should not have called data callback after interest was removed",
 					0, counter.onDataCallCount_);
-			AssertTrue(
+			Assert.AssertTrue(
 					"Should not have called timeout callback after interest was removed",
 					counter.onTimeoutCallCount_ == 0);
 		}
@@ -223,7 +223,7 @@ namespace src.net.named_data.jndn.tests.integration_tests {
 			interest.setName(new Name().append(new byte[targetSize
 					- (initialSize - targetSize)]));
 			int interestSize = interest.wireEncode().size();
-			AssertEquals("Wrong interest size for MaxNdnPacketSize", targetSize,
+			Assert.AssertEquals("Wrong interest size for MaxNdnPacketSize", targetSize,
 					interestSize);
 	
 			CallbackCounter counter = new CallbackCounter();
@@ -234,7 +234,7 @@ namespace src.net.named_data.jndn.tests.integration_tests {
 			} catch (Exception ex) {
 			}
 			if (!gotError)
-				Fail("expressInterest didn't throw an exception when the interest size exceeds getMaxNdnPacketSize()");
+				Assert.Fail("expressInterest didn't throw an exception when the interest size exceeds getMaxNdnPacketSize()");
 		}
 	
 		public void testNetworkNack() {
@@ -243,14 +243,14 @@ namespace src.net.named_data.jndn.tests.integration_tests {
 			CallbackCounter counter = runExpressNameTest(face, uri, 1000, true);
 	
 			// We're expecting a network Nack callback, and only 1.
-			AssertEquals("Data callback called for unroutable interest", 0,
+			Assert.AssertEquals("Data callback called for unroutable interest", 0,
 					counter.onDataCallCount_);
-			AssertEquals("Timeout callback called for unroutable interest", 0,
+			Assert.AssertEquals("Timeout callback called for unroutable interest", 0,
 					counter.onTimeoutCallCount_);
-			AssertEquals("Expected 1 network Nack call", 1,
+			Assert.AssertEquals("Expected 1 network Nack call", 1,
 					counter.onNetworkNackCallCount_);
 	
-			AssertEquals("Network Nack has unexpected reason",
+			Assert.AssertEquals("Network Nack has unexpected reason",
 					net.named_data.jndn.NetworkNack.Reason.NO_ROUTE, counter.networkNack_.getReason());
 		}
 	}

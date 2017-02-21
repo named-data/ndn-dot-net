@@ -8,7 +8,7 @@
 /// Copyright (C) 2015-2017 Regents of the University of California.
 /// </summary>
 ///
-namespace src.net.named_data.jndn.tests.integration_tests {
+namespace net.named_data.jndn.tests.integration_tests {
 	
 	using ILOG.J2CsMapping.NIO;
 	using ILOG.J2CsMapping.Util.Logging;
@@ -27,7 +27,6 @@ namespace src.net.named_data.jndn.tests.integration_tests {
 	using net.named_data.jndn.security;
 	using net.named_data.jndn.security.identity;
 	using net.named_data.jndn.security.policy;
-	using net.named_data.jndn.tests.integration_tests;
 	using net.named_data.jndn.util;
 	
 	// Note: We name this differently than TestConsumer so that it is not the
@@ -326,12 +325,12 @@ namespace src.net.named_data.jndn.tests.integration_tests {
 			friendAccess.decrypt(cKeyData.getContent(), fixtureDKeyBlob,
 					new Consumer.OnPlainText() {
 						public void onPlainText(Blob result) {
-							AssertTrue(result.equals(aesKeyBlob));
+							Assert.AssertTrue(result.equals(aesKeyBlob));
 						}
 					}, new EncryptError.OnError() {
 						public void onError(EncryptError.ErrorCode errorCode,
 								String message) {
-							Fail("decrypt error " + message);
+							Assert.Fail("decrypt error " + message);
 						}
 					});
 	
@@ -339,12 +338,12 @@ namespace src.net.named_data.jndn.tests.integration_tests {
 			friendAccess.decrypt(contentData.getContent(), fixtureCKeyBlob,
 					new Consumer.OnPlainText() {
 						public void onPlainText(Blob result) {
-							AssertTrue(result.equals(new Blob(net.named_data.jndn.tests.integration_tests.TestGroupConsumer.DATA_CONTENT, false)));
+							Assert.AssertTrue(result.equals(new Blob(net.named_data.jndn.tests.integration_tests.TestGroupConsumer.DATA_CONTENT, false)));
 						}
 					}, new EncryptError.OnError() {
 						public void onError(EncryptError.ErrorCode errorCode,
 								String message) {
-							Fail("decrypt error " + message);
+							Assert.Fail("decrypt error " + message);
 						}
 					});
 		}
@@ -376,19 +375,19 @@ namespace src.net.named_data.jndn.tests.integration_tests {
 			consumer.consume(contentName, new Consumer.OnConsumeComplete() {
 				public void onConsumeComplete(Data data, Blob result) {
 					finalCount[0] = 1;
-					AssertTrue("consumeComplete",
+					Assert.AssertTrue("consumeComplete",
 							result.equals(new Blob(net.named_data.jndn.tests.integration_tests.TestGroupConsumer.DATA_CONTENT, false)));
 				}
 			}, new EncryptError.OnError() {
 				public void onError(EncryptError.ErrorCode code, String message) {
-					Fail("consume error " + code + ": " + message);
+					Assert.Fail("consume error " + code + ": " + message);
 				}
 			});
 	
-			AssertEquals("contentCount", 1, contentCount[0]);
-			AssertEquals("cKeyCount", 1, cKeyCount[0]);
-			AssertEquals("dKeyCount", 1, dKeyCount[0]);
-			AssertEquals("finalCount", 1, finalCount[0]);
+			Assert.AssertEquals("contentCount", 1, contentCount[0]);
+			Assert.AssertEquals("cKeyCount", 1, cKeyCount[0]);
+			Assert.AssertEquals("dKeyCount", 1, dKeyCount[0]);
+			Assert.AssertEquals("finalCount", 1, finalCount[0]);
 		}
 	
 		public void testCosumerWithLink() throws NoSuchAlgorithmException,
@@ -435,15 +434,15 @@ namespace src.net.named_data.jndn.tests.integration_tests {
 			consumer.consume(contentName, new Consumer.OnConsumeComplete() {
 				public void onConsumeComplete(Data data, Blob result) {
 					finalCount[0] = 1;
-					AssertTrue("consumeComplete",
+					Assert.AssertTrue("consumeComplete",
 							result.equals(new Blob(net.named_data.jndn.tests.integration_tests.TestGroupConsumer.DATA_CONTENT, false)));
 				}
 			}, new TestGroupConsumer.Anonymous_C0 (), dataLink);
 	
-			AssertEquals("contentCount", 1, contentCount[0]);
-			AssertEquals("cKeyCount", 1, cKeyCount[0]);
-			AssertEquals("dKeyCount", 1, dKeyCount[0]);
-			AssertEquals("finalCount", 1, finalCount[0]);
+			Assert.AssertEquals("contentCount", 1, contentCount[0]);
+			Assert.AssertEquals("cKeyCount", 1, cKeyCount[0]);
+			Assert.AssertEquals("dKeyCount", 1, dKeyCount[0]);
+			Assert.AssertEquals("finalCount", 1, finalCount[0]);
 		}
 	
 		File databaseFilePath;
@@ -469,7 +468,7 @@ namespace src.net.named_data.jndn.tests.integration_tests {
 	
 		public final class Anonymous_C0 : EncryptError.OnError {
 			public void onError(EncryptError.ErrorCode code, String message) {
-				Fail("consume error " + code + ": " + message);
+				Assert.Fail("consume error " + code + ": " + message);
 			}
 		}
 	
@@ -504,9 +503,9 @@ namespace src.net.named_data.jndn.tests.integration_tests {
 					OnTimeout onTimeout, OnNetworkNack onNetworkNack,
 					WireFormat wireFormat) throws IOException {
 				try {
-					AssertEquals(3, interest.GetLink().GetDelegations().Size());
+					Assert.AssertEquals(3, interest.GetLink().GetDelegations().Size());
 				} catch (EncodingException ex) {
-					Fail("Error in getLink: " + ex);
+					Assert.Fail("Error in getLink: " + ex);
 				}
 	
 				if (interest.MatchesName(contentData.GetName())) {

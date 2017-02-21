@@ -8,7 +8,7 @@
 /// Copyright (C) 2014-2017 Regents of the University of California.
 /// </summary>
 ///
-namespace src.net.named_data.jndn.tests.integration_tests {
+namespace net.named_data.jndn.tests.integration_tests {
 	
 	using ILOG.J2CsMapping.NIO;
 	using System;
@@ -84,12 +84,12 @@ namespace src.net.named_data.jndn.tests.integration_tests {
 			// check if files created
 			FileInfo[] files = ndnFolder_.listFiles();
 			int createdFileCount = files.Length;
-			AssertTrue(createdFileCount >= 2); // 2 pre-created + 2 created now + some created by NFD
+			Assert.AssertTrue(createdFileCount >= 2); // 2 pre-created + 2 created now + some created by NFD
 			// delete these keys
 			instance.deleteKey(new Name("/test/KEY/temp1"));
 			files = ndnFolder_.listFiles();
 			int deletedfileCount = files.Length;
-			AssertTrue(createdFileCount - 2 == deletedfileCount);
+			Assert.AssertTrue(createdFileCount - 2 == deletedfileCount);
 		}
 	
 		/// <summary>
@@ -98,9 +98,9 @@ namespace src.net.named_data.jndn.tests.integration_tests {
 		///
 		public void testDoesKeyExist() {
 			FilePrivateKeyStorage instance = new FilePrivateKeyStorage();
-			AssertTrue(instance.doesKeyExist(new Name("/test/KEY/123"),
+			Assert.AssertTrue(instance.doesKeyExist(new Name("/test/KEY/123"),
 					net.named_data.jndn.security.KeyClass.PRIVATE));
-			AssertFalse(instance.doesKeyExist(new Name("/unknown"),
+			Assert.AssertFalse(instance.doesKeyExist(new Name("/unknown"),
 					net.named_data.jndn.security.KeyClass.PRIVATE));
 		}
 	

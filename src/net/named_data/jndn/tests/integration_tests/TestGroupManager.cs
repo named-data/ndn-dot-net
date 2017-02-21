@@ -8,7 +8,7 @@
 /// Copyright (C) 2015-2017 Regents of the University of California.
 /// </summary>
 ///
-namespace src.net.named_data.jndn.tests.integration_tests {
+namespace net.named_data.jndn.tests.integration_tests {
 	
 	using ILOG.J2CsMapping.NIO;
 	using ILOG.J2CsMapping.Util;
@@ -217,8 +217,8 @@ namespace src.net.named_data.jndn.tests.integration_tests {
 			// dataContent is a sequence of the two EncryptedContent.
 			EncryptedContent encryptedNonce = new EncryptedContent();
 			encryptedNonce.wireDecode(dataContent);
-			AssertEquals(0, encryptedNonce.getInitialVector().size());
-			AssertEquals(net.named_data.jndn.encrypt.algo.EncryptAlgorithmType.RsaOaep,
+			Assert.AssertEquals(0, encryptedNonce.getInitialVector().size());
+			Assert.AssertEquals(net.named_data.jndn.encrypt.algo.EncryptAlgorithmType.RsaOaep,
 					encryptedNonce.getAlgorithmType());
 	
 			Blob blobNonce = encryptedNonce.getPayload();
@@ -233,8 +233,8 @@ namespace src.net.named_data.jndn.tests.integration_tests {
 			payloadContent.position(encryptedNonce.wireEncode().size());
 			EncryptedContent encryptedPayload = new EncryptedContent();
 			encryptedPayload.wireDecode(payloadContent);
-			AssertEquals(16, encryptedPayload.getInitialVector().size());
-			AssertEquals(net.named_data.jndn.encrypt.algo.EncryptAlgorithmType.AesCbc,
+			Assert.AssertEquals(16, encryptedPayload.getInitialVector().size());
+			Assert.AssertEquals(net.named_data.jndn.encrypt.algo.EncryptAlgorithmType.AesCbc,
 					encryptedPayload.getAlgorithmType());
 	
 			decryptParams.setAlgorithmType(net.named_data.jndn.encrypt.algo.EncryptAlgorithmType.AesCbc);
@@ -243,7 +243,7 @@ namespace src.net.named_data.jndn.tests.integration_tests {
 			Blob largePayload = net.named_data.jndn.encrypt.algo.AesAlgorithm.decrypt(nonce, blobPayload,
 					decryptParams);
 	
-			AssertTrue(largePayload.equals(decryptKeyBlob));
+			Assert.AssertTrue(largePayload.equals(decryptKeyBlob));
 		}
 	
 		public void testCreateEKeyData() {
@@ -255,12 +255,12 @@ namespace src.net.named_data.jndn.tests.integration_tests {
 	
 			Data data = friendAccess.createEKeyData(manager, "20150825T090000",
 					"20150825T110000", encryptKeyBlob);
-			AssertEquals(
+			Assert.AssertEquals(
 					"/Alice/READ/data_type/E-KEY/20150825T090000/20150825T110000",
 					data.getName().toUri());
 	
 			Blob contentBlob = data.getContent();
-			AssertTrue(encryptKeyBlob.equals(contentBlob));
+			Assert.AssertTrue(encryptKeyBlob.equals(contentBlob));
 		}
 	
 		public void testCalculateInterval() {
@@ -276,25 +276,25 @@ namespace src.net.named_data.jndn.tests.integration_tests {
 			double timePoint1 = net.named_data.jndn.tests.unit_tests.UnitTestsCommon.fromIsoString("20150825T093000");
 			result = friendAccess
 					.calculateInterval(manager, timePoint1, memberKeys);
-			AssertEquals("20150825T090000", net.named_data.jndn.tests.unit_tests.UnitTestsCommon.toIsoString(result.getStartTime()));
-			AssertEquals("20150825T100000", net.named_data.jndn.tests.unit_tests.UnitTestsCommon.toIsoString(result.getEndTime()));
+			Assert.AssertEquals("20150825T090000", net.named_data.jndn.tests.unit_tests.UnitTestsCommon.toIsoString(result.getStartTime()));
+			Assert.AssertEquals("20150825T100000", net.named_data.jndn.tests.unit_tests.UnitTestsCommon.toIsoString(result.getEndTime()));
 	
 			double timePoint2 = net.named_data.jndn.tests.unit_tests.UnitTestsCommon.fromIsoString("20150827T073000");
 			result = friendAccess
 					.calculateInterval(manager, timePoint2, memberKeys);
-			AssertEquals("20150827T070000", net.named_data.jndn.tests.unit_tests.UnitTestsCommon.toIsoString(result.getStartTime()));
-			AssertEquals("20150827T080000", net.named_data.jndn.tests.unit_tests.UnitTestsCommon.toIsoString(result.getEndTime()));
+			Assert.AssertEquals("20150827T070000", net.named_data.jndn.tests.unit_tests.UnitTestsCommon.toIsoString(result.getStartTime()));
+			Assert.AssertEquals("20150827T080000", net.named_data.jndn.tests.unit_tests.UnitTestsCommon.toIsoString(result.getEndTime()));
 	
 			double timePoint3 = net.named_data.jndn.tests.unit_tests.UnitTestsCommon.fromIsoString("20150827T043000");
 			result = friendAccess
 					.calculateInterval(manager, timePoint3, memberKeys);
-			AssertEquals(false, result.isValid());
+			Assert.AssertEquals(false, result.isValid());
 	
 			double timePoint4 = net.named_data.jndn.tests.unit_tests.UnitTestsCommon.fromIsoString("20150827T053000");
 			result = friendAccess
 					.calculateInterval(manager, timePoint4, memberKeys);
-			AssertEquals("20150827T050000", net.named_data.jndn.tests.unit_tests.UnitTestsCommon.toIsoString(result.getStartTime()));
-			AssertEquals("20150827T060000", net.named_data.jndn.tests.unit_tests.UnitTestsCommon.toIsoString(result.getEndTime()));
+			Assert.AssertEquals("20150827T050000", net.named_data.jndn.tests.unit_tests.UnitTestsCommon.toIsoString(result.getStartTime()));
+			Assert.AssertEquals("20150827T060000", net.named_data.jndn.tests.unit_tests.UnitTestsCommon.toIsoString(result.getEndTime()));
 		}
 	
 		public void testGetGroupKey() {
@@ -308,18 +308,18 @@ namespace src.net.named_data.jndn.tests.integration_tests {
 			double timePoint1 = net.named_data.jndn.tests.unit_tests.UnitTestsCommon.fromIsoString("20150825T093000");
 			IList result = manager.getGroupKey(timePoint1);
 	
-			AssertEquals(4, result.Count);
+			Assert.AssertEquals(4, result.Count);
 	
 			// The first data packet contains the group's encryption key (public key).
 			Data data = (Data) result[0];
-			AssertEquals(
+			Assert.AssertEquals(
 					"/Alice/READ/data_type/E-KEY/20150825T090000/20150825T100000",
 					data.getName().toUri());
 			EncryptKey groupEKey = new EncryptKey(data.getContent());
 	
 			// Get the second data packet and decrypt.
 			data = (Data) result[1];
-			AssertEquals(
+			Assert.AssertEquals(
 					"/Alice/READ/data_type/D-KEY/20150825T090000/20150825T100000/FOR/ndn/memberA/ksk-123",
 					data.getName().toUri());
 	
@@ -330,8 +330,8 @@ namespace src.net.named_data.jndn.tests.integration_tests {
 			// dataContent is a sequence of the two EncryptedContent.
 			EncryptedContent encryptedNonce = new EncryptedContent();
 			encryptedNonce.wireDecode(dataContent);
-			AssertEquals(0, encryptedNonce.getInitialVector().size());
-			AssertEquals(net.named_data.jndn.encrypt.algo.EncryptAlgorithmType.RsaOaep,
+			Assert.AssertEquals(0, encryptedNonce.getInitialVector().size());
+			Assert.AssertEquals(net.named_data.jndn.encrypt.algo.EncryptAlgorithmType.RsaOaep,
 					encryptedNonce.getAlgorithmType());
 	
 			EncryptParams decryptParams = new EncryptParams(
@@ -346,8 +346,8 @@ namespace src.net.named_data.jndn.tests.integration_tests {
 			payloadContent.position(encryptedNonce.wireEncode().size());
 			EncryptedContent encryptedPayload = new EncryptedContent();
 			encryptedPayload.wireDecode(payloadContent);
-			AssertEquals(16, encryptedPayload.getInitialVector().size());
-			AssertEquals(net.named_data.jndn.encrypt.algo.EncryptAlgorithmType.AesCbc,
+			Assert.AssertEquals(16, encryptedPayload.getInitialVector().size());
+			Assert.AssertEquals(net.named_data.jndn.encrypt.algo.EncryptAlgorithmType.AesCbc,
 					encryptedPayload.getAlgorithmType());
 	
 			decryptParams.setAlgorithmType(net.named_data.jndn.encrypt.algo.EncryptAlgorithmType.AesCbc);
@@ -364,26 +364,26 @@ namespace src.net.named_data.jndn.tests.integration_tests {
 			// Check the D-KEY.
 			EncryptKey derivedGroupEKey = net.named_data.jndn.encrypt.algo.RsaAlgorithm.deriveEncryptKey(groupDKey
 					.getKeyBits());
-			AssertTrue(groupEKey.getKeyBits().equals(derivedGroupEKey.getKeyBits()));
+			Assert.AssertTrue(groupEKey.getKeyBits().equals(derivedGroupEKey.getKeyBits()));
 	
 			// Check the third data packet.
 			data = (Data) result[2];
-			AssertEquals(
+			Assert.AssertEquals(
 					"/Alice/READ/data_type/D-KEY/20150825T090000/20150825T100000/FOR/ndn/memberB/ksk-123",
 					data.getName().toUri());
 	
 			// Check the fourth data packet.
 			data = (Data) result[3];
-			AssertEquals(
+			Assert.AssertEquals(
 					"/Alice/READ/data_type/D-KEY/20150825T090000/20150825T100000/FOR/ndn/memberC/ksk-123",
 					data.getName().toUri());
 	
 			// Check invalid time stamps for getting the group key.
 			double timePoint2 = net.named_data.jndn.tests.unit_tests.UnitTestsCommon.fromIsoString("20150826T083000");
-			AssertEquals(0, manager.getGroupKey(timePoint2).Count);
+			Assert.AssertEquals(0, manager.getGroupKey(timePoint2).Count);
 	
 			double timePoint3 = net.named_data.jndn.tests.unit_tests.UnitTestsCommon.fromIsoString("20150827T023000");
-			AssertEquals(0, manager.getGroupKey(timePoint3).Count);
+			Assert.AssertEquals(0, manager.getGroupKey(timePoint3).Count);
 		}
 	
 		private FileInfo dKeyDatabaseFilePath;

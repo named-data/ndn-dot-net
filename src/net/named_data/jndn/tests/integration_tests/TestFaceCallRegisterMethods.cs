@@ -8,7 +8,7 @@
 /// Copyright (C) 2016-2017 Regents of the University of California.
 /// </summary>
 ///
-namespace src.net.named_data.jndn.tests.integration_tests {
+namespace net.named_data.jndn.tests.integration_tests {
 	
 	using ILOG.J2CsMapping.Threading;
 	using ILOG.J2CsMapping.Util.Logging;
@@ -21,7 +21,6 @@ namespace src.net.named_data.jndn.tests.integration_tests {
 	using net.named_data.jndn;
 	using net.named_data.jndn.encoding;
 	using net.named_data.jndn.security;
-	using net.named_data.jndn.tests.integration_tests;
 	using net.named_data.jndn.util;
 	
 	public class TestFaceCallRegisterMethods {
@@ -68,12 +67,12 @@ namespace src.net.named_data.jndn.tests.integration_tests {
 		}
 	
 		public sealed class Anonymous_C1 : OnData {
-			private readonly int[] dataCallbackCount;
 			private readonly Data[] receivedData;
+			private readonly int[] dataCallbackCount;
 	
-			public Anonymous_C1(int[] dataCallbackCount_0, Data[] receivedData_1) {
-				this.dataCallbackCount = dataCallbackCount_0;
-				this.receivedData = receivedData_1;
+			public Anonymous_C1(Data[] receivedData_0, int[] dataCallbackCount_1) {
+				this.receivedData = receivedData_0;
+				this.dataCallbackCount = dataCallbackCount_1;
 			}
 	
 			public void onData(Interest interest, Data data) {
@@ -146,7 +145,7 @@ namespace src.net.named_data.jndn.tests.integration_tests {
 			int[] timeoutCallbackCount_5 = new int[] { 0 };
 			Data[] receivedData_6 = new Data[1];
 			Name interestName = prefixName.append("hello" + getNowMilliseconds());
-			faceOut.expressInterest(interestName, new TestFaceCallRegisterMethods.Anonymous_C1 (dataCallbackCount_4, receivedData_6), new TestFaceCallRegisterMethods.Anonymous_C0 (timeoutCallbackCount_5));
+			faceOut.expressInterest(interestName, new TestFaceCallRegisterMethods.Anonymous_C1 (receivedData_6, dataCallbackCount_4), new TestFaceCallRegisterMethods.Anonymous_C0 (timeoutCallbackCount_5));
 	
 			// Process events for the in and out faces.
 			timeout = 10000;
@@ -183,15 +182,15 @@ namespace src.net.named_data.jndn.tests.integration_tests {
 				}
 			}
 	
-			AssertEquals("Failed to register prefix at all", 0,
+			Assert.AssertEquals("Failed to register prefix at all", 0,
 					failedCallbackCount_1[0]);
-			AssertEquals("Expected 1 onInterest callback", 1,
+			Assert.AssertEquals("Expected 1 onInterest callback", 1,
 					interestCallbackCount_0[0]);
-			AssertEquals("Expected 1 onData callback", 1, dataCallbackCount_4[0]);
+			Assert.AssertEquals("Expected 1 onData callback", 1, dataCallbackCount_4[0]);
 	
 			// Check the message content.
 			Blob expectedBlob = new Blob("SUCCESS");
-			AssertTrue(
+			Assert.AssertTrue(
 					"Data received on the face does not match the expected format",
 					expectedBlob.equals(receivedData_6[0].getContent()));
 		}

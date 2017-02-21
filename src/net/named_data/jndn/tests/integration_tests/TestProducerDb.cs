@@ -8,7 +8,7 @@
 /// Copyright (C) 2015-2017 Regents of the University of California.
 /// </summary>
 ///
-namespace src.net.named_data.jndn.tests.integration_tests {
+namespace net.named_data.jndn.tests.integration_tests {
 	
 	using ILOG.J2CsMapping.Util;
 	using System;
@@ -56,44 +56,44 @@ namespace src.net.named_data.jndn.tests.integration_tests {
 			// Throw an exception when adding a key to an existing time slot.
 			try {
 				database.addContentKey(point1, keyBlob1);
-				Fail("addContentKey did not throw an exception");
+				Assert.Fail("addContentKey did not throw an exception");
 			} catch (ProducerDb.Error ex) {
 			} catch (Exception ex_0) {
-				Fail("addContentKey did not throw an exception");
+				Assert.Fail("addContentKey did not throw an exception");
 			}
 	
 			// Check has functions.
-			AssertEquals(true, database.hasContentKey(point1));
-			AssertEquals(true, database.hasContentKey(point2));
-			AssertEquals(true, database.hasContentKey(point3));
-			AssertEquals(false, database.hasContentKey(point4));
+			Assert.AssertEquals(true, database.hasContentKey(point1));
+			Assert.AssertEquals(true, database.hasContentKey(point2));
+			Assert.AssertEquals(true, database.hasContentKey(point3));
+			Assert.AssertEquals(false, database.hasContentKey(point4));
 	
 			// Get content keys.
 			Blob keyResult = database.getContentKey(point1);
-			AssertTrue(keyResult.equals(keyBlob1));
+			Assert.AssertTrue(keyResult.equals(keyBlob1));
 	
 			keyResult = database.getContentKey(point3);
-			AssertTrue(keyResult.equals(keyBlob2));
+			Assert.AssertTrue(keyResult.equals(keyBlob2));
 	
 			// Throw exception when there is no such time slot in the database.
 			try {
 				database.getContentKey(point4);
-				Fail("getContentKey did not throw an exception");
+				Assert.Fail("getContentKey did not throw an exception");
 			} catch (ProducerDb.Error ex_1) {
 			} catch (Exception ex_2) {
-				Fail("getContentKey did not throw an exception");
+				Assert.Fail("getContentKey did not throw an exception");
 			}
 	
 			// Delete content keys.
-			AssertEquals(true, database.hasContentKey(point1));
+			Assert.AssertEquals(true, database.hasContentKey(point1));
 			database.deleteContentKey(point1);
-			AssertEquals(false, database.hasContentKey(point1));
+			Assert.AssertEquals(false, database.hasContentKey(point1));
 	
 			// Delete at a non-existing time slot.
 			try {
 				database.deleteContentKey(point4);
 			} catch (Exception ex_3) {
-				Fail("deleteContentKey threw an exception");
+				Assert.Fail("deleteContentKey threw an exception");
 			}
 		}
 	

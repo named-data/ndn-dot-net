@@ -19,7 +19,7 @@
  * A copy of the GNU Lesser General Public License is in the file COPYING.
  */
 
-package src.net.named_data.jndn.tests.integration_tests;
+package net.named_data.jndn.tests.integration_tests;
 
 import java.io.File;
 import java.text.ParseException;

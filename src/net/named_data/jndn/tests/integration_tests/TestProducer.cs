@@ -8,7 +8,7 @@
 /// Copyright (C) 2015-2017 Regents of the University of California.
 /// </summary>
 ///
-namespace src.net.named_data.jndn.tests.integration_tests {
+namespace net.named_data.jndn.tests.integration_tests {
 	
 	using ILOG.J2CsMapping.NIO;
 	using ILOG.J2CsMapping.Util;
@@ -28,7 +28,6 @@ namespace src.net.named_data.jndn.tests.integration_tests {
 	using net.named_data.jndn.security;
 	using net.named_data.jndn.security.identity;
 	using net.named_data.jndn.security.policy;
-	using net.named_data.jndn.tests.integration_tests;
 	using net.named_data.jndn.util;
 	
 	public class TestProducer {
@@ -168,21 +167,21 @@ namespace src.net.named_data.jndn.tests.integration_tests {
 					});
 	
 			// Confirm content key names are correct
-			AssertEquals(cKeyName, contentKeyName1.getPrefix(-1));
-			AssertEquals(testTimeRounded1, contentKeyName1.get(6));
-			AssertEquals(cKeyName, contentKeyName2.getPrefix(-1));
-			AssertEquals(testTimeRounded2, contentKeyName2.get(6));
+			Assert.AssertEquals(cKeyName, contentKeyName1.getPrefix(-1));
+			Assert.AssertEquals(testTimeRounded1, contentKeyName1.get(6));
+			Assert.AssertEquals(cKeyName, contentKeyName2.getPrefix(-1));
+			Assert.AssertEquals(testTimeRounded2, contentKeyName2.get(6));
 	
 			// Confirm that produce encrypts with the correct key and has the right name.
 			Data testData = new Data();
 			producer.produce(testData, testTime2, new Blob(DATA_CONTENT, false));
 	
 			Name producedName = testData.getName();
-			AssertEquals(cKeyName.getPrefix(-1), producedName.getSubName(0, 5));
-			AssertEquals(testTimeComponent2, producedName.get(5));
-			AssertEquals(net.named_data.jndn.encrypt.algo.Encryptor.NAME_COMPONENT_FOR, producedName.get(6));
-			AssertEquals(cKeyName, producedName.getSubName(7, 6));
-			AssertEquals(testTimeRounded2, producedName.get(13));
+			Assert.AssertEquals(cKeyName.getPrefix(-1), producedName.getSubName(0, 5));
+			Assert.AssertEquals(testTimeComponent2, producedName.get(5));
+			Assert.AssertEquals(net.named_data.jndn.encrypt.algo.Encryptor.NAME_COMPONENT_FOR, producedName.get(6));
+			Assert.AssertEquals(cKeyName, producedName.getSubName(7, 6));
+			Assert.AssertEquals(testTimeRounded2, producedName.get(13));
 	
 			Blob dataBlob = testData.getContent();
 	
@@ -196,7 +195,7 @@ namespace src.net.named_data.jndn.tests.integration_tests {
 			paras.setInitialVector(initialVector);
 			Blob decryptTest = net.named_data.jndn.encrypt.algo.AesAlgorithm.decrypt(contentKey[0], encryptedData,
 					paras);
-			AssertTrue(decryptTest.equals(new Blob(DATA_CONTENT, false)));
+			Assert.AssertTrue(decryptTest.equals(new Blob(DATA_CONTENT, false)));
 		}
 	
 		public void testContentKeySearch() throws ParseException,
@@ -244,15 +243,15 @@ namespace src.net.named_data.jndn.tests.integration_tests {
 			Producer producer = new Producer(prefix, suffix, face, keyChain, testDb);
 			producer.createContentKey(testTime, new Producer.OnEncryptedKeys() {
 				public void onEncryptedKeys(List result) {
-					AssertEquals(3, requestCount[0]);
-					AssertEquals(1, result.Count);
+					Assert.AssertEquals(3, requestCount[0]);
+					Assert.AssertEquals(1, result.Count);
 	
 					Data keyData = (Data) result[0];
 					Name keyName = keyData.getName();
-					AssertEquals(cKeyName, keyName.getSubName(0, 4));
-					AssertEquals(timeMarkerThirdHop.get(0), keyName.get(4));
-					AssertEquals(net.named_data.jndn.encrypt.algo.Encryptor.NAME_COMPONENT_FOR, keyName.get(5));
-					AssertEquals(expectedInterest.append(timeMarkerThirdHop),
+					Assert.AssertEquals(cKeyName, keyName.getSubName(0, 4));
+					Assert.AssertEquals(timeMarkerThirdHop.get(0), keyName.get(4));
+					Assert.AssertEquals(net.named_data.jndn.encrypt.algo.Encryptor.NAME_COMPONENT_FOR, keyName.get(5));
+					Assert.AssertEquals(expectedInterest.append(timeMarkerThirdHop),
 							keyName.getSubName(6));
 				}
 			});
@@ -282,8 +281,8 @@ namespace src.net.named_data.jndn.tests.integration_tests {
 			Producer producer = new Producer(prefix, suffix, face, keyChain, testDb);
 			producer.createContentKey(testTime, new Producer.OnEncryptedKeys() {
 				public void onEncryptedKeys(List result) {
-					AssertEquals(4, timeoutCount[0]);
-					AssertEquals(0, result.Count);
+					Assert.AssertEquals(4, timeoutCount[0]);
+					Assert.AssertEquals(0, result.Count);
 				}
 			});
 		}
@@ -334,8 +333,8 @@ namespace src.net.named_data.jndn.tests.integration_tests {
 			}
 	
 			public void onEncryptedKeys(List result) {
-				AssertEquals(4, timeoutCount[0]);
-				AssertEquals(0, result.Count);
+				Assert.AssertEquals(4, timeoutCount[0]);
+				Assert.AssertEquals(0, result.Count);
 			}
 		}
 		public class TestFace : Face {
@@ -352,7 +351,7 @@ namespace src.net.named_data.jndn.tests.integration_tests {
 		
 					Name interestName = new Name(interest.getName());
 					interestName.append(timeMarker);
-					AssertEquals(true, outer_TestProducer.encryptionKeys.Contains(interestName));
+					Assert.AssertEquals(true, outer_TestProducer.encryptionKeys.Contains(interestName));
 					onData.onData(interest, (Data) ILOG.J2CsMapping.Collections.Collections.Get(outer_TestProducer.encryptionKeys,interestName));
 		
 					return 0;
@@ -370,14 +369,14 @@ namespace src.net.named_data.jndn.tests.integration_tests {
 				public void checkEncryptionKeys(List result, double testTime,
 						Name.Component roundedTime,
 						int expectedExpressInterestCallCount) {
-					AssertEquals(expectedExpressInterestCallCount,
+					Assert.AssertEquals(expectedExpressInterestCallCount,
 							expressInterestCallCount[0]);
 		
 					try {
-						AssertEquals(true, testDb.HasContentKey(testTime));
+						Assert.AssertEquals(true, testDb.HasContentKey(testTime));
 						contentKey[0] = testDb.GetContentKey(testTime);
 					} catch (ProducerDb.Error ex) {
-						Fail("Error in ProducerDb: " + ex);
+						Assert.Fail("Error in ProducerDb: " + ex);
 					}
 		
 					EncryptParams paras = new EncryptParams(
@@ -385,22 +384,22 @@ namespace src.net.named_data.jndn.tests.integration_tests {
 					for (int i = 0; i < result.Count; ++i) {
 						Data key = (Data) result[i];
 						Name keyName = key.getName();
-						AssertEquals(cKeyName, keyName.getSubName(0, 6));
-						AssertEquals(keyName.get(6), roundedTime);
-						AssertEquals(keyName.get(7), net.named_data.jndn.encrypt.algo.Encryptor.NAME_COMPONENT_FOR);
-						AssertEquals(true,
+						Assert.AssertEquals(cKeyName, keyName.getSubName(0, 6));
+						Assert.AssertEquals(keyName.get(6), roundedTime);
+						Assert.AssertEquals(keyName.get(7), net.named_data.jndn.encrypt.algo.Encryptor.NAME_COMPONENT_FOR);
+						Assert.AssertEquals(true,
 								outer_TestProducer.decryptionKeys.Contains(keyName.getSubName(8)));
 		
 						Blob decryptionKey = (Blob) ILOG.J2CsMapping.Collections.Collections.Get(outer_TestProducer.decryptionKeys,keyName
 													.getSubName(8));
-						AssertEquals(true, decryptionKey.size() != 0);
+						Assert.AssertEquals(true, decryptionKey.size() != 0);
 						Blob encryptedKeyEncoding = key.getContent();
 		
 						EncryptedContent content = new EncryptedContent();
 						try {
 							content.wireDecode(encryptedKeyEncoding);
 						} catch (EncodingException ex_0) {
-							Fail("Error decoding EncryptedContent" + ex_0);
+							Assert.Fail("Error decoding EncryptedContent" + ex_0);
 						}
 						Blob encryptedKey = content.getPayload();
 						Blob retrievedKey = null;
@@ -408,13 +407,13 @@ namespace src.net.named_data.jndn.tests.integration_tests {
 							retrievedKey = net.named_data.jndn.encrypt.algo.RsaAlgorithm.decrypt(decryptionKey,
 									encryptedKey, paras);
 						} catch (Exception ex_1) {
-							Fail("Error in RsaAlgorithm.decrypt: " + ex_1);
+							Assert.Fail("Error in RsaAlgorithm.decrypt: " + ex_1);
 						}
 		
-						AssertTrue(contentKey[0].Equals(retrievedKey));
+						Assert.AssertTrue(contentKey[0].Equals(retrievedKey));
 					}
 		
-					AssertEquals(3, result.Count);
+					Assert.AssertEquals(3, result.Count);
 				}
 			}
 		class TestFace : Face {
@@ -424,7 +423,7 @@ namespace src.net.named_data.jndn.tests.integration_tests {
 			public long expressInterest(Interest interest, OnData onData,
 					OnTimeout onTimeout, OnNetworkNack onNetworkNack,
 					WireFormat wireFormat) throws IOException {
-				AssertEquals(expectedInterest, interest.GetName());
+				Assert.AssertEquals(expectedInterest, interest.GetName());
 	
 				boolean gotInterestName = false;
 				Name interestName = null;
@@ -459,7 +458,7 @@ namespace src.net.named_data.jndn.tests.integration_tests {
 			public long expressInterest(Interest interest, OnData onData,
 					OnTimeout onTimeout, OnNetworkNack onNetworkNack,
 					WireFormat wireFormat) throws IOException {
-				AssertEquals(expectedInterest, interest.GetName());
+				Assert.AssertEquals(expectedInterest, interest.GetName());
 				++timeoutCount[0];
 				onTimeout.OnTimeout(interest);
 	
@@ -473,11 +472,11 @@ namespace src.net.named_data.jndn.tests.integration_tests {
 			public long expressInterest(Interest interest, OnData onData,
 					OnTimeout onTimeout, OnNetworkNack onNetworkNack,
 					WireFormat wireFormat) throws IOException {
-				AssertEquals(expectedInterest, interest.GetName());
+				Assert.AssertEquals(expectedInterest, interest.GetName());
 				try {
-					AssertEquals(3, interest.GetLink().GetDelegations().Size());
+					Assert.AssertEquals(3, interest.GetLink().GetDelegations().Size());
 				} catch (EncodingException ex) {
-					Fail("Error in getLink: " + ex);
+					Assert.Fail("Error in getLink: " + ex);
 				}
 				++timeoutCount[0];
 				onTimeout.OnTimeout(interest);

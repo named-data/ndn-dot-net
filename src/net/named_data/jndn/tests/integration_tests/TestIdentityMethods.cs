@@ -8,7 +8,7 @@
 /// Copyright (C) 2015-2017 Regents of the University of California.
 /// </summary>
 ///
-namespace src.net.named_data.jndn.tests.integration_tests {
+namespace net.named_data.jndn.tests.integration_tests {
 	
 	using ILOG.J2CsMapping.Util.Logging;
 	using System;
@@ -66,24 +66,24 @@ namespace src.net.named_data.jndn.tests.integration_tests {
 			Name keyName = net.named_data.jndn.security.certificate.IdentityCertificate
 					.certificateNameToPublicKeyName(certificateName);
 	
-			AssertTrue("Identity was not added to IdentityStorage",
+			Assert.AssertTrue("Identity was not added to IdentityStorage",
 					identityStorage.doesIdentityExist(identityName));
-			AssertTrue("Key was not added to IdentityStorage",
+			Assert.AssertTrue("Key was not added to IdentityStorage",
 					identityStorage.doesKeyExist(keyName));
 	
 			keyChain.deleteIdentity(identityName);
-			AssertFalse(
+			Assert.AssertFalse(
 					"Identity still in IdentityStorage after identity was deleted",
 					identityStorage.doesIdentityExist(identityName));
-			AssertFalse("Key still in IdentityStorage after identity was deleted",
+			Assert.AssertFalse("Key still in IdentityStorage after identity was deleted",
 					identityStorage.doesKeyExist(keyName));
-			AssertFalse(
+			Assert.AssertFalse(
 					"Certificate still in IdentityStorage after identity was deleted",
 					identityStorage.doesCertificateExist(certificateName));
 	
 			try {
 				identityManager.getDefaultCertificateNameForIdentity(identityName);
-				Fail("The default certificate name for the identity was not deleted");
+				Assert.Fail("The default certificate name for the identity was not deleted");
 			} catch (SecurityException ex) {
 			}
 		}
@@ -97,17 +97,17 @@ namespace src.net.named_data.jndn.tests.integration_tests {
 	
 			Name keyName2 = keyChain.generateRSAKeyPair(identityName, false);
 	
-			AssertTrue("Default key name was changed without explicit request",
+			Assert.AssertTrue("Default key name was changed without explicit request",
 					identityManager.getDefaultKeyNameForIdentity(identityName)
 							.equals(keyName1));
-			AssertFalse(
+			Assert.AssertFalse(
 					"Newly created key replaced default key without explicit request",
 					identityManager.getDefaultKeyNameForIdentity(identityName)
 							.equals(keyName2));
 	
 			identityStorage.deletePublicKeyInfo(keyName2);
 	
-			AssertFalse(identityStorage.doesKeyExist(keyName2));
+			Assert.AssertFalse(identityStorage.doesKeyExist(keyName2));
 			identityStorage.deleteIdentityInfo(identityName);
 		}
 	
@@ -121,36 +121,36 @@ namespace src.net.named_data.jndn.tests.integration_tests {
 					false));
 			identityStorage.setDefaultKeyNameForIdentity(keyName1);
 	
-			AssertTrue("Key was not added", identityStorage.doesKeyExist(keyName1));
-			AssertTrue("Identity for key was not automatically created",
+			Assert.AssertTrue("Key was not added", identityStorage.doesKeyExist(keyName1));
+			Assert.AssertTrue("Identity for key was not automatically created",
 					identityStorage.doesIdentityExist(identityName));
 	
-			AssertTrue("Default key was not set on identity creation",
+			Assert.AssertTrue("Default key was not set on identity creation",
 					identityManager.getDefaultKeyNameForIdentity(identityName)
 							.equals(keyName1));
 	
 			try {
 				identityStorage.getDefaultCertificateNameForKey(keyName1);
-				Fail();
+				Assert.Fail();
 			} catch (SecurityException ex) {
 			}
 	
 			// We have no private key for signing.
 			try {
 				identityManager.selfSign(keyName1);
-				Fail();
+				Assert.Fail();
 			} catch (SecurityException ex_0) {
 			}
 	
 			try {
 				identityStorage.getDefaultCertificateNameForKey(keyName1);
-				Fail();
+				Assert.Fail();
 			} catch (SecurityException ex_1) {
 			}
 	
 			try {
 				identityManager.getDefaultCertificateNameForIdentity(identityName);
-				Fail();
+				Assert.Fail();
 			} catch (SecurityException ex_2) {
 			}
 	
@@ -164,12 +164,12 @@ namespace src.net.named_data.jndn.tests.integration_tests {
 			Name certName2 = identityStorage
 					.getDefaultCertificateNameForKey(keyName2);
 	
-			AssertTrue(
+			Assert.AssertTrue(
 					"Key-certificate mapping and identity-certificate mapping are not consistent",
 					certName1.equals(certName2));
 	
 			keyChain.deleteIdentity(identityName);
-			AssertFalse(identityStorage.doesKeyExist(keyName1));
+			Assert.AssertFalse(identityStorage.doesKeyExist(keyName1));
 		}
 	
 		public void testCertificateAddDelete() {
@@ -186,16 +186,16 @@ namespace src.net.named_data.jndn.tests.integration_tests {
 	
 			Name certName1 = identityManager
 					.getDefaultCertificateNameForIdentity(identityName);
-			AssertFalse(
+			Assert.AssertFalse(
 					"New certificate was set as default without explicit request",
 					certName1.equals(certName2));
 	
 			identityStorage.deleteCertificateInfo(certName1);
-			AssertTrue(identityStorage.doesCertificateExist(certName2));
-			AssertFalse(identityStorage.doesCertificateExist(certName1));
+			Assert.AssertTrue(identityStorage.doesCertificateExist(certName2));
+			Assert.AssertFalse(identityStorage.doesCertificateExist(certName1));
 	
 			keyChain.deleteIdentity(identityName);
-			AssertFalse(identityStorage.doesCertificateExist(certName2));
+			Assert.AssertFalse(identityStorage.doesCertificateExist(certName2));
 		}
 	
 		public void testStress() {
@@ -226,36 +226,36 @@ namespace src.net.named_data.jndn.tests.integration_tests {
 			identityManager.addCertificateAsDefault(cert5);
 			Name certName5 = cert5.getName();
 	
-			AssertTrue(identityStorage.doesIdentityExist(identityName));
-			AssertTrue(identityStorage.doesKeyExist(keyName1));
-			AssertTrue(identityStorage.doesKeyExist(keyName2));
-			AssertTrue(identityStorage.doesKeyExist(keyName3));
-			AssertTrue(identityStorage.doesCertificateExist(certName1));
-			AssertTrue(identityStorage.doesCertificateExist(certName2));
-			AssertTrue(identityStorage.doesCertificateExist(certName3));
-			AssertTrue(identityStorage.doesCertificateExist(certName4));
-			AssertTrue(identityStorage.doesCertificateExist(certName5));
+			Assert.AssertTrue(identityStorage.doesIdentityExist(identityName));
+			Assert.AssertTrue(identityStorage.doesKeyExist(keyName1));
+			Assert.AssertTrue(identityStorage.doesKeyExist(keyName2));
+			Assert.AssertTrue(identityStorage.doesKeyExist(keyName3));
+			Assert.AssertTrue(identityStorage.doesCertificateExist(certName1));
+			Assert.AssertTrue(identityStorage.doesCertificateExist(certName2));
+			Assert.AssertTrue(identityStorage.doesCertificateExist(certName3));
+			Assert.AssertTrue(identityStorage.doesCertificateExist(certName4));
+			Assert.AssertTrue(identityStorage.doesCertificateExist(certName5));
 	
 			identityStorage.deleteCertificateInfo(certName5);
-			AssertFalse(identityStorage.doesCertificateExist(certName5));
-			AssertTrue(identityStorage.doesCertificateExist(certName4));
-			AssertTrue(identityStorage.doesCertificateExist(certName3));
-			AssertTrue(identityStorage.doesKeyExist(keyName2));
+			Assert.AssertFalse(identityStorage.doesCertificateExist(certName5));
+			Assert.AssertTrue(identityStorage.doesCertificateExist(certName4));
+			Assert.AssertTrue(identityStorage.doesCertificateExist(certName3));
+			Assert.AssertTrue(identityStorage.doesKeyExist(keyName2));
 	
 			identityStorage.deletePublicKeyInfo(keyName3);
-			AssertFalse(identityStorage.doesCertificateExist(certName4));
-			AssertFalse(identityStorage.doesCertificateExist(certName3));
-			AssertFalse(identityStorage.doesKeyExist(keyName3));
-			AssertTrue(identityStorage.doesKeyExist(keyName2));
-			AssertTrue(identityStorage.doesKeyExist(keyName1));
-			AssertTrue(identityStorage.doesIdentityExist(identityName));
+			Assert.AssertFalse(identityStorage.doesCertificateExist(certName4));
+			Assert.AssertFalse(identityStorage.doesCertificateExist(certName3));
+			Assert.AssertFalse(identityStorage.doesKeyExist(keyName3));
+			Assert.AssertTrue(identityStorage.doesKeyExist(keyName2));
+			Assert.AssertTrue(identityStorage.doesKeyExist(keyName1));
+			Assert.AssertTrue(identityStorage.doesIdentityExist(identityName));
 	
 			keyChain.deleteIdentity(identityName);
-			AssertFalse(identityStorage.doesCertificateExist(certName2));
-			AssertFalse(identityStorage.doesKeyExist(keyName2));
-			AssertFalse(identityStorage.doesCertificateExist(certName1));
-			AssertFalse(identityStorage.doesKeyExist(keyName1));
-			AssertFalse(identityStorage.doesIdentityExist(identityName));
+			Assert.AssertFalse(identityStorage.doesCertificateExist(certName2));
+			Assert.AssertFalse(identityStorage.doesKeyExist(keyName2));
+			Assert.AssertFalse(identityStorage.doesCertificateExist(certName1));
+			Assert.AssertFalse(identityStorage.doesKeyExist(keyName1));
+			Assert.AssertFalse(identityStorage.doesIdentityExist(identityName));
 		}
 	
 		public void testEcdsaIdentity() {
@@ -268,11 +268,11 @@ namespace src.net.named_data.jndn.tests.integration_tests {
 			// Check the self-signature.
 			VerifyCounter counter = new VerifyCounter();
 			keyChain.verifyData(cert, counter, counter);
-			AssertEquals("Verification callback was not used.", 1,
+			Assert.AssertEquals("Verification callback was not used.", 1,
 					counter.onVerifiedCallCount_);
 	
 			keyChain.deleteIdentity(identityName);
-			AssertFalse(identityStorage.doesKeyExist(keyName));
+			Assert.AssertFalse(identityStorage.doesKeyExist(keyName));
 		}
 	
 		private FileInfo databaseFilePath;

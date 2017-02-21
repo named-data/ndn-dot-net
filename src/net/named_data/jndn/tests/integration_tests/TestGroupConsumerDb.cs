@@ -8,7 +8,7 @@
 /// Copyright (C) 2015-2017 Regents of the University of California.
 /// </summary>
 ///
-namespace src.net.named_data.jndn.tests.integration_tests {
+namespace net.named_data.jndn.tests.integration_tests {
 	
 	using System;
 	using System.Collections;
@@ -73,12 +73,12 @@ namespace src.net.named_data.jndn.tests.integration_tests {
 			database.addKey(keyName, decryptionKeyBlob[0]);
 			Blob resultBlob = database.getKey(keyName);
 	
-			AssertTrue(decryptionKeyBlob[0].equals(resultBlob));
+			Assert.AssertTrue(decryptionKeyBlob[0].equals(resultBlob));
 	
 			database.deleteKey(keyName);
 			resultBlob = database.getKey(keyName);
 	
-			AssertEquals(0, resultBlob.size());
+			Assert.AssertEquals(0, resultBlob.size());
 		}
 	
 		public void testOperateRsaDecryptionKey() {
@@ -96,12 +96,12 @@ namespace src.net.named_data.jndn.tests.integration_tests {
 			database.addKey(keyName, decryptionKeyBlob[0]);
 			Blob resultBlob = database.getKey(keyName);
 	
-			AssertTrue(decryptionKeyBlob[0].equals(resultBlob));
+			Assert.AssertTrue(decryptionKeyBlob[0].equals(resultBlob));
 	
 			database.deleteKey(keyName);
 			resultBlob = database.getKey(keyName);
 	
-			AssertEquals(0, resultBlob.size());
+			Assert.AssertEquals(0, resultBlob.size());
 		}
 	
 		private FileInfo databaseFilePath;

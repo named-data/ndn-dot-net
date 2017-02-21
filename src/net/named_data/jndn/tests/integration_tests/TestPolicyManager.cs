@@ -8,7 +8,7 @@
 /// Copyright (C) 2015-2017 Regents of the University of California.
 /// </summary>
 ///
-namespace src.net.named_data.jndn.tests.integration_tests {
+namespace net.named_data.jndn.tests.integration_tests {
 	
 	using ILOG.J2CsMapping.NIO;
 	using ILOG.J2CsMapping.Threading;
@@ -322,12 +322,12 @@ namespace src.net.named_data.jndn.tests.integration_tests {
 	
 			VerificationResult vr = doVerify(policyManager, data);
 	
-			AssertFalse("NoVerifyPolicyManager returned a ValidationRequest",
+			Assert.AssertFalse("NoVerifyPolicyManager returned a ValidationRequest",
 					vr.hasFurtherSteps_);
 	
-			AssertEquals("Verification failed with NoVerifyPolicyManager", 0,
+			Assert.AssertEquals("Verification failed with NoVerifyPolicyManager", 0,
 					vr.failureCount_);
-			AssertEquals("Verification success called " + vr.successCount_
+			Assert.AssertEquals("Verification success called " + vr.successCount_
 					+ " times instead of 1", 1, vr.successCount_);
 		}
 	
@@ -344,22 +344,22 @@ namespace src.net.named_data.jndn.tests.integration_tests {
 	
 			VerificationResult vr = doVerify(policyManager, data);
 	
-			AssertFalse("SelfVerifyPolicyManager returned a ValidationRequest",
+			Assert.AssertFalse("SelfVerifyPolicyManager returned a ValidationRequest",
 					vr.hasFurtherSteps_);
-			AssertEquals("Verification of identity-signed data failed", 0,
+			Assert.AssertEquals("Verification of identity-signed data failed", 0,
 					vr.failureCount_);
-			AssertEquals("Verification success called " + vr.successCount_
+			Assert.AssertEquals("Verification success called " + vr.successCount_
 					+ " times instead of 1", 1, vr.successCount_);
 	
 			Data data2 = new Data(new Name("/TestData/2"));
 	
 			vr = doVerify(policyManager, data2);
 	
-			AssertFalse("SelfVerifyPolicyManager returned a ValidationRequest",
+			Assert.AssertFalse("SelfVerifyPolicyManager returned a ValidationRequest",
 					vr.hasFurtherSteps_);
-			AssertEquals("Verification of unsigned data succeeded", 0,
+			Assert.AssertEquals("Verification of unsigned data succeeded", 0,
 					vr.successCount_);
-			AssertEquals("Verification failure callback called " + vr.failureCount_
+			Assert.AssertEquals("Verification failure callback called " + vr.failureCount_
 					+ " times instead of 1", 1, vr.failureCount_);
 		}
 	
@@ -379,22 +379,22 @@ namespace src.net.named_data.jndn.tests.integration_tests {
 	
 			VerificationResult vr = doVerify(policyManager_, newInterest);
 	
-			AssertFalse(
+			Assert.AssertFalse(
 					"ConfigPolicyManager returned ValidationRequest but certificate is known",
 					vr.hasFurtherSteps_);
-			AssertEquals("Verification of valid interest failed", 0,
+			Assert.AssertEquals("Verification of valid interest failed", 0,
 					vr.failureCount_);
-			AssertEquals("Verification success called " + vr.successCount_
+			Assert.AssertEquals("Verification success called " + vr.successCount_
 					+ " times instead of 1", 1, vr.successCount_);
 	
 			vr = doVerify(policyManager_, oldInterest);
 	
-			AssertFalse(
+			Assert.AssertFalse(
 					"ConfigPolicyManager returned ValidationRequest but certificate is known",
 					vr.hasFurtherSteps_);
-			AssertEquals("Verification of stale interest succeeded", 0,
+			Assert.AssertEquals("Verification of stale interest succeeded", 0,
 					vr.successCount_);
-			AssertEquals("Verification failure callback called " + vr.failureCount_
+			Assert.AssertEquals("Verification failure callback called " + vr.failureCount_
 					+ " times instead of 1", 1, vr.failureCount_);
 		}
 	
@@ -419,13 +419,13 @@ namespace src.net.named_data.jndn.tests.integration_tests {
 			// certificates.
 			VerificationResult vr = doVerify(policyManager_, data);
 	
-			AssertTrue(
+			Assert.AssertTrue(
 					"ConfigPolicyManager did not create ValidationRequest for unknown certificate",
 					vr.hasFurtherSteps_);
-			AssertEquals(
+			Assert.AssertEquals(
 					"ConfigPolicyManager called success callback with pending ValidationRequest",
 					0, vr.successCount_);
-			AssertEquals(
+			Assert.AssertEquals(
 					"ConfigPolicyManager called failure callback with pending ValidationRequest",
 					0, vr.failureCount_);
 	
@@ -450,12 +450,12 @@ namespace src.net.named_data.jndn.tests.integration_tests {
 			// Still too early for refresh to pick it up.
 			vr = doVerify(policyManager_, data);
 	
-			AssertTrue("ConfigPolicyManager refresh occured sooner than specified",
+			Assert.AssertTrue("ConfigPolicyManager refresh occured sooner than specified",
 					vr.hasFurtherSteps_);
-			AssertEquals(
+			Assert.AssertEquals(
 					"ConfigPolicyManager called success callback with pending ValidationRequest",
 					0, vr.successCount_);
-			AssertEquals(
+			Assert.AssertEquals(
 					"ConfigPolicyManager called failure callback with pending ValidationRequest",
 					0, vr.failureCount_);
 	
@@ -464,11 +464,11 @@ namespace src.net.named_data.jndn.tests.integration_tests {
 			// Now we should find it.
 			vr = doVerify(policyManager_, data);
 	
-			AssertFalse("ConfigPolicyManager did not refresh certificate store",
+			Assert.AssertFalse("ConfigPolicyManager did not refresh certificate store",
 					vr.hasFurtherSteps_);
-			AssertEquals("Verification success called " + vr.successCount_
+			Assert.AssertEquals("Verification success called " + vr.successCount_
 					+ " times instead of 1", 1, vr.successCount_);
-			AssertEquals("ConfigPolicyManager did not verify valid signed data", 0,
+			Assert.AssertEquals("ConfigPolicyManager did not verify valid signed data", 0,
 					vr.failureCount_);
 		}
 	}

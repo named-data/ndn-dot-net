@@ -8,7 +8,7 @@
 /// Copyright (C) 2015-2017 Regents of the University of California.
 /// </summary>
 ///
-namespace src.net.named_data.jndn.tests.integration_tests {
+namespace net.named_data.jndn.tests.integration_tests {
 	
 	using ILOG.J2CsMapping.NIO;
 	using ILOG.J2CsMapping.Util;
@@ -117,7 +117,7 @@ namespace src.net.named_data.jndn.tests.integration_tests {
 				schedule.wireDecode(scheduleBlob);
 			} catch (EncodingException ex) {
 				// We don't expect this to happen.
-				Fail("Error decoding Schedule: " + ex.Message);
+				Assert.Fail("Error decoding Schedule: " + ex.Message);
 			}
 	
 			// Create a member.
@@ -130,7 +130,7 @@ namespace src.net.named_data.jndn.tests.integration_tests {
 				encryptKey = net.named_data.jndn.encrypt.algo.RsaAlgorithm.deriveEncryptKey(decryptKey.getKeyBits());
 			} catch (Exception ex_0) {
 				// Don't expect this to happen.
-				Fail("Error creating test keys: " + ex_0.Message);
+				Assert.Fail("Error creating test keys: " + ex_0.Message);
 				return;
 			}
 			Blob keyBlob = encryptKey.getKeyBits();
@@ -148,7 +148,7 @@ namespace src.net.named_data.jndn.tests.integration_tests {
 				database.addSchedule("play-time", schedule);
 				database.addSchedule("boelter-time", schedule);
 			} catch (Exception ex_1) {
-				Fail("Unexpected error adding a schedule: " + ex_1.Message);
+				Assert.Fail("Unexpected error adding a schedule: " + ex_1.Message);
 			}
 	
 			// Throw an exception when adding a schedule with an existing name.
@@ -159,7 +159,7 @@ namespace src.net.named_data.jndn.tests.integration_tests {
 			} catch (GroupManagerDb.Error ex_2) {
 			}
 			if (!gotError)
-				Fail("Expected an error adding a duplicate schedule");
+				Assert.Fail("Expected an error adding a duplicate schedule");
 	
 			// Add members into the database.
 			try {
@@ -168,7 +168,7 @@ namespace src.net.named_data.jndn.tests.integration_tests {
 				database.addMember("play-time", name3, keyBlob);
 				database.addMember("play-time", name4, keyBlob);
 			} catch (Exception ex_3) {
-				Fail("Unexpected error adding a member: " + ex_3.Message);
+				Assert.Fail("Unexpected error adding a member: " + ex_3.Message);
 			}
 	
 			// Throw an exception when adding a member with a non-existing schedule name.
@@ -179,12 +179,12 @@ namespace src.net.named_data.jndn.tests.integration_tests {
 			} catch (GroupManagerDb.Error ex_4) {
 			}
 			if (!gotError)
-				Fail("Expected an error adding a member with non-existing schedule");
+				Assert.Fail("Expected an error adding a member with non-existing schedule");
 	
 			try {
 				database.addMember("boelter-time", name5, keyBlob);
 			} catch (Exception ex_5) {
-				Fail("Unexpected error adding a member: " + ex_5.Message);
+				Assert.Fail("Unexpected error adding a member: " + ex_5.Message);
 			}
 	
 			// Throw an exception when adding a member having an existing identity.
@@ -195,25 +195,25 @@ namespace src.net.named_data.jndn.tests.integration_tests {
 			} catch (GroupManagerDb.Error ex_6) {
 			}
 			if (!gotError)
-				Fail("Expected an error adding a member with an existing identity");
+				Assert.Fail("Expected an error adding a member with an existing identity");
 	
 			// Test has functions.
-			AssertEquals(true, database.hasSchedule("work-time"));
-			AssertEquals(true, database.hasSchedule("rest-time"));
-			AssertEquals(true, database.hasSchedule("play-time"));
-			AssertEquals(false, database.hasSchedule("sleep-time"));
-			AssertEquals(false, database.hasSchedule(""));
+			Assert.AssertEquals(true, database.hasSchedule("work-time"));
+			Assert.AssertEquals(true, database.hasSchedule("rest-time"));
+			Assert.AssertEquals(true, database.hasSchedule("play-time"));
+			Assert.AssertEquals(false, database.hasSchedule("sleep-time"));
+			Assert.AssertEquals(false, database.hasSchedule(""));
 	
-			AssertEquals(true, database.hasMember(new Name("/ndn/BoyA")));
-			AssertEquals(true, database.hasMember(new Name("/ndn/BoyB")));
-			AssertEquals(false, database.hasMember(new Name("/ndn/BoyC")));
+			Assert.AssertEquals(true, database.hasMember(new Name("/ndn/BoyA")));
+			Assert.AssertEquals(true, database.hasMember(new Name("/ndn/BoyB")));
+			Assert.AssertEquals(false, database.hasMember(new Name("/ndn/BoyC")));
 	
 			// Get a schedule.
 			Schedule scheduleResult = database.getSchedule("work-time");
-			AssertTrue(scheduleResult.wireEncode().equals(scheduleBlob));
+			Assert.AssertTrue(scheduleResult.wireEncode().equals(scheduleBlob));
 	
 			scheduleResult = database.getSchedule("play-time");
-			AssertTrue(scheduleResult.wireEncode().equals(scheduleBlob));
+			Assert.AssertTrue(scheduleResult.wireEncode().equals(scheduleBlob));
 	
 			// Throw an exception when when there is no such schedule in the database.
 			gotError = true;
@@ -223,35 +223,35 @@ namespace src.net.named_data.jndn.tests.integration_tests {
 			} catch (GroupManagerDb.Error ex_7) {
 			}
 			if (!gotError)
-				Fail("Expected an error getting a non-existing schedule");
+				Assert.Fail("Expected an error getting a non-existing schedule");
 	
 			// List all schedule names.
 			IList names = database.listAllScheduleNames();
-			AssertTrue(names.Contains("work-time"));
-			AssertTrue(names.Contains("play-time"));
-			AssertTrue(names.Contains("rest-time"));
-			AssertTrue(!names.Contains("sleep-time"));
+			Assert.AssertTrue(names.Contains("work-time"));
+			Assert.AssertTrue(names.Contains("play-time"));
+			Assert.AssertTrue(names.Contains("rest-time"));
+			Assert.AssertTrue(!names.Contains("sleep-time"));
 	
 			// List members of a schedule.
 			IDictionary memberMap = database.getScheduleMembers("play-time");
-			AssertTrue(memberMap.Count != 0);
+			Assert.AssertTrue(memberMap.Count != 0);
 	
 			// When there's no such schedule, the return map's size should be 0.
-			AssertEquals(0, database.getScheduleMembers("sleep-time").Count);
+			Assert.AssertEquals(0, database.getScheduleMembers("sleep-time").Count);
 	
 			// List all members.
 			IList members = database.listAllMembers();
-			AssertTrue(members.Contains(new Name("/ndn/GirlC")));
-			AssertTrue(members.Contains(new Name("/ndn/GirlD")));
-			AssertTrue(members.Contains(new Name("/ndn/BoyA")));
-			AssertTrue(members.Contains(new Name("/ndn/BoyB")));
+			Assert.AssertTrue(members.Contains(new Name("/ndn/GirlC")));
+			Assert.AssertTrue(members.Contains(new Name("/ndn/GirlD")));
+			Assert.AssertTrue(members.Contains(new Name("/ndn/BoyA")));
+			Assert.AssertTrue(members.Contains(new Name("/ndn/BoyB")));
 	
 			// Rename a schedule.
-			AssertEquals(true, database.hasSchedule("boelter-time"));
+			Assert.AssertEquals(true, database.hasSchedule("boelter-time"));
 			database.renameSchedule("boelter-time", "rieber-time");
-			AssertEquals(false, database.hasSchedule("boelter-time"));
-			AssertEquals(true, database.hasSchedule("rieber-time"));
-			AssertEquals("rieber-time",
+			Assert.AssertEquals(false, database.hasSchedule("boelter-time"));
+			Assert.AssertEquals(true, database.hasSchedule("rieber-time"));
+			Assert.AssertEquals("rieber-time",
 					database.getMemberSchedule(new Name("/ndn/Hello")));
 	
 			// Update a schedule.
@@ -260,7 +260,7 @@ namespace src.net.named_data.jndn.tests.integration_tests {
 				newSchedule.wireDecode(scheduleBlob);
 			} catch (EncodingException ex_8) {
 				// We don't expect this to happen.
-				Fail("Error decoding Schedule: " + ex_8.Message);
+				Assert.Fail("Error decoding Schedule: " + ex_8.Message);
 			}
 			RepetitiveInterval repetitiveInterval = new RepetitiveInterval(
 					net.named_data.jndn.tests.unit_tests.UnitTestsCommon.fromIsoString("20150825T000000"),
@@ -269,43 +269,43 @@ namespace src.net.named_data.jndn.tests.integration_tests {
 			newSchedule.addWhiteInterval(repetitiveInterval);
 			database.updateSchedule("rieber-time", newSchedule);
 			scheduleResult = database.getSchedule("rieber-time");
-			AssertTrue(!scheduleResult.wireEncode().equals(scheduleBlob));
-			AssertTrue(scheduleResult.wireEncode().equals(newSchedule.wireEncode()));
+			Assert.AssertTrue(!scheduleResult.wireEncode().equals(scheduleBlob));
+			Assert.AssertTrue(scheduleResult.wireEncode().equals(newSchedule.wireEncode()));
 	
 			// Add a new schedule when updating a non-existing schedule.
-			AssertEquals(false, database.hasSchedule("ralphs-time"));
+			Assert.AssertEquals(false, database.hasSchedule("ralphs-time"));
 			database.updateSchedule("ralphs-time", newSchedule);
-			AssertEquals(true, database.hasSchedule("ralphs-time"));
+			Assert.AssertEquals(true, database.hasSchedule("ralphs-time"));
 	
 			// Update the schedule of a member.
 			database.updateMemberSchedule(new Name("/ndn/Hello"), "play-time");
-			AssertEquals("play-time",
+			Assert.AssertEquals("play-time",
 					database.getMemberSchedule(new Name("/ndn/Hello")));
 	
 			// Delete a member.
-			AssertEquals(true, database.hasMember(new Name("/ndn/Hello")));
+			Assert.AssertEquals(true, database.hasMember(new Name("/ndn/Hello")));
 			database.deleteMember(new Name("/ndn/Hello"));
-			AssertEquals(false, database.hasMember(new Name("/ndn/Hello")));
+			Assert.AssertEquals(false, database.hasMember(new Name("/ndn/Hello")));
 	
 			// Delete a non-existing member.
 			try {
 				database.deleteMember(new Name("/ndn/notExisting"));
 			} catch (Exception ex_9) {
-				Fail("Unexpected error deleting a non-existing member: "
+				Assert.Fail("Unexpected error deleting a non-existing member: "
 						+ ex_9.Message);
 			}
 	
 			// Delete a schedule. All the members using this schedule should be deleted.
 			database.deleteSchedule("play-time");
-			AssertEquals(false, database.hasSchedule("play-time"));
-			AssertEquals(false, database.hasMember(new Name("/ndn/GirlC")));
-			AssertEquals(false, database.hasMember(new Name("/ndn/GirlD")));
+			Assert.AssertEquals(false, database.hasSchedule("play-time"));
+			Assert.AssertEquals(false, database.hasMember(new Name("/ndn/GirlC")));
+			Assert.AssertEquals(false, database.hasMember(new Name("/ndn/GirlD")));
 	
 			// Delete a non-existing schedule.
 			try {
 				database.deleteSchedule("not-existing-time");
 			} catch (Exception ex_10) {
-				Fail("Unexpected error deleting a non-existing schedule: "
+				Assert.Fail("Unexpected error deleting a non-existing schedule: "
 						+ ex_10.Message);
 			}
 		}
