@@ -950,10 +950,16 @@ namespace System.Data.SqlClient {
     close();
 
     byte[]
+    getBytes(int index);
+
+    byte[]
     getBytes(string name);
 
     int
     getInt(int index);
+
+    string
+    getString(int index);
 
     string
     getString(string name);
@@ -1208,10 +1214,21 @@ namespace System.Data.SqlClient {
     }
 
     public string
+    getString(int index)
+    {
+      try {
+        return reader_.GetString(index - 1); 
+      } catch (DbException ex) {
+        throw new SQLException("Error in getString: " + ex);
+      }
+    }
+
+    public string
     getString(string name)
     {
       try {
-        return reader_.GetString(reader_.GetOrdinal(name)); 
+        // Add 1 to the index to make it 1-based as expected.
+        return getString(reader_.GetOrdinal(name) + 1); 
       } catch (DbException ex) {
         throw new SQLException("Error in getString: " + ex);
       }
