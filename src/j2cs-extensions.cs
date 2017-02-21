@@ -304,6 +304,19 @@ namespace net.named_data.jndn.util {
     }
 
     public static void
+    AssertNotNull(string message, object obj)
+    {
+      if (obj == null)
+        throw new Exception("Not non-null: " + message);
+    }
+
+    public static void
+    AssertNotNull(object obj)
+    {
+      AssertNotNull("The value is not non-null as expected.", obj);
+    }
+
+    public static void
     Fail(string message)
     {
       throw new Exception("Fail: " + message);

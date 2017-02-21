@@ -111,7 +111,7 @@ namespace net.named_data.jndn.tests.integration_tests {
 		public void testGetPublicKey() {
 			FilePrivateKeyStorage instance = new FilePrivateKeyStorage();
 			PublicKey result = instance.getPublicKey(new Name("/test/KEY/123"));
-			AssertNotNull(result);
+			Assert.AssertNotNull(result);
 		}
 	
 		/// <summary>
@@ -123,7 +123,7 @@ namespace net.named_data.jndn.tests.integration_tests {
 			FilePrivateKeyStorage instance = new FilePrivateKeyStorage();
 			Blob result = instance.sign(toBuffer(data), new Name("/test/KEY/123"),
 					net.named_data.jndn.security.DigestAlgorithm.SHA256);
-			AssertNotNull(result);
+			Assert.AssertNotNull(result);
 		}
 	}
 }

@@ -241,10 +241,10 @@ namespace net.named_data.jndn.tests.integration_tests {
 					System.IO.Path.GetFullPath(new FileInfo(System.IO.Path.Combine(policyConfigDirectory.FullName,"relation_ruleset_equal.conf")).Name));
 	
 			Name dataName = new Name("/TestRule1");
-			AssertNotNull("Prefix relation should match prefix name",
+			Assert.AssertNotNull("Prefix relation should match prefix name",
 					friendAccess.findMatchingRule(policyManagerPrefix, dataName,
 							"data"));
-			AssertNotNull("Equal relation should match prefix name",
+			Assert.AssertNotNull("Equal relation should match prefix name",
 					friendAccess.findMatchingRule(policyManagerEqual, dataName,
 							"data"));
 			AssertNull("Strict-prefix relation should not match prefix name",
@@ -252,13 +252,13 @@ namespace net.named_data.jndn.tests.integration_tests {
 							"data"));
 	
 			dataName = new Name("/TestRule1/hi");
-			AssertNotNull("Prefix relation should match longer name",
+			Assert.AssertNotNull("Prefix relation should match longer name",
 					friendAccess.findMatchingRule(policyManagerPrefix, dataName,
 							"data"));
 			AssertNull("Equal relation should not match longer name",
 					friendAccess.findMatchingRule(policyManagerEqual, dataName,
 							"data"));
-			AssertNotNull("Strict-prefix relation should match longer name",
+			Assert.AssertNotNull("Strict-prefix relation should match longer name",
 					friendAccess.findMatchingRule(policyManagerStrict, dataName,
 							"data"));
 	
@@ -294,12 +294,12 @@ namespace net.named_data.jndn.tests.integration_tests {
 			BoostInfoTree matchedRule5 = friendAccess.findMatchingRule(
 					policyManager, dataName5, "data");
 	
-			AssertNotNull(matchedRule1);
+			Assert.AssertNotNull(matchedRule1);
 			AssertNull(matchedRule2);
-			AssertNotNull(matchedRule3);
+			Assert.AssertNotNull(matchedRule3);
 			AssertNotSame("Rule regex matched extra components", matchedRule3,
 					matchedRule1);
-			AssertNotNull(matchedRule4);
+			Assert.AssertNotNull(matchedRule4);
 			AssertNotSame("Rule regex matched with missing component",
 					matchedRule4, matchedRule1);
 	

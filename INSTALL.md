@@ -63,6 +63,7 @@ In a terminal change directory to `ndn-dot-net/src/net` and enter:
     (unset LANG; find . -name "Test*.cs" -exec sed -i '' 's/AssertEquals(/Assert.AssertEquals(/g' {} +)
     (unset LANG; find . -name "Test*.cs" -exec sed -i '' 's/AssertFalse(/Assert.AssertFalse(/g' {} +)
     (unset LANG; find . -name "Test*.cs" -exec sed -i '' 's/AssertTrue(/Assert.AssertTrue(/g' {} +)
+    (unset LANG; find . -name "Test*.cs" -exec sed -i '' 's/AssertNotNull(/Assert.AssertNotNull(/g' {} +)
     (unset LANG; find . -name "Test*.cs" -exec sed -i '' 's/Fail(/Assert.Fail(/g' {} +)
     sed -i '' 's/\.length/.Length/g' named_data/jndn/encoding/OID.cs
     sed -i '' 's/\.parseInt/.Parse/g' named_data/jndn/encoding/OID.cs
