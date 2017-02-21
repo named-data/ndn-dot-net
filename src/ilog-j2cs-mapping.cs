@@ -101,6 +101,12 @@ namespace ILOG.J2CsMapping.Collections {
       dictionary[key] = value; 
     }
 
+    public static void
+    Put(IDictionary dictionary, object key, object value) 
+    { 
+      dictionary[key] = value; 
+    }
+
     public static object 
     Remove(Hashtable map, object key) 
     {
