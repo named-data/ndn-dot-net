@@ -19,6 +19,11 @@ Java to C# Translation
 * Replace the snapshot in `ndn-dot-net/eclipse/jndn/src/net` with the updated jNDN
   files from `jndn/src/net` . Also replace `ndn-dot-net/eclipse/jndn/src/net/named_data/jndn/tests`
   with the files from `jndn/tests/src/net/named_data/jndn/tests` .
+* In a terminal, change directory to the new folder 
+  jndn/tests/src/net/named_data/jndn/tests/integration_tests, run the following to fix the namespace.
+
+    sed -i '' 's/package src\.net\.named_data\.jndn\.tests\.integration_tests/package net.named_data.jndn.tests.integration_tests/g' *.java
+
 * Remove the old C# output folder `ndn-dot-net/src/net` so we can rebuild.
 * Start Eclipse 3.6.0. (If necessary, follow the instructions to install the Java 6 runtime.)
   Note that the Eclipse project excludes Java files that we don't translate (such as Android code).
@@ -48,7 +53,6 @@ Java to C# Translation
 In a terminal change directory to `ndn-dot-net/src/net` and enter:
 
     (unset LANG; find . -type f -exec sed -i '' 's/^\/\/ [0-9][0-9]*\/[0-9][0-9]*\/[0-9][0-9] [0-9][0-9]*:[0-9][0-9] [AP]M *$/\/\//g' {} +)
-    (unset LANG; find ../src -type f -exec sed -i '' 's/^\/\/ [0-9][0-9]*\/[0-9][0-9]*\/[0-9][0-9] [0-9][0-9]*:[0-9][0-9] [AP]M *$/\/\//g' {} +)
     (unset LANG; find . -type f -exec sed -i '' 's/public override bool equals(Object other)/public override bool Equals(Object other)/g' {} +)
     (unset LANG; find . -type f -exec sed -i '' 's/public override String toString()/public override String ToString()/g' {} +)
     (unset LANG; find . -type f -exec sed -i '' 's/System\.Signature/System.SecuritySignature/g' {} +)
