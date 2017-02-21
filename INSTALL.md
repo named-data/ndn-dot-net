@@ -64,6 +64,7 @@ In a terminal change directory to `ndn-dot-net/src/net` and enter:
     sed -i '' 's/\.parseInt/.Parse/g' named_data/jndn/encoding/OID.cs
     sed -i '' 's/@"\\0"/"\\0"/g' named_data/jndn/util/BoostInfoTree.cs
     sed -i '' 's/SqlCommand/Statement/g' named_data/jndn/security/identity/BasicIdentityStorage.cs
+    sed -i '' 's/SqlCommand/Statement/g' named_data/jndn/encrypt/Sqlite3*Db.cs
     sed -i '' 's/new Int64//g' named_data/jndn/encrypt/algo/RsaAlgorithm.cs
     sed -i '' 's/IllegalBlockSizeException/System.Security.Cryptography.CryptographicException/g' named_data/jndn/encrypt/algo/Encryptor.cs
     rm named_data/jndn/transport/TcpTransport.cs

@@ -48,7 +48,7 @@ namespace net.named_data.jndn.encrypt {
 				database_ = System.Data.SqlClient.DriverManager.getConnection("jdbc:sqlite:"
 						+ databaseFilePath);
 	
-				SqlCommand statement = database_.CreateCommand();
+				Statement statement = database_.CreateCommand();
 				// Use "try/finally instead of "try-with-resources" or "using" which are
 				// not supported before Java 7.
 				try {
