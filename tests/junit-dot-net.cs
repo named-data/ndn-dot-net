@@ -25,9 +25,11 @@ namespace JUnitDotNet {
     /// <summary>
     /// This imitates the behavior of JUnit. to use reflection to find all classes 
     /// in the given assembly in the given nameSpace where the class name starts with 
-    /// "Test". Run methods which start with "test". If the class defines a "setUp"
+    /// "Test". Run methods which start with "test". If the class defines a static "setUpClass"
+    /// method, run it once before all tests in the class. If the class defines a "setUp"
     /// method, run it before each test method. If the class defines a "tearDown"
-    /// method, run it after each test method.
+    /// method, run it after each test method. If the class defines a static "tearDownClass"
+    /// method, run it once after all tests in the class.
     /// Assume the test will use the Assert methods that may throw an exception.
     /// Print results to Console.Out.
     /// </summary>
@@ -41,8 +43,13 @@ namespace JUnitDotNet {
         if (type.Namespace == nameSpace && type.Name.StartsWith("Test")) {
           var testInstance = type.GetConstructor(new Type[0]).Invoke(null);
 
+          var setUpClassMethod = type.GetMethod("setUpClass", new Type[0]);
+          var tearDownClassMethod = type.GetMethod("tearDownClass", new Type[0]);
           var setUpMethod = type.GetMethod("setUp", new Type[0]);
           var tearDownMethod = type.GetMethod("tearDown", new Type[0]);
+
+          if (setUpClassMethod != null)
+            setUpClassMethod.Invoke(null, null);
 
           // Find each method that starts with "test" and takes no arguments.
           foreach (var methodInfo in type.GetMethods()) {
@@ -65,6 +72,9 @@ namespace JUnitDotNet {
                 tearDownMethod.Invoke(testInstance, null);
             }
           }
+
+          if (tearDownClassMethod != null)
+            tearDownClassMethod.Invoke(null, null);
         }
       }
 
