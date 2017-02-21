@@ -267,7 +267,7 @@ namespace net.named_data.jndn.tests.integration_tests {
 			privateKeyStorage_ = new MemoryPrivateKeyStorage();
 			identityManager_ = new IdentityManager(identityStorage_,
 					privateKeyStorage_);
-			policyManager_ = new ConfigPolicyManager(System.IO.Path.GetFullPath(new FileInfo(System.IO.Path.Combine(policyConfigDirectory_.FullName,"simple_rules.conf")).Name));
+			policyManager_ = new ConfigPolicyManager(new FileInfo(System.IO.Path.Combine(policyConfigDirectory_.FullName,"simple_rules.conf")).FullName);
 	
 			identityName_ = new Name("/TestConfigPolicyManager/temp");
 			// To match the anchor cert.

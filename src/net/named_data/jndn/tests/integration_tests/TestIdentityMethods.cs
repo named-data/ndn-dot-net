@@ -46,7 +46,8 @@ namespace net.named_data.jndn.tests.integration_tests {
 			databaseFilePath = new FileInfo(System.IO.Path.Combine(policyConfigDirectory.FullName,"test-public-info.db"));
 			databaseFilePath.delete();
 	
-			identityStorage = new BasicIdentityStorage(System.IO.Path.GetFullPath(databaseFilePath.Name));
+			identityStorage = new BasicIdentityStorage(
+					databaseFilePath.FullName);
 			identityManager = new IdentityManager(identityStorage,
 					new FilePrivateKeyStorage());
 			policyManager = new SelfVerifyPolicyManager(identityStorage);

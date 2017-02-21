@@ -368,7 +368,7 @@ namespace net.named_data.jndn.tests.integration_tests {
 	
 			// Create the consumer.
 			Consumer consumer = new Consumer(face, keyChain, groupName, uName,
-					new Sqlite3ConsumerDb(System.IO.Path.GetFullPath(databaseFilePath.Name)));
+					new Sqlite3ConsumerDb(databaseFilePath.FullName));
 			consumer.addDecryptionKey(uKeyName, fixtureUDKeyBlob);
 	
 			int[] finalCount = new int[] { 0 };
@@ -426,8 +426,8 @@ namespace net.named_data.jndn.tests.integration_tests {
 			keyChain.sign(dataLink);
 	
 			Consumer consumer = new Consumer(face, keyChain, groupName, uName,
-					new Sqlite3ConsumerDb(System.IO.Path.GetFullPath(databaseFilePath.Name)), ckeyLink,
-					dkeyLink);
+					new Sqlite3ConsumerDb(databaseFilePath.FullName),
+					ckeyLink, dkeyLink);
 			consumer.addDecryptionKey(uKeyName, fixtureUDKeyBlob);
 	
 			int[] finalCount = new int[] { 0 };

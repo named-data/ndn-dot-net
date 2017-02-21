@@ -101,7 +101,7 @@ namespace net.named_data.jndn.tests.integration_tests {
 			databaseFilePath = new FileInfo(System.IO.Path.Combine(policyConfigDirectory.FullName,"test.db"));
 			databaseFilePath.delete();
 	
-			database = new Sqlite3GroupManagerDb(System.IO.Path.GetFullPath(databaseFilePath.Name));
+			database = new Sqlite3GroupManagerDb(databaseFilePath.FullName);
 		}
 	
 		public void tearDown() {

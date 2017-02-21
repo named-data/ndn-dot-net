@@ -199,7 +199,7 @@ namespace net.named_data.jndn.tests.integration_tests {
 			// Create the group manager.
 			GroupManager manager = new GroupManager(new Name("Alice"), new Name(
 					"data_type"), new Sqlite3GroupManagerDb(
-					System.IO.Path.GetFullPath(dKeyDatabaseFilePath.Name)), 2048, 1, keyChain);
+					dKeyDatabaseFilePath.FullName), 2048, 1, keyChain);
 	
 			Blob newCertificateBlob = certificate.wireEncode();
 			IdentityCertificate newCertificate = new IdentityCertificate();
@@ -250,7 +250,7 @@ namespace net.named_data.jndn.tests.integration_tests {
 			// Create the group manager.
 			GroupManager manager = new GroupManager(new Name("Alice"), new Name(
 					"data_type"), new Sqlite3GroupManagerDb(
-					System.IO.Path.GetFullPath(eKeyDatabaseFilePath.Name)), 1024, 1, keyChain);
+					eKeyDatabaseFilePath.FullName), 1024, 1, keyChain);
 			setManager(manager);
 	
 			Data data = friendAccess.createEKeyData(manager, "20150825T090000",
@@ -267,7 +267,7 @@ namespace net.named_data.jndn.tests.integration_tests {
 			// Create the group manager.
 			GroupManager manager = new GroupManager(new Name("Alice"), new Name(
 					"data_type"), new Sqlite3GroupManagerDb(
-					System.IO.Path.GetFullPath(intervalDatabaseFilePath.Name)), 1024, 1, keyChain);
+					intervalDatabaseFilePath.FullName), 1024, 1, keyChain);
 			setManager(manager);
 	
 			IDictionary memberKeys = new Hashtable();
@@ -301,7 +301,7 @@ namespace net.named_data.jndn.tests.integration_tests {
 			// Create the group manager.
 			GroupManager manager = new GroupManager(new Name("Alice"), new Name(
 					"data_type"), new Sqlite3GroupManagerDb(
-					System.IO.Path.GetFullPath(groupKeyDatabaseFilePath.Name)), 1024, 1, keyChain);
+					groupKeyDatabaseFilePath.FullName), 1024, 1, keyChain);
 			setManager(manager);
 	
 			// Get the data list from the group manager.

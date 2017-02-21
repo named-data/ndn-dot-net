@@ -139,7 +139,7 @@ namespace net.named_data.jndn.tests.integration_tests {
 			// Verify that the content key is correctly encrypted for each domain, and
 			// the produce method encrypts the provided data with the same content key.
 			ProducerDb testDb = new Sqlite3ProducerDb(
-					System.IO.Path.GetFullPath(databaseFilePath.Name));
+					databaseFilePath.FullName);
 			Producer producer = new Producer(prefix, suffix, face, keyChain, testDb);
 			Blob[] contentKey = new Blob[] { null };
 	
@@ -239,7 +239,8 @@ namespace net.named_data.jndn.tests.integration_tests {
 	
 			// Verify that if a key is found, but not within the right time slot, the
 			// search is refined until a valid time slot is found.
-			ProducerDb testDb = new Sqlite3ProducerDb(System.IO.Path.GetFullPath(databaseFilePath.Name));
+			ProducerDb testDb = new Sqlite3ProducerDb(
+					databaseFilePath.FullName);
 			Producer producer = new Producer(prefix, suffix, face, keyChain, testDb);
 			producer.createContentKey(testTime, new Producer.OnEncryptedKeys() {
 				public void onEncryptedKeys(List result) {
@@ -277,7 +278,8 @@ namespace net.named_data.jndn.tests.integration_tests {
 	
 			// Verify that if no response is received, the producer appropriately times
 			// out. The result vector should not contain elements that have timed out.
-			ProducerDb testDb = new Sqlite3ProducerDb(System.IO.Path.GetFullPath(databaseFilePath.Name));
+			ProducerDb testDb = new Sqlite3ProducerDb(
+					databaseFilePath.FullName);
 			Producer producer = new Producer(prefix, suffix, face, keyChain, testDb);
 			producer.createContentKey(testTime, new Producer.OnEncryptedKeys() {
 				public void onEncryptedKeys(List result) {
@@ -312,7 +314,8 @@ namespace net.named_data.jndn.tests.integration_tests {
 			link.addDelegation(20, new Name("/test2"));
 			link.addDelegation(100, new Name("/test3"));
 			keyChain.sign(link);
-			ProducerDb testDb = new Sqlite3ProducerDb(System.IO.Path.GetFullPath(databaseFilePath.Name));
+			ProducerDb testDb = new Sqlite3ProducerDb(
+					databaseFilePath.FullName);
 			Producer producer = new Producer(prefix, suffix, face, keyChain,
 					testDb, 3, link);
 			producer.createContentKey(testTime, new TestProducer.Anonymous_C0 (timeoutCount));

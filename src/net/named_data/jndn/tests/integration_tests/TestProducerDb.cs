@@ -35,7 +35,8 @@ namespace net.named_data.jndn.tests.integration_tests {
 	
 		public void testDatabaseFunctions() {
 			// Test construction.
-			ProducerDb database = new Sqlite3ProducerDb(System.IO.Path.GetFullPath(databaseFilePath.Name));
+			ProducerDb database = new Sqlite3ProducerDb(
+					databaseFilePath.FullName);
 	
 			// Create member.
 			AesKeyParams // Create member.

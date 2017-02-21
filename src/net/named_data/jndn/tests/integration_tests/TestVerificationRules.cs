@@ -234,11 +234,11 @@ namespace net.named_data.jndn.tests.integration_tests {
 	
 		public void testNameRelation() {
 			ConfigPolicyManager policyManagerPrefix = new ConfigPolicyManager(
-					System.IO.Path.GetFullPath(new FileInfo(System.IO.Path.Combine(policyConfigDirectory.FullName,"relation_ruleset_prefix.conf")).Name));
+					new FileInfo(System.IO.Path.Combine(policyConfigDirectory.FullName,"relation_ruleset_prefix.conf")).FullName);
 			ConfigPolicyManager policyManagerStrict = new ConfigPolicyManager(
-					System.IO.Path.GetFullPath(new FileInfo(System.IO.Path.Combine(policyConfigDirectory.FullName,"relation_ruleset_strict.conf")).Name));
+					new FileInfo(System.IO.Path.Combine(policyConfigDirectory.FullName,"relation_ruleset_strict.conf")).FullName);
 			ConfigPolicyManager policyManagerEqual = new ConfigPolicyManager(
-					System.IO.Path.GetFullPath(new FileInfo(System.IO.Path.Combine(policyConfigDirectory.FullName,"relation_ruleset_equal.conf")).Name));
+					new FileInfo(System.IO.Path.Combine(policyConfigDirectory.FullName,"relation_ruleset_equal.conf")).FullName);
 	
 			Name dataName = new Name("/TestRule1");
 			Assert.AssertNotNull("Prefix relation should match prefix name",
@@ -275,7 +275,7 @@ namespace net.named_data.jndn.tests.integration_tests {
 		}
 	
 		public void testSimpleRegex() {
-			ConfigPolicyManager policyManager = new ConfigPolicyManager(System.IO.Path.GetFullPath(new FileInfo(System.IO.Path.Combine(policyConfigDirectory.FullName,"regex_ruleset.conf")).Name));
+			ConfigPolicyManager policyManager = new ConfigPolicyManager(new FileInfo(System.IO.Path.Combine(policyConfigDirectory.FullName,"regex_ruleset.conf")).FullName);
 	
 			Name dataName1 = new Name("/SecurityTestSecRule/Basic");
 			Name dataName2 = new Name("/SecurityTestSecRule/Basic/More");
@@ -307,7 +307,8 @@ namespace net.named_data.jndn.tests.integration_tests {
 		}
 	
 		public void testHierarchical() {
-			ConfigPolicyManager policyManager = new ConfigPolicyManager(System.IO.Path.GetFullPath(new FileInfo(System.IO.Path.Combine(policyConfigDirectory.FullName,"/hierarchical_ruleset.conf")).Name));
+			ConfigPolicyManager policyManager = new ConfigPolicyManager(
+					new FileInfo(System.IO.Path.Combine(policyConfigDirectory.FullName,"/hierarchical_ruleset.conf")).FullName);
 	
 			Name dataName1 = new Name("/SecurityTestSecRule/Basic/Data1");
 			Name dataName2 = new Name("/SecurityTestSecRule/Basic/Longer/Data2");
@@ -351,7 +352,8 @@ namespace net.named_data.jndn.tests.integration_tests {
 		}
 	
 		public void testHyperRelation() {
-			ConfigPolicyManager policyManager = new ConfigPolicyManager(System.IO.Path.GetFullPath(new FileInfo(System.IO.Path.Combine(policyConfigDirectory.FullName,"/hyperrelation_ruleset.conf")).Name));
+			ConfigPolicyManager policyManager = new ConfigPolicyManager(
+					new FileInfo(System.IO.Path.Combine(policyConfigDirectory.FullName,"/hyperrelation_ruleset.conf")).FullName);
 	
 			Name dataName = new Name("/SecurityTestSecRule/Basic/Longer/Data2");
 			Data data1 = new Data(dataName);

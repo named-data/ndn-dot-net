@@ -60,7 +60,8 @@ namespace net.named_data.jndn.tests.integration_tests {
 	
 		public void testOperateAesDecryptionKey() {
 			// Test construction.
-			ConsumerDb database = new Sqlite3ConsumerDb(System.IO.Path.GetFullPath(databaseFilePath.Name));
+			ConsumerDb database = new Sqlite3ConsumerDb(
+					databaseFilePath.FullName);
 	
 			// Generate key blobs.
 			Blob[] encryptionKeyBlob = { null };
@@ -83,7 +84,8 @@ namespace net.named_data.jndn.tests.integration_tests {
 	
 		public void testOperateRsaDecryptionKey() {
 			// Test construction.
-			ConsumerDb database = new Sqlite3ConsumerDb(System.IO.Path.GetFullPath(databaseFilePath.Name));
+			ConsumerDb database = new Sqlite3ConsumerDb(
+					databaseFilePath.FullName);
 	
 			// Generate key blobs.
 			Blob[] encryptionKeyBlob = { null };
