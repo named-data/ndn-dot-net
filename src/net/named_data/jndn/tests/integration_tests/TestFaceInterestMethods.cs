@@ -19,7 +19,8 @@ namespace net.named_data.jndn.tests.integration_tests {
 	using System.Runtime.CompilerServices;
 	using System.Threading;
 	using net.named_data.jndn;
-  using net.named_data.jndn.encoding;
+	using net.named_data.jndn.encoding;
+	using net.named_data.jndn.util;
 	
 	internal class CallbackCounter : OnData, OnTimeout, OnNetworkNack {
 		public CallbackCounter() {
@@ -253,5 +254,8 @@ namespace net.named_data.jndn.tests.integration_tests {
 			Assert.AssertEquals("Network Nack has unexpected reason",
 					net.named_data.jndn.NetworkNack.Reason.NO_ROUTE, counter.networkNack_.getReason());
 		}
+	
+		// This is to force an import of net.named_data.jndn.util.
+		private static Common dummyCommon_ = new Common();
 	}
 }
