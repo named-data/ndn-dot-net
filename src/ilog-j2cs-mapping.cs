@@ -583,6 +583,13 @@ namespace ILOG.J2CsMapping.Text {
   }
 }
 
+namespace ILOG.J2CsMapping.Threading {
+  public class ThreadWrapper {
+    public static void
+    sleep(int ms) { System.Threading.Thread.Sleep(ms); }
+  }
+}
+  
 namespace ILOG.J2CsMapping.Util {
   public class Calendar {
     private Calendar(DateTime dateTime)
