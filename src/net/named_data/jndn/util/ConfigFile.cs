@@ -76,7 +76,7 @@ namespace net.named_data.jndn.util {
 		/// <returns>The path of the config file or an empty string if not found.</returns>
 		private static String findConfigFile() {
 			// NOTE: Use File because java.nio.file.Path is not available before Java 7.
-			FileInfo filePath = new FileInfo(System.IO.Path.Combine(new FileInfo(System.IO.Path.Combine(net.named_data.jndn.util.Common.getHomeDirectory(),".ndn")).FullName,"client.conf"));
+			FileInfo filePath = new FileInfo(System.IO.Path.Combine(new FileInfo(System.IO.Path.Combine(net.named_data.jndn.util.Common.getHomeDirectory().FullName,".ndn")).FullName,"client.conf"));
 			if (filePath.Exists)
 				return filePath.FullName;
 	

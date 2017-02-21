@@ -223,7 +223,7 @@ namespace net.named_data.jndn.util
     /// Get the user's home directory.
     /// </summary>
     /// <returns>The home directory, or "." if unknown.</returns>
-    public static string
+    public static FileInfo
     getHomeDirectory()
     {
       if (Environment.OSVersion.Platform == PlatformID.Unix ||
@@ -231,11 +231,11 @@ namespace net.named_data.jndn.util
         var result = Environment.GetEnvironmentVariable("HOME");
         if (result == null)
           result = ".";
-        return result;
+        return new FileInfo(result);
       }
       else
         // Windows.
-        return Environment.ExpandEnvironmentVariables("%HOMEDRIVE%%HOMEPATH%");
+        return new FileInfo(Environment.ExpandEnvironmentVariables("%HOMEDRIVE%%HOMEPATH%"));
     }
 
     private static SecureRandom randomNumberGenerator_;
