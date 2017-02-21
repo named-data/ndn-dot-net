@@ -73,7 +73,7 @@ namespace net.named_data.jndn.security.identity {
 		/// <returns>The default directory path.</returns>
 		public static String getDefaultDirecoryPath(String filesRoot) {
 			// NOTE: Use File because java.nio.file.Path is not available before Java 7.
-			return new FileInfo(System.IO.Path.Combine(new FileInfo(filesRoot+".ndn").FullName,"ndnsec-tpm-file")).FullName;
+			return new FileInfo(System.IO.Path.Combine(new FileInfo(System.IO.Path.Combine(new FileInfo(filesRoot).FullName,".ndn")).FullName,"ndnsec-tpm-file")).FullName;
 		}
 	
 		/// <summary>
