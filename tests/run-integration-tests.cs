@@ -29,8 +29,8 @@ namespace TestNdnDotNet {
     {
       int nFailed = 0;
 
-      // Use TestFaceInterestMethods just to get its Assembly.
-      var assembly = typeof(net.named_data.jndn.tests.integration_tests.TestFaceInterestMethods).Assembly;
+      // Use IntegrationTestsCommon just to get its Assembly.
+      var assembly = typeof(net.named_data.jndn.tests.integration_tests.IntegrationTestsCommon).Assembly;
       JUnit.runTests(assembly, "net.named_data.jndn.tests.integration_tests");
     }
   }
