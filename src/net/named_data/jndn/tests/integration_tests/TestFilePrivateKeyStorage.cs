@@ -28,7 +28,7 @@ namespace net.named_data.jndn.tests.integration_tests {
 		/// Keep a reference to the key storage folder
 		/// </summary>
 		///
-		private static readonly FileInfo ndnFolder_ = new FileInfo(System.IO.Path.Combine(new FileInfo(System.Environment.GetEnvironmentVariable("user.home")+".ndn").FullName,"ndnsec-tpm-file")); 
+		private static readonly FileInfo ndnFolder_ = new FileInfo(System.IO.Path.Combine(new FileInfo(System.IO.Path.Combine(net.named_data.jndn.util.Common.getHomeDirectory().FullName,".ndn")).FullName,"ndnsec-tpm-file")); 
 	
 		/// <summary>
 		/// Create a few keys before testing
