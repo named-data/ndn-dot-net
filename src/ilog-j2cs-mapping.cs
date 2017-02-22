@@ -107,6 +107,13 @@ namespace ILOG.J2CsMapping.Collections {
       dictionary[key] = value; 
     }
 
+    public static void
+    PutAll(IDictionary dictionary, IDictionary other) 
+    {
+      foreach (var key in other.Keys)
+        dictionary[key] = other[key];
+    }
+
     public static object 
     Remove(Hashtable map, object key) 
     {
