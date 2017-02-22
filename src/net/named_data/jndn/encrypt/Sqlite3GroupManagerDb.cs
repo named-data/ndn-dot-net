@@ -53,9 +53,6 @@ namespace net.named_data.jndn.encrypt {
 				// Use "try/finally instead of "try-with-resources" or "using" which are
 				// not supported before Java 7.
 				try {
-					// Enable foreign keys.
-					statement.executeUpdate(net.named_data.jndn.encrypt.Sqlite3GroupManagerDbBase.PRAGMA_foreign_keys);
-	
 					// Initialize database-specific tables.
 					statement.executeUpdate(net.named_data.jndn.encrypt.Sqlite3GroupManagerDbBase.INITIALIZATION1);
 					statement.executeUpdate(net.named_data.jndn.encrypt.Sqlite3GroupManagerDbBase.INITIALIZATION2);
@@ -258,10 +255,26 @@ namespace net.named_data.jndn.encrypt {
 		/// <param name="name">The name of the schedule.</param>
 		/// <exception cref="GroupManagerDb.Error">for a database error.</exception>
 		public override void deleteSchedule(String name) {
+			int scheduleId = getScheduleId(name);
+			if (scheduleId == -1)
+				return;
+	
 			try {
+				// First delete the members. We don't use FOREIGN KEY because some SQLite
+				// implementations don's support it.
+				PreparedStatement membersStatement = database_
+						.prepareStatement(net.named_data.jndn.encrypt.Sqlite3GroupManagerDbBase.DELETE_deleteScheduleMembers);
+				membersStatement.setInt(1, scheduleId);
+	
+				try {
+					membersStatement.executeUpdate();
+				} finally {
+					membersStatement.close();
+				}
+	
 				PreparedStatement statement = database_
 						.prepareStatement(net.named_data.jndn.encrypt.Sqlite3GroupManagerDbBase.DELETE_deleteSchedule);
-				statement.setString(1, name);
+				statement.setInt(1, scheduleId);
 	
 				try {
 					statement.executeUpdate();

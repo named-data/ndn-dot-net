@@ -67,16 +67,10 @@ namespace net.named_data.jndn.encrypt {
 				+ "    schedule_id         INTEGER NOT NULL,          \n"
 				+ "    member_name         BLOB NOT NULL,             \n"
 				+ "    key_name            BLOB NOT NULL,             \n"
-				+ "    pubkey              BLOB NOT NULL,             \n"
-				+ "    FOREIGN KEY(schedule_id)                       \n"
-				+ "      REFERENCES schedules(schedule_id)            \n"
-				+ "      ON DELETE CASCADE                            \n"
-				+ "      ON UPDATE CASCADE                            \n"
+				+ "    pubkey              BLOB NOT NULL              \n"
 				+ "  );                                               \n";
 		protected internal const String INITIALIZATION4 = "CREATE UNIQUE INDEX IF NOT EXISTS                  \n"
 				+ "   memNameIndex ON members(member_name);           \n";
-	
-		protected internal const String PRAGMA_foreign_keys = "PRAGMA foreign_keys = ON";
 	
 		protected internal const String SELECT_hasSchedule = "SELECT schedule_id FROM schedules where schedule_name=?";
 		protected internal const String SELECT_listAllScheduleNames = "SELECT schedule_name FROM schedules";
@@ -85,7 +79,8 @@ namespace net.named_data.jndn.encrypt {
 				+ "FROM members JOIN schedules ON members.schedule_id=schedules.schedule_id "
 				+ "WHERE schedule_name=?";
 		protected internal const String INSERT_addSchedule = "INSERT INTO schedules (schedule_name, schedule) values (?, ?)";
-		protected internal const String DELETE_deleteSchedule = "DELETE FROM schedules WHERE schedule_name=?";
+		protected internal const String DELETE_deleteScheduleMembers = "DELETE FROM members WHERE schedule_id=?";
+		protected internal const String DELETE_deleteSchedule = "DELETE FROM schedules WHERE schedule_id=?";
 		protected internal const String WHERE_renameSchedule = "schedule_name=?";
 		protected internal const String UPDATE_renameSchedule = "UPDATE schedules SET schedule_name=? WHERE "
 				+ WHERE_renameSchedule;
