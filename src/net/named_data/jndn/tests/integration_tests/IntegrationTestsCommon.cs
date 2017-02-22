@@ -35,7 +35,6 @@ namespace net.named_data.jndn.tests.integration_tests {
 		///
 		/// <returns></returns>
 		public static FileInfo getPolicyConfigDirectory() {
-#if false
 			FileInfo result = new FileInfo(System.Environment.GetEnvironmentVariable("user.dir"));
 			String[] path = { "tests", "src", "net", "named_data", "jndn", "tests",
 					"integration_tests", "policy_config" };
@@ -44,9 +43,6 @@ namespace net.named_data.jndn.tests.integration_tests {
 			}
 	
 			return result;
-#else
-      return new FileInfo("/Users/jefft0/work/jndn/tests/src/net/named_data/jndn/tests/integration_tests/policy_config");
-#endif
 		}
 	
 		/// <summary>
