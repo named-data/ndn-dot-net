@@ -10,7 +10,6 @@
 ///
 namespace net.named_data.jndn.encrypt {
 	
-	using ILOG.J2CsMapping.Collections;
 	using ILOG.J2CsMapping.Util.Logging;
 	using System;
 	using System.Collections;
@@ -87,25 +86,59 @@ namespace net.named_data.jndn.encrypt {
 	
 		public sealed class Anonymous_C0 : OnNetworkNack {
 				private readonly Producer outer_Producer;
+				private readonly net.named_data.jndn.encrypt.EncryptError.OnError  onError;
 				private readonly double timeSlot;
 				private readonly Producer.OnEncryptedKeys  onEncryptedKeys;
 		
-				public Anonymous_C0(Producer paramouter_Producer, double timeSlot_0,
-						Producer.OnEncryptedKeys  onEncryptedKeys_1) {
-					this.timeSlot = timeSlot_0;
-					this.onEncryptedKeys = onEncryptedKeys_1;
+				public Anonymous_C0(Producer paramouter_Producer, net.named_data.jndn.encrypt.EncryptError.OnError  onError_0,
+						double timeSlot_1, Producer.OnEncryptedKeys  onEncryptedKeys_2) {
+					this.onError = onError_0;
+					this.timeSlot = timeSlot_1;
+					this.onEncryptedKeys = onEncryptedKeys_2;
 					this.outer_Producer = paramouter_Producer;
 				}
 		
 				public void onNetworkNack(Interest interest, NetworkNack networkNack) {
 					outer_Producer.handleNetworkNack(interest, networkNack, timeSlot,
-							onEncryptedKeys);
+							onEncryptedKeys, onError);
 				}
 			}
 	
 		public interface OnEncryptedKeys {
 			// keys is a list of Data packets with the content key encrypted by E-KEYS.
 			void onEncryptedKeys(IList keys);
+		}
+	
+		/// <summary>
+		/// Create a Producer to use the given ProducerDb, Face and other values.
+		/// A producer can produce data with a naming convention:
+		/// /{prefix}/SAMPLE/{dataType}/[timestamp]
+		/// The produced data packet is encrypted with a content key,
+		/// which is stored in the ProducerDb database.
+		/// A producer also needs to produce data containing a content key
+		/// encrypted with E-KEYs. A producer can retrieve E-KEYs through the face,
+		/// and will re-try for at most repeatAttemps times when E-KEY retrieval fails.
+		/// </summary>
+		///
+		/// <param name="prefix">The producer name prefix. This makes a copy of the Name.</param>
+		/// <param name="dataType"></param>
+		/// <param name="face">The face used to retrieve keys.</param>
+		/// <param name="keyChain">The keyChain used to sign data packets.</param>
+		/// <param name="database">The ProducerDb database for storing keys.</param>
+		/// <param name="repeatAttempts">The maximum retry for retrieving keys.</param>
+		/// <param name="keyRetrievalLink">getDelegations().size() is zero, don't use it.</param>
+		public Producer(Name prefix, Name dataType, Face face, KeyChain keyChain,
+				ProducerDb database, int repeatAttempts, Link keyRetrievalLink) {
+			this.eKeyInfo_ = new Hashtable();
+					this.keyRequests_ = new Hashtable();
+			face_ = face;
+			keyChain_ = keyChain;
+			database_ = database;
+			maxRepeatAttempts_ = repeatAttempts;
+			// Copy the Link object.
+			keyRetrievalLink_ = new Link(keyRetrievalLink);
+	
+			construct(prefix, dataType);
 		}
 	
 		/// <summary>
@@ -133,6 +166,7 @@ namespace net.named_data.jndn.encrypt {
 			keyChain_ = keyChain;
 			database_ = database;
 			maxRepeatAttempts_ = repeatAttempts;
+			keyRetrievalLink_ = NO_LINK;
 	
 			construct(prefix, dataType);
 		}
@@ -161,6 +195,7 @@ namespace net.named_data.jndn.encrypt {
 			keyChain_ = keyChain;
 			database_ = database;
 			maxRepeatAttempts_ = 3;
+			keyRetrievalLink_ = NO_LINK;
 	
 			construct(prefix, dataType);
 		}
@@ -230,9 +265,10 @@ namespace net.named_data.jndn.encrypt {
 			excludeAfter(timeRange,
 					new Name.Component(net.named_data.jndn.encrypt.Schedule.toIsoString(timeSlot_0)));
 			new ILOG.J2CsMapping.Collections.IteratorAdapter(eKeyInfo_.GetEnumerator());
-			for (IIterator i = new ILOG.J2CsMapping.Collections.IteratorAdapter(eKeyInfo_.GetEnumerator()); i.HasNext();) {
+			/* foreach */
+			foreach (Object entryObj  in  eKeyInfo_) {
 				// For each current E-KEY.
-				DictionaryEntry entry = (DictionaryEntry) i.Next();
+				DictionaryEntry entry = (DictionaryEntry) entryObj;
 				Producer.KeyInfo  keyInfo = (Producer.KeyInfo ) ((DictionaryEntry) entry).Value;
 				if (timeSlot_0 < keyInfo.beginTimeSlot
 						|| timeSlot_0 >= keyInfo.endTimeSlot) {
@@ -354,9 +390,20 @@ namespace net.named_data.jndn.encrypt {
 	
 			OnTimeout onTimeout = new Producer.Anonymous_C1 (this, onError_2, timeSlot_0, onEncryptedKeys_1);
 	
-			OnNetworkNack onNetworkNack = new Producer.Anonymous_C0 (this, timeSlot_0, onEncryptedKeys_1);
+			OnNetworkNack onNetworkNack = new Producer.Anonymous_C0 (this, onError_2, timeSlot_0, onEncryptedKeys_1);
 	
-			face_.expressInterest(interest, onKey, onTimeout, onNetworkNack);
+			Interest request;
+			if (keyRetrievalLink_.getDelegations().size() == 0)
+				// We can use the supplied interest without copying.
+				request = interest;
+			else {
+				// Copy the supplied interest and add the Link.
+				request = new Interest(interest);
+				// This will use a cached encoding if available.
+				request.setLinkWireEncoding(keyRetrievalLink_.wireEncode());
+			}
+	
+			face_.expressInterest(request, onKey, onTimeout, onNetworkNack);
 		}
 	
 		/// <summary>
@@ -379,8 +426,9 @@ namespace net.named_data.jndn.encrypt {
 				ILOG.J2CsMapping.Collections.Collections.Put(keyRequest.repeatAttempts,interestName,(int) (Int32) ILOG.J2CsMapping.Collections.Collections.Get(keyRequest.repeatAttempts,interestName) + 1);
 				sendKeyInterest(interest, timeSlot_0, onEncryptedKeys_1, onError_2);
 			} else
-				// No more retrials.
-				updateKeyRequest(keyRequest, timeCount, onEncryptedKeys_1);
+				// Treat an eventual timeout as a network Nack.
+				handleNetworkNack(interest, new NetworkNack(), timeSlot_0,
+						onEncryptedKeys_1, onError_2);
 		}
 	
 		/// <summary>
@@ -394,7 +442,8 @@ namespace net.named_data.jndn.encrypt {
 		/// <param name="timeSlot_0">The time slot as milliseconds since Jan 1, 1970 UTC.</param>
 		/// <param name="onEncryptedKeys_1">encrypted content key Data packets. If onEncryptedKeys is null, this does not use it.</param>
 		internal void handleNetworkNack(Interest interest, NetworkNack networkNack,
-				double timeSlot_0, Producer.OnEncryptedKeys  onEncryptedKeys_1) {
+				double timeSlot_0, Producer.OnEncryptedKeys  onEncryptedKeys_1, net.named_data.jndn.encrypt.EncryptError.OnError  onError_2) {
+			// We have run out of options....
 			double timeCount = Math.Round(timeSlot_0,MidpointRounding.AwayFromZero);
 			updateKeyRequest((Producer.KeyRequest ) ILOG.J2CsMapping.Collections.Collections.Get(keyRequests_,timeCount), timeCount,
 					onEncryptedKeys_1);
@@ -736,9 +785,11 @@ namespace net.named_data.jndn.encrypt {
 		///
 		private readonly ProducerDb database_;
 		private readonly int maxRepeatAttempts_;
+		private readonly Link keyRetrievalLink_;
 		static internal readonly Logger logger_ = ILOG.J2CsMapping.Util.Logging.Logger.getLogger(typeof(Producer).FullName);
 	
 		private const int START_TIME_STAMP_INDEX = -2;
 		private const int END_TIME_STAMP_INDEX = -1;
+		private static readonly Link NO_LINK = new Link();
 	}
 }

@@ -10,7 +10,6 @@
 ///
 namespace net.named_data.jndn.encrypt {
 	
-	using ILOG.J2CsMapping.Collections;
 	using System;
 	using System.Collections;
 	using System.ComponentModel;
@@ -91,9 +90,10 @@ namespace net.named_data.jndn.encrypt {
 					publicKeyBlob[0]);
 			ILOG.J2CsMapping.Collections.Collections.Add(result,data);
 	
+			/* foreach */
 			// Encrypt the private key with the public key from each member's certificate.
-			for (IIterator i = new ILOG.J2CsMapping.Collections.IteratorAdapter(memberKeys.GetEnumerator()); i.HasNext();) {
-				DictionaryEntry entry = (DictionaryEntry) i.Next();
+			foreach (Object entryObj  in  memberKeys) {
+				DictionaryEntry entry = (DictionaryEntry) entryObj;
 				Name keyName = (Name) ((DictionaryEntry) entry).Key;
 				Blob certificateKey = (Blob) ((DictionaryEntry) entry).Value;
 	
