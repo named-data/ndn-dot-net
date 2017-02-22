@@ -134,6 +134,10 @@ namespace net.named_data.jndn.util {
     public static void 
     clear(this Hashtable map) { map.Clear(); }
 
+    // IDictionary extensions.
+    public static void
+    clear(this IDictionary dictionary) { dictionary.Clear(); }
+
     // IDictionary<TKey, TValue> extensions.
     public static bool
     Contains<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key) 
