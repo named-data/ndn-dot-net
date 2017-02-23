@@ -321,6 +321,45 @@ namespace net.named_data.jndn.util {
     }
 
     public static void
+    AssertNotSame(string message, object obj1, object obj2)
+    {
+      if (Object.ReferenceEquals(obj1, obj2))
+        throw new Exception("Not non-same: " + message);
+    }
+
+    public static void
+    AssertNotSame(object obj1, object obj2)
+    {
+      AssertNotSame("The value is not non-same as expected.", obj1, obj2);
+    }
+
+    public static void
+    AssertNull(string message, object obj)
+    {
+      if (obj != null)
+        throw new Exception("Not null: " + message);
+    }
+
+    public static void
+    AssertNull(object obj)
+    {
+      AssertNull("The value is not null as expected.", obj);
+    }
+
+    public static void
+    AssertSame(string message, object obj1, object obj2)
+    {
+      if (!Object.ReferenceEquals(obj1, obj2))
+        throw new Exception("Not same: " + message);
+    }
+
+    public static void
+    AssertSame(object obj1, object obj2)
+    {
+      AssertSame("The value is not same as expected.", obj1, obj2);
+    }
+
+    public static void
     Fail(string message)
     {
       throw new Exception("Fail: " + message);

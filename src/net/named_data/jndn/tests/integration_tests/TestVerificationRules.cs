@@ -247,7 +247,7 @@ namespace net.named_data.jndn.tests.integration_tests {
 			Assert.AssertNotNull("Equal relation should match prefix name",
 					friendAccess.findMatchingRule(policyManagerEqual, dataName,
 							"data"));
-			AssertNull("Strict-prefix relation should not match prefix name",
+			Assert.AssertNull("Strict-prefix relation should not match prefix name",
 					friendAccess.findMatchingRule(policyManagerStrict, dataName,
 							"data"));
 	
@@ -255,7 +255,7 @@ namespace net.named_data.jndn.tests.integration_tests {
 			Assert.AssertNotNull("Prefix relation should match longer name",
 					friendAccess.findMatchingRule(policyManagerPrefix, dataName,
 							"data"));
-			AssertNull("Equal relation should not match longer name",
+			Assert.AssertNull("Equal relation should not match longer name",
 					friendAccess.findMatchingRule(policyManagerEqual, dataName,
 							"data"));
 			Assert.AssertNotNull("Strict-prefix relation should match longer name",
@@ -263,13 +263,13 @@ namespace net.named_data.jndn.tests.integration_tests {
 							"data"));
 	
 			dataName = new Name("/Bad/TestRule1/");
-			AssertNull("Prefix relation should not match inner components",
+			Assert.AssertNull("Prefix relation should not match inner components",
 					friendAccess.findMatchingRule(policyManagerPrefix, dataName,
 							"data"));
-			AssertNull("Equal relation should not match inner components",
+			Assert.AssertNull("Equal relation should not match inner components",
 					friendAccess.findMatchingRule(policyManagerEqual, dataName,
 							"data"));
-			AssertNull("Strict-prefix relation should  not match inner components",
+			Assert.AssertNull("Strict-prefix relation should  not match inner components",
 					friendAccess.findMatchingRule(policyManagerStrict, dataName,
 							"data"));
 		}
@@ -295,15 +295,15 @@ namespace net.named_data.jndn.tests.integration_tests {
 					policyManager, dataName5, "data");
 	
 			Assert.AssertNotNull(matchedRule1);
-			AssertNull(matchedRule2);
+			Assert.AssertNull(matchedRule2);
 			Assert.AssertNotNull(matchedRule3);
-			AssertNotSame("Rule regex matched extra components", matchedRule3,
+			Assert.AssertNotSame("Rule regex matched extra components", matchedRule3,
 					matchedRule1);
 			Assert.AssertNotNull(matchedRule4);
-			AssertNotSame("Rule regex matched with missing component",
+			Assert.AssertNotSame("Rule regex matched with missing component",
 					matchedRule4, matchedRule1);
 	
-			AssertNull(matchedRule5);
+			Assert.AssertNull(matchedRule5);
 		}
 	
 		public void testHierarchical() {
@@ -318,7 +318,7 @@ namespace net.named_data.jndn.tests.integration_tests {
 	
 			BoostInfoTree matchedRule = friendAccess.findMatchingRule(
 					policyManager, dataName1, "data");
-			AssertSame(matchedRule,
+			Assert.AssertSame(matchedRule,
 					friendAccess.findMatchingRule(policyManager, dataName2, "data"));
 	
 			keyChain.sign(data1, defaultCertName);
