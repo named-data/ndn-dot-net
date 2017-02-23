@@ -95,7 +95,7 @@ namespace net.named_data.jndn.security.policy {
 		/// <summary>
 		/// Look in the IdentityStorage for the public key with the name in the
 		/// KeyLocator (if available) and use it to verify the data packet.  If the
-		/// public key can't be found, call onVerifyFailed.
+		/// public key can't be found, call onValidationFailed.onDataValidationFailed.
 		/// </summary>
 		///
 		/// <param name="data">The Data object with the signature to check.</param>
@@ -130,7 +130,8 @@ namespace net.named_data.jndn.security.policy {
 		/// Use wireFormat.decodeSignatureInfoAndValue to decode the last two name
 		/// components of the signed interest. Look in the IdentityStorage for the
 		/// public key with the name in the KeyLocator (if available) and use it to
-		/// verify the interest. If the public key can't be found, call onVerifyFailed.
+		/// verify the interest. If the public key can't be found, call
+		/// onValidationFailed.onInterestValidationFailed.
 		/// </summary>
 		///
 		/// <param name="interest">The interest with the signature to check.</param>
@@ -261,15 +262,22 @@ namespace net.named_data.jndn.security.policy {
 		private Blob getPublicKeyDer(KeyLocator keyLocator, String[] failureReason) {
 			if (keyLocator.getType() == net.named_data.jndn.KeyLocatorType.KEYNAME
 					&& identityStorage_ != null) {
+				Name keyName;
 				try {
 					// Assume the key name is a certificate name.
-					return identityStorage_
-							.getKey(net.named_data.jndn.security.certificate.IdentityCertificate
-									.certificateNameToPublicKeyName(keyLocator
-											.getKeyName()));
-				} catch (SecurityException ex) {
-					failureReason[0] = "The identityStorage doesn't have the key named "
+					keyName = net.named_data.jndn.security.certificate.IdentityCertificate
+							.certificateNameToPublicKeyName(keyLocator.getKeyName());
+				} catch (Exception ex) {
+					failureReason[0] = "Cannot get a public key name from the certificate named: "
 							+ keyLocator.getKeyName().toUri();
+					return new Blob();
+				}
+				try {
+					// Assume the key name is a certificate name.
+					return identityStorage_.getKey(keyName);
+				} catch (SecurityException ex_0) {
+					failureReason[0] = "The identityStorage doesn't have the key named "
+							+ keyName.toUri();
 					return new Blob();
 				}
 			} else {

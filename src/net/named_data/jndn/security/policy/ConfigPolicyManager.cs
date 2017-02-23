@@ -992,11 +992,11 @@ namespace net.named_data.jndn.security.policy {
 				double notAfter = now + keyGraceInterval_;
 	
 				if (!(timestamp > notBefore && timestamp < notAfter)) {
-					failureReason[0] = "The command interest timestamp is not within the first use grace period of"
+					failureReason[0] = "The command interest timestamp is not within the first use grace period of "
 							+ keyGraceInterval_ + " milliseconds.";
 					return false;
-				}
-				return true;
+				} else
+					return true;
 			} else {
 				double lastTimestamp = (double) (Double) ILOG.J2CsMapping.Collections.Collections.Get(keyTimestamps_,keyNameUri);
 				if (timestamp <= lastTimestamp) {
@@ -1112,7 +1112,7 @@ namespace net.named_data.jndn.security.policy {
 		/// <param name="objectName">The name of the data or interest packet.</param>
 		/// <param name="signature">The Signature object for the data or interest packet.</param>
 		/// <param name="failureReason"></param>
-		/// <returns>null if validation failed, otherwise the interest for the
+		/// <returns>null if can't determine the interest, otherwise the interest for the
 		/// ValidationRequest to fetch the next certificate. However, if the interest
 		/// has an empty name, the validation succeeded and no need to fetch a
 		/// certificate.</returns>
