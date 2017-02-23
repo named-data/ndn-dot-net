@@ -19,6 +19,7 @@ namespace net.named_data.jndn.tests.integration_tests {
 	using System.Runtime.CompilerServices;
 	using net.named_data.jndn;
 	using net.named_data.jndn.security;
+	using net.named_data.jndn.util;
 	
 	/// <summary>
 	/// Test that registration callbacks work as expected; optionally can use a
@@ -51,7 +52,7 @@ namespace net.named_data.jndn.tests.integration_tests {
 	
 			// register the prefix and count when it registers successfully
 			face.registerPrefix(new Name("/test/register/callbacks"),
-					(OnInterestCallback) null, new TestRegistrationCallbacks.Anonymous_C1 (startTime), new TestRegistrationCallbacks.Anonymous_C0 (counter, startTime));
+					(OnInterestCallback) null, new TestRegistrationCallbacks.Anonymous_C1 (startTime), new TestRegistrationCallbacks.Anonymous_C0 (startTime, counter));
 	
 			// wait until complete or the test times out
 			long endTime = startTime + MAX_TEST_DURATION_MS;
@@ -60,7 +61,7 @@ namespace net.named_data.jndn.tests.integration_tests {
 				ILOG.J2CsMapping.Threading.ThreadWrapper.sleep(PROCESS_EVENTS_INTERVAL_MS);
 			}
 	
-			Assert.Assert.AssertEquals(1, counter.count);
+			Assert.AssertEquals(1, counter.count);
 		}
 	
 		public sealed class Anonymous_C1 : OnRegisterFailed {
@@ -72,26 +73,27 @@ namespace net.named_data.jndn.tests.integration_tests {
 	
 			public void onRegisterFailed(Name prefix) {
 				long endTime = DateTime.Now.Millisecond;
-				net.named_data.jndn.tests.integration_tests.TestRegistrationCallbacks.logger.info("Registration failed in (ms): "
+				net.named_data.jndn.tests.integration_tests.TestRegistrationCallbacks.logger.log(ILOG.J2CsMapping.Util.Logging.Level.INFO, "Registration failed in (ms): "
 						+ (endTime - startTime));
 			}
 		}
 	
 		public sealed class Anonymous_C0 : OnRegisterSuccess {
-			private readonly TestRegistrationCallbacks.Counter  counter;
 			private readonly long startTime;
+			private readonly TestRegistrationCallbacks.Counter  counter;
 	
-			public Anonymous_C0(TestRegistrationCallbacks.Counter  counter_0, long startTime_1) {
-				this.counter = counter_0;
-				this.startTime = startTime_1;
+			public Anonymous_C0(long startTime_0, TestRegistrationCallbacks.Counter  counter_1) {
+				this.startTime = startTime_0;
+				this.counter = counter_1;
 			}
 	
 			public void onRegisterSuccess(Name prefix,
 					long registeredPrefixId) {
 				long endTime = DateTime.Now.Millisecond;
 				counter.count++;
-				net.named_data.jndn.tests.integration_tests.TestRegistrationCallbacks.logger.info("Registration succeeded in (ms): "
-						+ (endTime - startTime));
+				net.named_data.jndn.tests.integration_tests.TestRegistrationCallbacks.logger.log(ILOG.J2CsMapping.Util.Logging.Level.INFO,
+						"Registration succeeded in (ms): "
+								+ (endTime - startTime));
 			}
 		}
 	
@@ -99,7 +101,7 @@ namespace net.named_data.jndn.tests.integration_tests {
 		/// Helper class for enclosing a final reference int the callbacks
 		/// </summary>
 		///
-		private class Counter {
+		public class Counter {
 	
 			public Counter() {
 				this.count = 0;
@@ -107,5 +109,8 @@ namespace net.named_data.jndn.tests.integration_tests {
 	
 			public int count;
 		}
+	
+		// This is to force an import of net.named_data.jndn.util.
+		private static Common dummyCommon_ = new Common();
 	}
 }
