@@ -15,7 +15,6 @@ namespace net.named_data.jndn.encrypt {
 	using System.ComponentModel;
 	using System.IO;
 	using System.Runtime.CompilerServices;
-	using net.named_data.jndn.util;
 	
 	/// <summary>
 	/// EncryptError holds the ErrorCode enum and OnError callback definition for
@@ -24,7 +23,7 @@ namespace net.named_data.jndn.encrypt {
 	///
 	public class EncryptError {
 		public enum ErrorCode {
-			Timeout, Validation, UnsupportedEncryptionScheme, InvalidEncryptedFormat, NoDecryptKey, EncryptionFailure, SecurityException, IOException	}
+			Timeout, Validation, UnsupportedEncryptionScheme, InvalidEncryptedFormat, NoDecryptKey, EncryptionFailure, DataRetrievalFailure, SecurityException, IOException	}
 	
 		/// <summary>
 		/// A method calls onError.onError(errorCode, message) for an error.
