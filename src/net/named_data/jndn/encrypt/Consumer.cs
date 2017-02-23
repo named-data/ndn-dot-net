@@ -39,6 +39,31 @@ namespace net.named_data.jndn.encrypt {
 		/// <param name="groupName"></param>
 		/// <param name="consumerName"></param>
 		/// <param name="database">The ConsumerDb database for storing decryption keys.</param>
+		/// <param name="cKeyLink">getDelegations().size() is zero, don't use it.</param>
+		/// <param name="dKeyLink">getDelegations().size() is zero, don't use it.</param>
+		public Consumer(Face face, KeyChain keyChain, Name groupName,
+				Name consumerName, ConsumerDb database, Link cKeyLink, Link dKeyLink) {
+			this.cKeyMap_ = new Hashtable();
+					this.dKeyMap_ = new Hashtable();
+			database_ = database;
+			keyChain_ = keyChain;
+			face_ = face;
+			groupName_ = new Name(groupName);
+			consumerName_ = new Name(consumerName);
+			// Copy the Link object.
+			cKeyLink_ = new Link(cKeyLink);
+			dKeyLink_ = new Link(dKeyLink);
+		}
+	
+		/// <summary>
+		/// Create a Consumer to use the given ConsumerDb, Face and other values.
+		/// </summary>
+		///
+		/// <param name="face">The face used for data packet and key fetching.</param>
+		/// <param name="keyChain">The keyChain used to verify data packets.</param>
+		/// <param name="groupName"></param>
+		/// <param name="consumerName"></param>
+		/// <param name="database">The ConsumerDb database for storing decryption keys.</param>
 		public Consumer(Face face, KeyChain keyChain, Name groupName,
 				Name consumerName, ConsumerDb database) {
 			this.cKeyMap_ = new Hashtable();
@@ -48,65 +73,35 @@ namespace net.named_data.jndn.encrypt {
 			face_ = face;
 			groupName_ = new Name(groupName);
 			consumerName_ = new Name(consumerName);
+			cKeyLink_ = NO_LINK;
+			dKeyLink_ = NO_LINK;
 		}
 	
-		public sealed class Anonymous_C6 : OnData {
-				public sealed class Anonymous_C17 : OnVerified {
-								public sealed class Anonymous_C18 : Consumer.OnPlainText {
-																private readonly net.named_data.jndn.encrypt.Consumer.Anonymous_C6.Anonymous_C17  outer_Anonymous_C17;
-												
-																public Anonymous_C18(net.named_data.jndn.encrypt.Consumer.Anonymous_C6.Anonymous_C17  paramouter_Anonymous_C17) {
-																	this.outer_Anonymous_C17 = paramouter_Anonymous_C17;
-																}
-												
-																public void onPlainText(Blob plainText) {
-																	try {
-																		outer_Anonymous_C17.outer_Anonymous_C6.onConsumeComplete.onConsumeComplete(
-																				outer_Anonymous_C17.contentData, plainText);
-																	} catch (Exception ex) {
-																		net.named_data.jndn.encrypt.Consumer.logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE,
-																				"Error in onConsumeComplete",
-																				ex);
-																	}
-																}
-															}
-					
-								internal readonly Consumer.Anonymous_C6  outer_Anonymous_C6;
-								internal readonly Data contentData;
-					
-								public Anonymous_C17(Consumer.Anonymous_C6  paramouter_Anonymous_C6,
-										Data contentData_0) {
-									this.contentData = contentData_0;
-									this.outer_Anonymous_C6 = paramouter_Anonymous_C6;
-								}
-					
-								public void onVerified(Data validData) {
-									// Decrypt the content.
-									outer_Anonymous_C6.outer_Consumer.decryptContent(validData, new net.named_data.jndn.encrypt.Consumer.Anonymous_C6.Anonymous_C17.Anonymous_C18 (this), outer_Anonymous_C6.onError);
-								}
-							}
-		
-				public sealed class Anonymous_C16 : OnDataValidationFailed {
+		public sealed class Anonymous_C6 : OnVerified {
+				public sealed class Anonymous_C10 : Consumer.OnPlainText {
 								private readonly Consumer.Anonymous_C6  outer_Anonymous_C6;
+								private readonly Data validData;
 					
-								public Anonymous_C16(Consumer.Anonymous_C6  paramouter_Anonymous_C6) {
+								public Anonymous_C10(Consumer.Anonymous_C6  paramouter_Anonymous_C6,
+										Data validData_0) {
+									this.validData = validData_0;
 									this.outer_Anonymous_C6 = paramouter_Anonymous_C6;
 								}
 					
-								public void onDataValidationFailed(Data d, String reason) {
+								public void onPlainText(Blob plainText) {
 									try {
-										outer_Anonymous_C6.onError.onError(net.named_data.jndn.encrypt.EncryptError.ErrorCode.Validation,
-												"verifyData failed. Reason: " + reason);
+										outer_Anonymous_C6.onConsumeComplete.onConsumeComplete(validData,
+												plainText);
 									} catch (Exception ex) {
-										net.named_data.jndn.encrypt.Consumer.logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in onError",
-												ex);
+										net.named_data.jndn.encrypt.Consumer.logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE,
+												"Error in onConsumeComplete", ex);
 									}
 								}
 							}
 		
-				internal readonly Consumer outer_Consumer;
+				private readonly Consumer outer_Consumer;
 				internal readonly Consumer.OnConsumeComplete  onConsumeComplete;
-				internal readonly net.named_data.jndn.encrypt.EncryptError.OnError  onError;
+				private readonly net.named_data.jndn.encrypt.EncryptError.OnError  onError;
 		
 				public Anonymous_C6(Consumer paramouter_Consumer,
 						Consumer.OnConsumeComplete  onConsumeComplete_0, net.named_data.jndn.encrypt.EncryptError.OnError  onError_1) {
@@ -115,222 +110,109 @@ namespace net.named_data.jndn.encrypt {
 					this.outer_Consumer = paramouter_Consumer;
 				}
 		
-				public void onData(Interest contentInterest, Data contentData_0) {
-					// The Interest has no selectors, so assume the library correctly
-					// matched with the Data name before calling onData.
-		
-					try {
-						outer_Consumer.keyChain_.verifyData(contentData_0, new net.named_data.jndn.encrypt.Consumer.Anonymous_C6.Anonymous_C17 (this, contentData_0), new net.named_data.jndn.encrypt.Consumer.Anonymous_C6.Anonymous_C16 (this));
-					} catch (SecurityException ex) {
-						try {
-							onError.onError(net.named_data.jndn.encrypt.EncryptError.ErrorCode.SecurityException,
-									"verifyData error: " + ex.Message);
-						} catch (Exception exception) {
-							net.named_data.jndn.encrypt.Consumer.logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in onError", exception);
-						}
-					}
+				public void onVerified(Data validData_0) {
+					// Decrypt the content.
+					outer_Consumer.decryptContent(validData_0, new net.named_data.jndn.encrypt.Consumer.Anonymous_C6.Anonymous_C10 (this, validData_0), onError);
 				}
 			}
 	
-		public sealed class Anonymous_C5 : OnTimeout {
-				public sealed class Anonymous_C15 : OnTimeout {
+		public sealed class Anonymous_C5 : OnVerified {
+				public sealed class Anonymous_C9 : Consumer.OnPlainText {
 								private readonly Consumer.Anonymous_C5  outer_Anonymous_C5;
 					
-								public Anonymous_C15(Consumer.Anonymous_C5  paramouter_Anonymous_C5) {
+								public Anonymous_C9(Consumer.Anonymous_C5  paramouter_Anonymous_C5) {
 									this.outer_Anonymous_C5 = paramouter_Anonymous_C5;
 								}
 					
-								public void onTimeout(Interest contentInterest) {
-									try {
-										outer_Anonymous_C5.onError.onError(net.named_data.jndn.encrypt.EncryptError.ErrorCode.Timeout, outer_Anonymous_C5.interest
-												.getName().toUri());
-									} catch (Exception ex) {
-										net.named_data.jndn.encrypt.Consumer.logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in onError",
-												ex);
-									}
-								}
-							}
-		
-				private readonly Consumer outer_Consumer;
-				internal readonly Interest interest;
-				private readonly OnData onData;
-				internal readonly net.named_data.jndn.encrypt.EncryptError.OnError  onError;
-		
-				public Anonymous_C5(Consumer paramouter_Consumer, Interest interest_0,
-						OnData onData_1, net.named_data.jndn.encrypt.EncryptError.OnError  onError_2) {
-					this.interest = interest_0;
-					this.onData = onData_1;
-					this.onError = onError_2;
-					this.outer_Consumer = paramouter_Consumer;
-				}
-		
-				public void onTimeout(Interest contentInterest) {
-					// We should re-try at least once.
-					try {
-						outer_Consumer.face_.expressInterest(interest, onData, new net.named_data.jndn.encrypt.Consumer.Anonymous_C5.Anonymous_C15 (this));
-					} catch (IOException ex) {
-						try {
-							onError.onError(net.named_data.jndn.encrypt.EncryptError.ErrorCode.IOException,
-									"expressInterest error: " + ex.Message);
-						} catch (Exception exception) {
-							net.named_data.jndn.encrypt.Consumer.logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in onError", exception);
-						}
-					}
-				}
-			}
-	
-		public sealed class Anonymous_C4 : OnData {
-				public sealed class Anonymous_C13 : OnVerified {
-								public sealed class Anonymous_C14 : Consumer.OnPlainText  {
-									public void onPlainText(Blob cKeyBits) {
-										// cKeyName is already a copy inside the local dataEncryptedContent.
-										ILOG.J2CsMapping.Collections.Collections.Put(outer_Anonymous_C4.outer_Consumer.cKeyMap_,outer_Anonymous_C13.outer_Anonymous_C4.cKeyName,cKeyBits);
-										Consumer.decrypt(outer_Anonymous_C13.outer_Anonymous_C4.dataEncryptedContent, cKeyBits,
-												outer_Anonymous_C13.outer_Anonymous_C4.onPlainText, outer_Anonymous_C13.outer_Anonymous_C4.onError);
-									}
-								}
-					
-								private readonly Consumer.Anonymous_C4  outer_Anonymous_C4;
-					
-								public Anonymous_C13(Consumer.Anonymous_C4  paramouter_Anonymous_C4) {
-									this.outer_Anonymous_C4 = paramouter_Anonymous_C4;
-								}
-					
-								public void onVerified(Data validCKeyData) {
-									outer_Anonymous_C4.outer_Consumer.decryptCKey(validCKeyData, new net.named_data.jndn.encrypt.Consumer.Anonymous_C4.Anonymous_C13.Anonymous_C14 (), outer_Anonymous_C4.onError);
-								}
-							}
-		
-				public sealed class Anonymous_C12 : OnDataValidationFailed {
-								private readonly Consumer.Anonymous_C4  outer_Anonymous_C4;
-					
-								public Anonymous_C12(Consumer.Anonymous_C4  paramouter_Anonymous_C4) {
-									this.outer_Anonymous_C4 = paramouter_Anonymous_C4;
-								}
-					
-								public void onDataValidationFailed(Data d,
-										String reason) {
-									try {
-										outer_Anonymous_C4.onError.onError(net.named_data.jndn.encrypt.EncryptError.ErrorCode.Validation,
-												"verifyData failed. Reason: "
-														+ reason);
-									} catch (Exception ex) {
-										net.named_data.jndn.encrypt.Consumer.logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE,
-												"Error in onError", ex);
-									}
+								public void onPlainText(Blob cKeyBits) {
+									// cKeyName is already a copy inside the local dataEncryptedContent.
+									ILOG.J2CsMapping.Collections.Collections.Put(outer_Anonymous_C5.outer_Consumer.cKeyMap_,outer_Anonymous_C5.cKeyName,cKeyBits);
+									Consumer.decrypt(outer_Anonymous_C5.dataEncryptedContent, cKeyBits,
+											outer_Anonymous_C5.onPlainText, outer_Anonymous_C5.onError);
 								}
 							}
 		
 				internal readonly Consumer outer_Consumer;
-				internal readonly Name cKeyName;
-				internal readonly net.named_data.jndn.encrypt.EncryptError.OnError  onError;
-				internal readonly Consumer.OnPlainText  onPlainText;
 				internal readonly EncryptedContent dataEncryptedContent;
+				internal readonly net.named_data.jndn.encrypt.EncryptError.OnError  onError;
+				internal readonly Name cKeyName;
+				internal readonly Consumer.OnPlainText  onPlainText;
 		
-				public Anonymous_C4(Consumer paramouter_Consumer, Name cKeyName_0,
-						net.named_data.jndn.encrypt.EncryptError.OnError  onError_1, Consumer.OnPlainText  onPlainText_2,
-						EncryptedContent dataEncryptedContent_3) {
-					this.cKeyName = cKeyName_0;
+				public Anonymous_C5(Consumer paramouter_Consumer,
+						EncryptedContent dataEncryptedContent_0, net.named_data.jndn.encrypt.EncryptError.OnError  onError_1,
+						Name cKeyName_2, Consumer.OnPlainText  onPlainText_3) {
+					this.dataEncryptedContent = dataEncryptedContent_0;
 					this.onError = onError_1;
-					this.onPlainText = onPlainText_2;
-					this.dataEncryptedContent = dataEncryptedContent_3;
+					this.cKeyName = cKeyName_2;
+					this.onPlainText = onPlainText_3;
 					this.outer_Consumer = paramouter_Consumer;
 				}
 		
-				public void onData(Interest cKeyInterest, Data cKeyData) {
-					// The Interest has no selectors, so assume the library correctly
-					// matched with the Data name before calling onData.
-		
-					try {
-						outer_Consumer.keyChain_.verifyData(cKeyData, new net.named_data.jndn.encrypt.Consumer.Anonymous_C4.Anonymous_C13 (this), new net.named_data.jndn.encrypt.Consumer.Anonymous_C4.Anonymous_C12 (this));
-					} catch (SecurityException ex) {
-						try {
-							onError.onError(net.named_data.jndn.encrypt.EncryptError.ErrorCode.SecurityException,
-									"verifyData error: " + ex.Message);
-						} catch (Exception exception) {
-							net.named_data.jndn.encrypt.Consumer.logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in onError",
-									exception);
-						}
-					}
+				public void onVerified(Data validCKeyData) {
+					outer_Consumer.decryptCKey(validCKeyData, new net.named_data.jndn.encrypt.Consumer.Anonymous_C5.Anonymous_C9 (this), onError);
 				}
 			}
 	
-		public sealed class Anonymous_C3 : OnTimeout {
-				public sealed class Anonymous_C11 : OnTimeout {
-								private readonly Consumer.Anonymous_C3  outer_Anonymous_C3;
+		public sealed class Anonymous_C4 : OnVerified {
+				public sealed class Anonymous_C8 : Consumer.OnPlainText {
+								private readonly Consumer.Anonymous_C4  outer_Anonymous_C4;
 					
-								public Anonymous_C11(Consumer.Anonymous_C3  paramouter_Anonymous_C3) {
-									this.outer_Anonymous_C3 = paramouter_Anonymous_C3;
+								public Anonymous_C8(Consumer.Anonymous_C4  paramouter_Anonymous_C4) {
+									this.outer_Anonymous_C4 = paramouter_Anonymous_C4;
 								}
 					
-								public void onTimeout(
-										Interest contentInterest) {
-									try {
-										outer_Anonymous_C3.onError.onError(net.named_data.jndn.encrypt.EncryptError.ErrorCode.Timeout,
-												outer_Anonymous_C3.interest.getName().toUri());
-									} catch (Exception ex) {
-										net.named_data.jndn.encrypt.Consumer.logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE,
-												"Error in onError", ex);
-									}
+								public void onPlainText(Blob dKeyBits) {
+									// dKeyName is already a local copy.
+									ILOG.J2CsMapping.Collections.Collections.Put(outer_Anonymous_C4.outer_Consumer.dKeyMap_,outer_Anonymous_C4.dKeyName,dKeyBits);
+									Consumer.decrypt(outer_Anonymous_C4.cKeyEncryptedContent, dKeyBits,
+											outer_Anonymous_C4.onPlainText, outer_Anonymous_C4.onError);
 								}
 							}
 		
-				private readonly Consumer outer_Consumer;
-				private readonly OnData onData;
+				internal readonly Consumer outer_Consumer;
+				internal readonly Consumer.OnPlainText  onPlainText;
 				internal readonly net.named_data.jndn.encrypt.EncryptError.OnError  onError;
-				internal readonly Interest interest;
+				internal readonly Name dKeyName;
+				internal readonly EncryptedContent cKeyEncryptedContent;
 		
-				public Anonymous_C3(Consumer paramouter_Consumer, OnData onData_0,
-						net.named_data.jndn.encrypt.EncryptError.OnError  onError_1, Interest interest_2) {
-					this.onData = onData_0;
+				public Anonymous_C4(Consumer paramouter_Consumer,
+						Consumer.OnPlainText  onPlainText_0, net.named_data.jndn.encrypt.EncryptError.OnError  onError_1, Name dKeyName_2,
+						EncryptedContent cKeyEncryptedContent_3) {
+					this.onPlainText = onPlainText_0;
 					this.onError = onError_1;
-					this.interest = interest_2;
+					this.dKeyName = dKeyName_2;
+					this.cKeyEncryptedContent = cKeyEncryptedContent_3;
 					this.outer_Consumer = paramouter_Consumer;
 				}
 		
-				public void onTimeout(Interest dKeyInterest) {
-					// We should re-try at least once.
-					try {
-						outer_Consumer.face_.expressInterest(interest, onData,
-								new net.named_data.jndn.encrypt.Consumer.Anonymous_C3.Anonymous_C11 (this));
-					} catch (IOException ex) {
-						try {
-							onError.onError(net.named_data.jndn.encrypt.EncryptError.ErrorCode.IOException,
-									"expressInterest error: " + ex.Message);
-						} catch (Exception exception) {
-							net.named_data.jndn.encrypt.Consumer.logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in onError",
-									exception);
-						}
-					}
+				public void onVerified(Data validDKeyData) {
+					outer_Consumer.decryptDKey(validDKeyData, new net.named_data.jndn.encrypt.Consumer.Anonymous_C4.Anonymous_C8 (this), onError);
 				}
 			}
+	
+		public sealed class Anonymous_C3 : Consumer.OnPlainText {
+			private readonly Consumer.OnPlainText  callerOnPlainText;
+			private readonly net.named_data.jndn.encrypt.EncryptError.OnError  onError;
+			private readonly Blob encryptedPayloadBlob;
+	
+			public Anonymous_C3(Consumer.OnPlainText  callerOnPlainText_0, net.named_data.jndn.encrypt.EncryptError.OnError  onError_1,
+					Blob encryptedPayloadBlob_2) {
+				this.callerOnPlainText = callerOnPlainText_0;
+				this.onError = onError_1;
+				this.encryptedPayloadBlob = encryptedPayloadBlob_2;
+			}
+	
+			public void onPlainText(Blob nonceKeyBits) {
+				decrypt(encryptedPayloadBlob, nonceKeyBits, callerOnPlainText,
+						onError);
+			}
+		}
 	
 		public sealed class Anonymous_C2 : OnData {
-				public sealed class Anonymous_C9 : OnVerified {
-								public sealed class Anonymous_C10 : Consumer.OnPlainText  {
-									public void onPlainText(Blob dKeyBits) {
-										// dKeyName is already a local copy.
-										ILOG.J2CsMapping.Collections.Collections.Put(outer_Anonymous_C2.outer_Consumer.dKeyMap_,outer_Anonymous_C9.outer_Anonymous_C2.dKeyName,dKeyBits);
-										Consumer.decrypt(outer_Anonymous_C9.outer_Anonymous_C2.cKeyEncryptedContent, dKeyBits,
-												outer_Anonymous_C9.outer_Anonymous_C2.onPlainText, outer_Anonymous_C9.outer_Anonymous_C2.onError);
-									}
-								}
-					
+				public sealed class Anonymous_C7 : OnDataValidationFailed {
 								private readonly Consumer.Anonymous_C2  outer_Anonymous_C2;
 					
-								public Anonymous_C9(Consumer.Anonymous_C2  paramouter_Anonymous_C2) {
-									this.outer_Anonymous_C2 = paramouter_Anonymous_C2;
-								}
-					
-								public void onVerified(Data validDKeyData) {
-									outer_Anonymous_C2.outer_Consumer.decryptDKey(validDKeyData, new net.named_data.jndn.encrypt.Consumer.Anonymous_C2.Anonymous_C9.Anonymous_C10 (), outer_Anonymous_C2.onError);
-								}
-							}
-		
-				public sealed class Anonymous_C8 : OnDataValidationFailed {
-								private readonly Consumer.Anonymous_C2  outer_Anonymous_C2;
-					
-								public Anonymous_C8(Consumer.Anonymous_C2  paramouter_Anonymous_C2) {
+								public Anonymous_C7(Consumer.Anonymous_C2  paramouter_Anonymous_C2) {
 									this.outer_Anonymous_C2 = paramouter_Anonymous_C2;
 								}
 					
@@ -347,107 +229,84 @@ namespace net.named_data.jndn.encrypt {
 								}
 							}
 		
-				internal readonly Consumer outer_Consumer;
+				private readonly Consumer outer_Consumer;
 				internal readonly net.named_data.jndn.encrypt.EncryptError.OnError  onError;
-				internal readonly Consumer.OnPlainText  onPlainText;
-				internal readonly Name dKeyName;
-				internal readonly EncryptedContent cKeyEncryptedContent;
+				private readonly OnVerified onVerified;
 		
 				public Anonymous_C2(Consumer paramouter_Consumer, net.named_data.jndn.encrypt.EncryptError.OnError  onError_0,
-						Consumer.OnPlainText  onPlainText_1, Name dKeyName_2,
-						EncryptedContent cKeyEncryptedContent_3) {
+						OnVerified onVerified_1) {
 					this.onError = onError_0;
-					this.onPlainText = onPlainText_1;
-					this.dKeyName = dKeyName_2;
-					this.cKeyEncryptedContent = cKeyEncryptedContent_3;
+					this.onVerified = onVerified_1;
 					this.outer_Consumer = paramouter_Consumer;
 				}
 		
-				public void onData(Interest dKeyInterest, Data dKeyData) {
+				public void onData(Interest contentInterest, Data contentData) {
 					// The Interest has no selectors, so assume the library correctly
 					// matched with the Data name before calling onData.
 		
 					try {
-						outer_Consumer.keyChain_.verifyData(dKeyData, new net.named_data.jndn.encrypt.Consumer.Anonymous_C2.Anonymous_C9 (this), new net.named_data.jndn.encrypt.Consumer.Anonymous_C2.Anonymous_C8 (this));
+						outer_Consumer.keyChain_.verifyData(contentData, onVerified,
+								new net.named_data.jndn.encrypt.Consumer.Anonymous_C2.Anonymous_C7 (this));
 					} catch (SecurityException ex) {
 						try {
 							onError.onError(net.named_data.jndn.encrypt.EncryptError.ErrorCode.SecurityException,
 									"verifyData error: " + ex.Message);
 						} catch (Exception exception) {
-							net.named_data.jndn.encrypt.Consumer.logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in onError",
-									exception);
+							net.named_data.jndn.encrypt.Consumer.logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in onError", exception);
 						}
 					}
 				}
 			}
 	
-		public sealed class Anonymous_C1 : OnTimeout {
-				public sealed class Anonymous_C7 : OnTimeout {
-								private readonly Consumer.Anonymous_C1  outer_Anonymous_C1;
-					
-								public Anonymous_C7(Consumer.Anonymous_C1  paramouter_Anonymous_C1) {
-									this.outer_Anonymous_C1 = paramouter_Anonymous_C1;
-								}
-					
-								public void onTimeout(
-										Interest contentInterest) {
-									try {
-										outer_Anonymous_C1.onError.onError(net.named_data.jndn.encrypt.EncryptError.ErrorCode.Timeout,
-												outer_Anonymous_C1.interest.getName().toUri());
-									} catch (Exception ex) {
-										net.named_data.jndn.encrypt.Consumer.logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE,
-												"Error in onError", ex);
-									}
-								}
-							}
-		
+		public sealed class Anonymous_C1 : OnNetworkNack {
+			private readonly net.named_data.jndn.encrypt.EncryptError.OnError  onError;
+	
+			public Anonymous_C1(net.named_data.jndn.encrypt.EncryptError.OnError  onError_0) {
+				this.onError = onError_0;
+			}
+	
+			public void onNetworkNack(Interest interest, NetworkNack networkNack) {
+				// We have run out of options. Report a retrieval failure.
+				try {
+					onError.onError(net.named_data.jndn.encrypt.EncryptError.ErrorCode.DataRetrievalFailure, interest
+							.getName().toUri());
+				} catch (Exception exception) {
+					net.named_data.jndn.encrypt.Consumer.logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in onError", exception);
+				}
+			}
+		}
+	
+		public sealed class Anonymous_C0 : OnTimeout {
 				private readonly Consumer outer_Consumer;
-				internal readonly Interest interest;
-				private readonly OnData onData;
-				internal readonly net.named_data.jndn.encrypt.EncryptError.OnError  onError;
+				private readonly Link link;
+				private readonly int nRetrials;
+				private readonly OnVerified onVerified;
+				private readonly net.named_data.jndn.encrypt.EncryptError.OnError  onError;
 		
-				public Anonymous_C1(Consumer paramouter_Consumer, Interest interest_0,
-						OnData onData_1, net.named_data.jndn.encrypt.EncryptError.OnError  onError_2) {
-					this.interest = interest_0;
-					this.onData = onData_1;
-					this.onError = onError_2;
+				public Anonymous_C0(Consumer paramouter_Consumer, Link link_0,
+						int nRetrials_1, OnVerified onVerified_2, net.named_data.jndn.encrypt.EncryptError.OnError  onError_3) {
+					this.link = link_0;
+					this.nRetrials = nRetrials_1;
+					this.onVerified = onVerified_2;
+					this.onError = onError_3;
 					this.outer_Consumer = paramouter_Consumer;
 				}
 		
-				public void onTimeout(Interest dKeyInterest) {
-					// We should re-try at least once.
-					try {
-						outer_Consumer.face_.expressInterest(interest, onData,
-								new net.named_data.jndn.encrypt.Consumer.Anonymous_C1.Anonymous_C7 (this));
-					} catch (IOException ex) {
+				public void onTimeout(Interest interest) {
+					if (nRetrials > 0)
+						outer_Consumer.sendInterest(interest, nRetrials - 1, link, onVerified,
+								onError);
+					else {
+						// We have run out of options. Report a retrieval failure.
 						try {
-							onError.onError(net.named_data.jndn.encrypt.EncryptError.ErrorCode.IOException,
-									"expressInterest error: " + ex.Message);
+							onError.onError(net.named_data.jndn.encrypt.EncryptError.ErrorCode.DataRetrievalFailure,
+									interest.getName().toUri());
 						} catch (Exception exception) {
-							net.named_data.jndn.encrypt.Consumer.logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in onError",
-									exception);
+							net.named_data.jndn.encrypt.Consumer.logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in onError", exception);
 						}
 					}
 				}
 			}
-	
-		public sealed class Anonymous_C0 : Consumer.OnPlainText {
-			private readonly Consumer.OnPlainText  callerOnPlainText;
-			private readonly Blob encryptedPayloadBlob;
-			private readonly net.named_data.jndn.encrypt.EncryptError.OnError  onError;
-	
-			public Anonymous_C0(Consumer.OnPlainText  callerOnPlainText_0,
-					Blob encryptedPayloadBlob_1, net.named_data.jndn.encrypt.EncryptError.OnError  onError_2) {
-				this.callerOnPlainText = callerOnPlainText_0;
-				this.encryptedPayloadBlob = encryptedPayloadBlob_1;
-				this.onError = onError_2;
-			}
-	
-			public void onPlainText(Blob nonceKeyBits) {
-				decrypt(encryptedPayloadBlob, nonceKeyBits, callerOnPlainText,
-						onError);
-			}
-		}
 	
 		public interface OnConsumeComplete {
 			void onConsumeComplete(Data data, Blob result);
@@ -461,26 +320,26 @@ namespace net.named_data.jndn.encrypt {
 		/// <param name="contentName">The name of the content packet.</param>
 		/// <param name="onConsumeComplete_0">contentData is the fetched Data packet and result is the decrypted plain text Blob. NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
 		/// <param name="onError_1">better error handling the callback should catch and properly handle any exceptions.</param>
+		/// <param name="link_2">getDelegations().size() is zero, don't use it.</param>
+		public void consume(Name contentName,
+				Consumer.OnConsumeComplete  onConsumeComplete_0, net.named_data.jndn.encrypt.EncryptError.OnError  onError_1,
+				Link link_2) {
+			Interest interest = new Interest(contentName);
+			// Copy the Link object since the passed link may become invalid.
+			sendInterest(interest, 1, new Link(link_2), new Consumer.Anonymous_C6 (this, onConsumeComplete_0, onError_1), onError_1);
+		}
+	
+		/// <summary>
+		/// Express an Interest to fetch the content packet with contentName, and
+		/// decrypt it, fetching keys as needed.
+		/// </summary>
+		///
+		/// <param name="contentName">The name of the content packet.</param>
+		/// <param name="onConsumeComplete_0">contentData is the fetched Data packet and result is the decrypted plain text Blob. NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
+		/// <param name="onError_1">better error handling the callback should catch and properly handle any exceptions.</param>
 		public void consume(Name contentName,
 				Consumer.OnConsumeComplete  onConsumeComplete_0, net.named_data.jndn.encrypt.EncryptError.OnError  onError_1) {
-			Interest interest_2 = new Interest(contentName);
-	
-			// Prepare the callback functions.
-			OnData onData_3 = new Consumer.Anonymous_C6 (this, onConsumeComplete_0, onError_1);
-	
-			OnTimeout onTimeout = new Consumer.Anonymous_C5 (this, interest_2, onData_3, onError_1);
-	
-			// Express the Interest.
-			try {
-				face_.expressInterest(interest_2, onData_3, onTimeout);
-			} catch (IOException ex) {
-				try {
-					onError_1.onError(net.named_data.jndn.encrypt.EncryptError.ErrorCode.IOException,
-							"expressInterest error: " + ex.Message);
-				} catch (Exception exception) {
-					logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in onError", exception);
-				}
-			}
+			consume(contentName, onConsumeComplete_0, onError_1, NO_LINK);
 		}
 	
 		/// <summary>
@@ -599,8 +458,8 @@ namespace net.named_data.jndn.encrypt {
 				}
 			} else {
 				try {
-					onError_1.onError(net.named_data.jndn.encrypt.EncryptError.ErrorCode.UnsupportedEncryptionScheme,
-							encryptedContent.getAlgorithmType().toString());
+					onError_1.onError(net.named_data.jndn.encrypt.EncryptError.ErrorCode.UnsupportedEncryptionScheme, ""
+							+ encryptedContent.getAlgorithmType());
 				} catch (Exception ex_8) {
 					logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in onError", ex_8);
 				}
@@ -640,25 +499,9 @@ namespace net.named_data.jndn.encrypt {
 				Name interestName = new Name(cKeyName_3);
 				interestName.append(net.named_data.jndn.encrypt.algo.Encryptor.NAME_COMPONENT_FOR)
 						.append(groupName_);
-				Interest interest_4 = new Interest(interestName);
-	
-				// Prepare the callback functions.
-				OnData onData_5 = new Consumer.Anonymous_C4 (this, cKeyName_3, onError_1, onPlainText_0,
-						dataEncryptedContent_2);
-	
-				OnTimeout onTimeout = new Consumer.Anonymous_C3 (this, onData_5, onError_1, interest_4);
-	
-				// Express the Interest.
-				try {
-					face_.expressInterest(interest_4, onData_5, onTimeout);
-				} catch (IOException ex_6) {
-					try {
-						onError_1.onError(net.named_data.jndn.encrypt.EncryptError.ErrorCode.IOException,
-								"expressInterest error: " + ex_6.Message);
-					} catch (Exception exception_7) {
-						logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in onError", exception_7);
-					}
-				}
+				Interest interest = new Interest(interestName);
+				sendInterest(interest, 1, cKeyLink_, new Consumer.Anonymous_C5 (this, dataEncryptedContent_2, onError_1, cKeyName_3,
+						onPlainText_0), onError_1);
 			}
 		}
 	
@@ -699,25 +542,9 @@ namespace net.named_data.jndn.encrypt {
 				Name interestName = new Name(dKeyName_3);
 				interestName.append(net.named_data.jndn.encrypt.algo.Encryptor.NAME_COMPONENT_FOR).append(
 						consumerName_);
-				Interest interest_4 = new Interest(interestName);
-	
-				// Prepare the callback functions.
-				OnData onData_5 = new Consumer.Anonymous_C2 (this, onError_1, onPlainText_0, dKeyName_3,
-						cKeyEncryptedContent_2);
-	
-				OnTimeout onTimeout = new Consumer.Anonymous_C1 (this, interest_4, onData_5, onError_1);
-	
-				// Express the Interest.
-				try {
-					face_.expressInterest(interest_4, onData_5, onTimeout);
-				} catch (IOException ex_6) {
-					try {
-						onError_1.onError(net.named_data.jndn.encrypt.EncryptError.ErrorCode.IOException,
-								"expressInterest error: " + ex_6.Message);
-					} catch (Exception exception_7) {
-						logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in onError", exception_7);
-					}
-				}
+				Interest interest = new Interest(interestName);
+				sendInterest(interest, 1, dKeyLink_, new Consumer.Anonymous_C4 (this, onPlainText_0, onError_1, dKeyName_3,
+						cKeyEncryptedContent_2), onError_1);
 			}
 		}
 	
@@ -790,7 +617,53 @@ namespace net.named_data.jndn.encrypt {
 	
 			// Decrypt the D-KEY.
 			Consumer.OnPlainText  callerOnPlainText_7 = onPlainText_0;
-			decrypt(encryptedNonce, consumerKeyBlob, new Consumer.Anonymous_C0 (callerOnPlainText_7, encryptedPayloadBlob_5, onError_1), onError_1);
+			decrypt(encryptedNonce, consumerKeyBlob, new Consumer.Anonymous_C3 (callerOnPlainText_7, onError_1, encryptedPayloadBlob_5), onError_1);
+		}
+	
+		/// <summary>
+		/// Express the interest, call verifyData for the fetched Data packet and call
+		/// onVerified if verify succeeds. If verify fails, call
+		/// onError.onError(ErrorCode.Validation, "verifyData failed"). If the interest
+		/// times out, re-express nRetrials times. If the interest times out nRetrials
+		/// times, or for a network Nack, call
+		/// onError.onError(ErrorCode.DataRetrievalFailure, interest.getName().toUri()).
+		/// </summary>
+		///
+		/// <param name="interest">The Interest to express.</param>
+		/// <param name="nRetrials_0">The number of retrials left after a timeout.</param>
+		/// <param name="link_1">zero, don't use it.</param>
+		/// <param name="onVerified_2"></param>
+		/// <param name="onError_3">This calls onError.onError(errorCode, message) for an error.</param>
+		internal void sendInterest(Interest interest, int nRetrials_0,
+				Link link_1, OnVerified onVerified_2, net.named_data.jndn.encrypt.EncryptError.OnError  onError_3) {
+			// Prepare the callback functions.
+			OnData onData = new Consumer.Anonymous_C2 (this, onError_3, onVerified_2);
+	
+			OnNetworkNack onNetworkNack = new Consumer.Anonymous_C1 (onError_3);
+	
+			OnTimeout onTimeout = new Consumer.Anonymous_C0 (this, link_1, nRetrials_0, onVerified_2, onError_3);
+	
+			Interest request;
+			if (link_1.getDelegations().size() == 0)
+				// We can use the supplied interest without copying.
+				request = interest;
+			else {
+				// Copy the supplied interest and add the Link.
+				request = new Interest(interest);
+				// This will use a cached encoding if available.
+				request.setLinkWireEncoding(link_1.wireEncode());
+			}
+	
+			try {
+				face_.expressInterest(request, onData, onTimeout, onNetworkNack);
+			} catch (IOException ex) {
+				try {
+					onError_3.onError(net.named_data.jndn.encrypt.EncryptError.ErrorCode.IOException,
+							"expressInterest error: " + ex.Message);
+				} catch (Exception exception) {
+					logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in onError", exception);
+				}
+			}
 		}
 	
 		/// <summary>
@@ -854,20 +727,23 @@ namespace net.named_data.jndn.encrypt {
 	
 		private readonly ConsumerDb database_;
 		internal readonly KeyChain keyChain_;
-		internal readonly Face face_;
+		private readonly Face face_;
 		private Name groupName_;
 		private readonly Name consumerName_;
+		private readonly Link cKeyLink_;
 		// Use HashMap without generics so it works with older Java compilers.
 		internal readonly Hashtable cKeyMap_;
 		/// <summary>
 		/// < The map key is the C-KEY name. The value is the encoded key Blob. 
 		/// </summary>
 		///
+		private readonly Link dKeyLink_;
 		internal readonly Hashtable dKeyMap_;
 		/// <summary>
 		/// < The map key is the D-KEY name. The value is the encoded key Blob. 
 		/// </summary>
 		///
+		private static readonly Link NO_LINK = new Link();
 		static internal readonly Logger logger_ = ILOG.J2CsMapping.Util.Logging.Logger.getLogger(typeof(Consumer).FullName);
 	}
 }
