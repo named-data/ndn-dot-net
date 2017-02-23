@@ -588,6 +588,9 @@ namespace ILOG.J2CsMapping.Threading {
   public class ThreadWrapper {
     public static void
     sleep(int ms) { System.Threading.Thread.Sleep(ms); }
+
+    public static void
+    sleep(long ms) { sleep((int)ms); }
   }
 }
   
