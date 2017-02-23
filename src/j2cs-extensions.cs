@@ -325,6 +325,12 @@ namespace net.named_data.jndn.util {
     {
       throw new Exception("Fail: " + message);
     }
+
+    public static void
+    Fail()
+    {
+      Fail("The assertion has failed.");
+    }
   }
 
   public class BufferOverflowException : Exception {
