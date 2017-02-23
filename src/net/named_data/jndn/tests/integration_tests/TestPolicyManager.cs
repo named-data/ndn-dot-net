@@ -400,7 +400,7 @@ namespace net.named_data.jndn.tests.integration_tests {
 	
 		public void testRefresh10s() {
 			StringBuilder encodedData = new StringBuilder();
-			TextReader dataFile = new System.IO.StreamReader(new FileInfo(System.IO.Path.Combine(policyConfigDirectory_.FullName,"testData")).OpenWrite());
+			TextReader dataFile = new FileReader(new FileInfo(System.IO.Path.Combine(policyConfigDirectory_.FullName,"testData")).FullName);
 			// Use "try/finally instead of "try-with-resources" or "using"
 			// which are not supported before Java 7.
 			try {
@@ -439,7 +439,8 @@ namespace net.named_data.jndn.tests.integration_tests {
 			Blob signedCertBlob = cert.wireEncode();
 			String encodedCert = net.named_data.jndn.util.Common.base64Encode(signedCertBlob
 					.getImmutableArray());
-			var certFile = (new System.IO.StreamWriter(testCertFile_.OpenRead()));
+			var certFile = (new StreamWriter(
+					testCertFile_.FullName));
 			try {
 				certFile.Write(encodedCert,0,encodedCert.Substring(0,encodedCert.Length));
 				certFile.flush();
