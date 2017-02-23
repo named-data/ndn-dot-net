@@ -439,7 +439,7 @@ namespace net.named_data.jndn.tests.integration_tests {
 			Blob signedCertBlob = cert.wireEncode();
 			String encodedCert = net.named_data.jndn.util.Common.base64Encode(signedCertBlob
 					.getImmutableArray());
-			BufferedStream certFile = new BufferedStream(new System.IO.StreamWriter(testCertFile_.OpenRead()));
+			var certFile = (new System.IO.StreamWriter(testCertFile_.OpenRead()));
 			try {
 				certFile.Write(encodedCert,0,encodedCert.Substring(0,encodedCert.Length));
 				certFile.flush();

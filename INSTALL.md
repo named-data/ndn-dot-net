@@ -58,6 +58,7 @@ In a terminal change directory to `ndn-dot-net/src/net` and enter:
     (unset LANG; find . -type f -exec sed -i '' 's/System\.Signature/System.SecuritySignature/g' {} +)
     (unset LANG; find . -type f -exec sed -i '' 's/System\.PublicKey/System.SecurityPublicKey/g' {} +)
     (unset LANG; find . -type f -exec sed -i '' 's/BufferedStream writer = new BufferedStream/var writer = /g' {} +)
+    (unset LANG; find . -type f -exec sed -i '' 's/BufferedStream certFile = new BufferedStream/var certFile = /g' {} +)
     (unset LANG; find . -type f -exec sed -i '' 's/System\.Array\.sort/System.Array.Sort/g' {} +)
     (unset LANG; find . -name "Test*.cs" -exec sed -i '' 's/AssertArrayEquals(/Assert.AssertArrayEquals(/g' {} +)
     (unset LANG; find . -name "Test*.cs" -exec sed -i '' 's/AssertEquals(/Assert.AssertEquals(/g' {} +)
