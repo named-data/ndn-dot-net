@@ -48,8 +48,14 @@ namespace JUnitDotNet {
           var setUpMethod = type.GetMethod("setUp", new Type[0]);
           var tearDownMethod = type.GetMethod("tearDown", new Type[0]);
 
-          if (setUpClassMethod != null)
-            setUpClassMethod.Invoke(null, null);
+          if (setUpClassMethod != null) {
+            try {
+              setUpClassMethod.Invoke(null, null);
+            } catch (TargetInvocationException ex) {
+              Console.Out.WriteLine("FAIL in setUpClass: " + ex.InnerException.Message);
+              continue;
+            }
+          }
 
           // Find each method that starts with "test" and takes no arguments.
           foreach (var methodInfo in type.GetMethods()) {
@@ -57,8 +63,15 @@ namespace JUnitDotNet {
                 methodInfo.GetParameters().Length == 0) {
               Console.Out.WriteLine("Running test " + type.Name + "." + methodInfo.Name);
 
-              if (setUpMethod != null)
-                setUpMethod.Invoke(testInstance, null);
+              if (setUpMethod != null) {
+                try {
+                  setUpMethod.Invoke(testInstance, null);
+                } catch (TargetInvocationException ex) {
+                  ++nFailed;
+                  Console.Out.WriteLine("FAIL in setUp: " + ex.InnerException.Message);
+                  continue;
+                }
+              }
 
               // Invoke the test and print any error.
               try {
@@ -66,15 +79,29 @@ namespace JUnitDotNet {
               } catch (TargetInvocationException ex) {
                 ++nFailed;
                 Console.Out.WriteLine("FAIL: " + ex.InnerException.Message);
+                continue;
               }
 
-              if (tearDownMethod != null)
-                tearDownMethod.Invoke(testInstance, null);
+              if (tearDownMethod != null) {
+                try {
+                  tearDownMethod.Invoke(testInstance, null);
+                } catch (TargetInvocationException ex) {
+                  ++nFailed;
+                  Console.Out.WriteLine("FAIL in tearDown: " + ex.InnerException.Message);
+                  continue;
+                }
+              }
             }
           }
 
-          if (tearDownClassMethod != null)
-            tearDownClassMethod.Invoke(null, null);
+          if (tearDownClassMethod != null) {
+            try {
+              tearDownClassMethod.Invoke(null, null);
+            } catch (TargetInvocationException ex) {
+              Console.Out.WriteLine("FAIL in tearDownClass: " + ex.InnerException.Message);
+              continue;
+            }
+          }
         }
       }
 
