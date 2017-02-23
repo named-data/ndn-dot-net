@@ -259,6 +259,7 @@ namespace net.named_data.jndn.tests.integration_tests {
 			Assert.AssertFalse(identityStorage.doesIdentityExist(identityName));
 		}
 	
+#if false // Skip ECDSA for now.
 		public void testEcdsaIdentity() {
 			Name identityName = new Name("/TestSqlIdentityStorage/KeyType/ECDSA");
 			Name keyName = identityManager
@@ -275,6 +276,7 @@ namespace net.named_data.jndn.tests.integration_tests {
 			keyChain.deleteIdentity(identityName);
 			Assert.AssertFalse(identityStorage.doesKeyExist(keyName));
 		}
+#endif
 	
 		private FileInfo databaseFilePath;
 		private IdentityStorage identityStorage;
