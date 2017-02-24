@@ -35,7 +35,7 @@ namespace net.named_data.jndn.tests.integration_tests {
 	public class TestGroupConsumer : Consumer.Friend {
 		// Convert the int array to a ByteBuffer.
 		public static ByteBuffer toBuffer(int[] array) {
-			ByteBuffer result = java.nio.ByteBuffer.allocate(array.Length);
+			ByteBuffer result = ILOG.J2CsMapping.NIO.ByteBuffer.allocate(array.Length);
 			for (int i = 0; i < array.Length; ++i)
 				result.put((byte) (array[i] & 0xff));
 	
@@ -199,12 +199,11 @@ namespace net.named_data.jndn.tests.integration_tests {
 				0xb5, 0xd1, 0xc3, 0x64, 0x8d, 0x4d, 0x4f, 0x02, 0xdb, 0x2c, 0x51,
 				0x58, 0xa3, 0xc7, 0x35, 0xf1, 0x2d, 0x7a, 0x0a });
 	
-		public void setUp() throws ConsumerDb.Error, NoSuchAlgorithmException,
-				InvalidKeySpecException, DerDecodingException {
+		public void setUp() {
 			// Don't show INFO log messages.
-			java.util.logging.Logger.getLogger("").setLevel(java.util.logging.Level.WARNING);
+			ILOG.J2CsMapping.Util.Logging.Logger.getLogger("").setLevel(ILOG.J2CsMapping.Util.Logging.Level.WARNING);
 	
-			File policyConfigDirectory = net.named_data.jndn.tests.integration_tests.IntegrationTestsCommon
+			FileInfo policyConfigDirectory = net.named_data.jndn.tests.integration_tests.IntegrationTestsCommon
 					.getPolicyConfigDirectory();
 			databaseFilePath = new FileInfo(System.IO.Path.Combine(policyConfigDirectory.FullName,"test.db"));
 			databaseFilePath.delete();
@@ -250,14 +249,14 @@ namespace net.named_data.jndn.tests.integration_tests {
 						DEFAULT_RSA_PUBLIC_KEY_DER, DEFAULT_RSA_PRIVATE_KEY_DER);
 			} catch (net.named_data.jndn.security.SecurityException ex) {
 				// We don't expect this to happen.
-				java.util.logging.Logger.getLogger(typeof(TestGroupConsumer).FullName).log(
-						java.util.logging.Level.SEVERE, null, ex);
+				ILOG.J2CsMapping.Util.Logging.Logger.getLogger(typeof(TestGroupConsumer).FullName).log(
+						ILOG.J2CsMapping.Util.Logging.Level.SEVERE, null, ex);
 			}
 	
 			net.named_data.jndn.encrypt.Consumer.setFriendAccess(this);
 		}
 	
-		public void setConsumerFriendAccess(Consumer.FriendAccess friendAccess) {
+		public virtual void setConsumerFriendAccess(Consumer.FriendAccess friendAccess) {
 			this.friendAccess = friendAccess;
 		}
 	
@@ -265,11 +264,7 @@ namespace net.named_data.jndn.tests.integration_tests {
 			databaseFilePath.delete();
 		}
 	
-		Data createEncryptedContent() throws NoSuchAlgorithmException,
-				NoSuchPaddingException, InvalidKeyException,
-				IllegalBlockSizeException, BadPaddingException,
-				InvalidAlgorithmParameterException, InvalidKeySpecException,
-				SecurityException {
+		internal Data createEncryptedContent() {
 			Data contentData = new Data(contentName);
 			EncryptParams encryptParams = new EncryptParams(
 					net.named_data.jndn.encrypt.algo.EncryptAlgorithmType.AesCbc);
@@ -280,11 +275,7 @@ namespace net.named_data.jndn.tests.integration_tests {
 			return contentData;
 		}
 	
-		Data createEncryptedCKey() throws NoSuchAlgorithmException,
-				NoSuchPaddingException, InvalidKeyException,
-				IllegalBlockSizeException, BadPaddingException,
-				InvalidAlgorithmParameterException, InvalidKeySpecException,
-				SecurityException {
+		internal Data createEncryptedCKey() {
 			Data cKeyData = new Data(cKeyName);
 			EncryptParams encryptParams = new EncryptParams(
 					net.named_data.jndn.encrypt.algo.EncryptAlgorithmType.RsaOaep);
@@ -294,11 +285,7 @@ namespace net.named_data.jndn.tests.integration_tests {
 			return cKeyData;
 		}
 	
-		Data createEncryptedDKey() throws NoSuchAlgorithmException,
-				NoSuchPaddingException, InvalidKeyException,
-				IllegalBlockSizeException, BadPaddingException,
-				InvalidAlgorithmParameterException, InvalidKeySpecException,
-				SecurityException {
+		internal Data createEncryptedDKey() {
 			Data dKeyData = new Data(dKeyName);
 			EncryptParams encryptParams = new EncryptParams(
 					net.named_data.jndn.encrypt.algo.EncryptAlgorithmType.RsaOaep);
@@ -308,11 +295,7 @@ namespace net.named_data.jndn.tests.integration_tests {
 			return dKeyData;
 		}
 	
-		public void testDecryptContent() throws NoSuchAlgorithmException,
-				NoSuchPaddingException, InvalidKeyException,
-				IllegalBlockSizeException, BadPaddingException,
-				InvalidAlgorithmParameterException, InvalidKeySpecException,
-				SecurityException {
+		public void testDecryptContent() {
 			// Generate the AES key.
 			Blob aesKeyBlob = new Blob(AES_KEY, false);
 	
@@ -323,36 +306,14 @@ namespace net.named_data.jndn.tests.integration_tests {
 	
 			// Decrypt.
 			friendAccess.decrypt(cKeyData.getContent(), fixtureDKeyBlob,
-					new Consumer.OnPlainText() {
-						public void onPlainText(Blob result) {
-							Assert.AssertTrue(result.equals(aesKeyBlob));
-						}
-					}, new EncryptError.OnError() {
-						public void onError(EncryptError.ErrorCode errorCode,
-								String message) {
-							Assert.Fail("decrypt error " + message);
-						}
-					});
+					new TestGroupConsumer.Anonymous_C7 (aesKeyBlob), new TestGroupConsumer.Anonymous_C6 ());
 	
 			// Decrypt.
 			friendAccess.decrypt(contentData.getContent(), fixtureCKeyBlob,
-					new Consumer.OnPlainText() {
-						public void onPlainText(Blob result) {
-							Assert.AssertTrue(result.equals(new Blob(net.named_data.jndn.tests.integration_tests.TestGroupConsumer.DATA_CONTENT, false)));
-						}
-					}, new EncryptError.OnError() {
-						public void onError(EncryptError.ErrorCode errorCode,
-								String message) {
-							Assert.Fail("decrypt error " + message);
-						}
-					});
+					new TestGroupConsumer.Anonymous_C5 (), new TestGroupConsumer.Anonymous_C4 ());
 		}
 	
-		public void testConsume() throws NoSuchAlgorithmException,
-				NoSuchPaddingException, InvalidKeyException,
-				IllegalBlockSizeException, BadPaddingException,
-				InvalidAlgorithmParameterException, InvalidKeySpecException,
-				SecurityException, ConsumerDb.Error {
+		public void testConsume() {
 			Data contentData = createEncryptedContent();
 			Data cKeyData = createEncryptedCKey();
 			Data dKeyData = createEncryptedDKey();
@@ -364,7 +325,8 @@ namespace net.named_data.jndn.tests.integration_tests {
 			// Prepare a TestFace to instantly answer calls to expressInterest.
 			
 	
-			TestGroupConsumer.TestFace  face = new TestGroupConsumer.TestFace ();
+			TestGroupConsumer.TestFace  face = new TestGroupConsumer.TestFace (contentData, cKeyData, dKeyData,
+					contentCount, cKeyCount, dKeyCount);
 	
 			// Create the consumer.
 			Consumer consumer = new Consumer(face, keyChain, groupName, uName,
@@ -372,17 +334,7 @@ namespace net.named_data.jndn.tests.integration_tests {
 			consumer.addDecryptionKey(uKeyName, fixtureUDKeyBlob);
 	
 			int[] finalCount = new int[] { 0 };
-			consumer.consume(contentName, new Consumer.OnConsumeComplete() {
-				public void onConsumeComplete(Data data, Blob result) {
-					finalCount[0] = 1;
-					Assert.AssertTrue("consumeComplete",
-							result.equals(new Blob(net.named_data.jndn.tests.integration_tests.TestGroupConsumer.DATA_CONTENT, false)));
-				}
-			}, new EncryptError.OnError() {
-				public void onError(EncryptError.ErrorCode code, String message) {
-					Assert.Fail("consume error " + code + ": " + message);
-				}
-			});
+			consumer.consume(contentName, new TestGroupConsumer.Anonymous_C3 (finalCount), new TestGroupConsumer.Anonymous_C2 ());
 	
 			Assert.AssertEquals("contentCount", 1, contentCount[0]);
 			Assert.AssertEquals("cKeyCount", 1, cKeyCount[0]);
@@ -390,11 +342,7 @@ namespace net.named_data.jndn.tests.integration_tests {
 			Assert.AssertEquals("finalCount", 1, finalCount[0]);
 		}
 	
-		public void testCosumerWithLink() throws NoSuchAlgorithmException,
-				NoSuchPaddingException, InvalidKeyException,
-				IllegalBlockSizeException, BadPaddingException,
-				InvalidAlgorithmParameterException, InvalidKeySpecException,
-				SecurityException, ConsumerDb.Error {
+		public void testCosumerWithLink() {
 			Data contentData = createEncryptedContent();
 			Data cKeyData = createEncryptedCKey();
 			Data dKeyData = createEncryptedDKey();
@@ -406,7 +354,8 @@ namespace net.named_data.jndn.tests.integration_tests {
 			// Prepare a TestFace to instantly answer calls to expressInterest.
 			
 	
-			TestGroupConsumer.TestFace  face = new TestGroupConsumer.TestFace ();
+			TestGroupConsumer.TestFace2  face = new TestGroupConsumer.TestFace2 (contentData, cKeyData, dKeyData,
+					contentCount, cKeyCount, dKeyCount);
 	
 			// Create the consumer.
 			Link ckeyLink = new Link();
@@ -431,13 +380,7 @@ namespace net.named_data.jndn.tests.integration_tests {
 			consumer.addDecryptionKey(uKeyName, fixtureUDKeyBlob);
 	
 			int[] finalCount = new int[] { 0 };
-			consumer.consume(contentName, new Consumer.OnConsumeComplete() {
-				public void onConsumeComplete(Data data, Blob result) {
-					finalCount[0] = 1;
-					Assert.AssertTrue("consumeComplete",
-							result.equals(new Blob(net.named_data.jndn.tests.integration_tests.TestGroupConsumer.DATA_CONTENT, false)));
-				}
-			}, new TestGroupConsumer.Anonymous_C0 (), dataLink);
+			consumer.consume(contentName, new TestGroupConsumer.Anonymous_C1 (finalCount), new TestGroupConsumer.Anonymous_C0 (), dataLink);
 	
 			Assert.AssertEquals("contentCount", 1, contentCount[0]);
 			Assert.AssertEquals("cKeyCount", 1, cKeyCount[0]);
@@ -445,83 +388,179 @@ namespace net.named_data.jndn.tests.integration_tests {
 			Assert.AssertEquals("finalCount", 1, finalCount[0]);
 		}
 	
-		File databaseFilePath;
+		internal FileInfo databaseFilePath;
 	
-		KeyChain keyChain;
-		Name certificateName;
+		internal KeyChain keyChain;
+		internal Name certificateName;
 	
-		Blob fixtureCKeyBlob;
-		Blob fixtureEKeyBlob;
-		Blob fixtureDKeyBlob;
-		Blob fixtureUEKeyBlob;
-		Blob fixtureUDKeyBlob;
+		internal Blob fixtureCKeyBlob;
+		internal Blob fixtureEKeyBlob;
+		internal Blob fixtureDKeyBlob;
+		internal Blob fixtureUEKeyBlob;
+		internal Blob fixtureUDKeyBlob;
 	
-		Name groupName;
-		Name contentName;
-		Name cKeyName;
-		Name eKeyName;
-		Name dKeyName;
-		Name uKeyName;
-		Name uName;
+		internal Name groupName;
+		internal Name contentName;
+		internal Name cKeyName;
+		internal Name eKeyName;
+		internal Name dKeyName;
+		internal Name uKeyName;
+		internal Name uName;
 	
 		private Consumer.FriendAccess friendAccess;
 	
-		public final class Anonymous_C0 : EncryptError.OnError {
+		public sealed class Anonymous_C7 : Consumer.OnPlainText {
+			private readonly Blob aesKeyBlob;
+	
+			public Anonymous_C7(Blob aesKeyBlob_0) {
+				this.aesKeyBlob = aesKeyBlob_0;
+			}
+	
+			public void onPlainText(Blob result) {
+				Assert.AssertTrue(result.equals(aesKeyBlob));
+			}
+		}
+	
+		public sealed class Anonymous_C6 : EncryptError.OnError {
+			public void onError(EncryptError.ErrorCode errorCode,
+					String message) {
+				Assert.Fail("decrypt error " + message);
+			}
+		}
+	
+		public sealed class Anonymous_C5 : Consumer.OnPlainText {
+			public void onPlainText(Blob result) {
+				Assert.AssertTrue(result.equals(new Blob(net.named_data.jndn.tests.integration_tests.TestGroupConsumer.DATA_CONTENT, false)));
+			}
+		}
+	
+		public sealed class Anonymous_C4 : EncryptError.OnError {
+			public void onError(EncryptError.ErrorCode errorCode,
+					String message) {
+				Assert.Fail("decrypt error " + message);
+			}
+		}
+	
+		public sealed class Anonymous_C3 : Consumer.OnConsumeComplete {
+			private readonly int[] finalCount;
+	
+			public Anonymous_C3(int[] finalCount_0) {
+				this.finalCount = finalCount_0;
+			}
+	
+			public void onConsumeComplete(Data data, Blob result) {
+				finalCount[0] = 1;
+				Assert.AssertTrue("consumeComplete",
+						result.equals(new Blob(net.named_data.jndn.tests.integration_tests.TestGroupConsumer.DATA_CONTENT, false)));
+			}
+		}
+	
+		public sealed class Anonymous_C2 : EncryptError.OnError {
 			public void onError(EncryptError.ErrorCode code, String message) {
 				Assert.Fail("consume error " + code + ": " + message);
 			}
 		}
 	
-		class TestFace : Face {
-			public TestFace() : base("localhost") {
+		public sealed class Anonymous_C1 : Consumer.OnConsumeComplete {
+			private readonly int[] finalCount;
+	
+			public Anonymous_C1(int[] finalCount_0) {
+				this.finalCount = finalCount_0;
 			}
 	
-			public long expressInterest(Interest interest, OnData onData,
+			public void onConsumeComplete(Data data, Blob result) {
+				finalCount[0] = 1;
+				Assert.AssertTrue("consumeComplete",
+						result.equals(new Blob(net.named_data.jndn.tests.integration_tests.TestGroupConsumer.DATA_CONTENT, false)));
+			}
+		}
+	
+		public sealed class Anonymous_C0 : EncryptError.OnError {
+			public void onError(EncryptError.ErrorCode code, String message) {
+				Assert.Fail("consume error " + code + ": " + message);
+			}
+		}
+	
+		internal class TestFace : Face {
+			public TestFace(Data contentData, Data cKeyData, Data dKeyData,
+					int[] contentCount, int[] cKeyCount, int[] dKeyCount) : base("localhost") {
+				contentData_ = contentData;
+				cKeyData_ = cKeyData;
+				dKeyData_ = dKeyData;
+				contentCount_ = contentCount;
+				cKeyCount_ = cKeyCount;
+				dKeyCount_ = dKeyCount;
+			}
+	
+			public override long expressInterest(Interest interest, OnData onData,
 					OnTimeout onTimeout, OnNetworkNack onNetworkNack,
-					WireFormat wireFormat) throws IOException {
-				if (interest.matchesName(contentData.GetName())) {
-					contentCount[0] = 1;
-					onData.onData(interest, contentData);
-				} else if (interest.matchesName(cKeyData.GetName())) {
-					cKeyCount[0] = 1;
-					onData.onData(interest, cKeyData);
-				} else if (interest.matchesName(dKeyData.GetName())) {
-					dKeyCount[0] = 1;
-					onData.onData(interest, dKeyData);
+					WireFormat wireFormat) {
+				if (interest.matchesName(contentData_.getName())) {
+					contentCount_[0] = 1;
+					onData.onData(interest, contentData_);
+				} else if (interest.matchesName(cKeyData_.getName())) {
+					cKeyCount_[0] = 1;
+					onData.onData(interest, cKeyData_);
+				} else if (interest.matchesName(dKeyData_.getName())) {
+					dKeyCount_[0] = 1;
+					onData.onData(interest, dKeyData_);
 				} else
 					onTimeout.onTimeout(interest);
 	
 				return 0;
 			}
+	
+			private Data contentData_;
+			private Data cKeyData_;
+			private Data dKeyData_;
+	
+			private int[] contentCount_;
+			private int[] cKeyCount_;
+			private int[] dKeyCount_;
 		}
 	
-		class TestFace : Face {
-			public TestFace() {
+		internal class TestFace2 : Face {
+			public TestFace2(Data contentData, Data cKeyData, Data dKeyData,
+					int[] contentCount, int[] cKeyCount, int[] dKeyCount) : base("localhost") {
+				contentData_ = contentData;
+				cKeyData_ = cKeyData;
+				dKeyData_ = dKeyData;
+				contentCount_ = contentCount;
+				cKeyCount_ = cKeyCount;
+				dKeyCount_ = dKeyCount;
 			}
 	
-			public long expressInterest(Interest interest, OnData onData,
+			public override long expressInterest(Interest interest, OnData onData,
 					OnTimeout onTimeout, OnNetworkNack onNetworkNack,
-					WireFormat wireFormat) throws IOException {
+					WireFormat wireFormat) {
 				try {
-					Assert.AssertEquals(3, interest.GetLink().GetDelegations().Size());
+					Assert.AssertEquals(3, interest.getLink().getDelegations().size());
 				} catch (EncodingException ex) {
 					Assert.Fail("Error in getLink: " + ex);
 				}
 	
-				if (interest.MatchesName(contentData.GetName())) {
-					contentCount[0] = 1;
-					onData.OnData(interest, contentData);
-				} else if (interest.MatchesName(cKeyData.GetName())) {
-					cKeyCount[0] = 1;
-					onData.OnData(interest, cKeyData);
-				} else if (interest.MatchesName(dKeyData.GetName())) {
-					dKeyCount[0] = 1;
-					onData.OnData(interest, dKeyData);
+				if (interest.matchesName(contentData_.getName())) {
+					contentCount_[0] = 1;
+					onData.onData(interest, contentData_);
+				} else if (interest.matchesName(cKeyData_.getName())) {
+					cKeyCount_[0] = 1;
+					onData.onData(interest, cKeyData_);
+				} else if (interest.matchesName(dKeyData_.getName())) {
+					dKeyCount_[0] = 1;
+					onData.onData(interest, dKeyData_);
 				} else
-					onTimeout.OnTimeout(interest);
+					onTimeout.onTimeout(interest);
 	
 				return 0;
 			}
+	
+			private Data contentData_;
+			private Data cKeyData_;
+			private Data dKeyData_;
+	
+			private int[] contentCount_;
+			private int[] cKeyCount_;
+			private int[] dKeyCount_;
 		}
 	}
 }
