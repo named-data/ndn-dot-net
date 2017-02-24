@@ -308,7 +308,7 @@ namespace net.named_data.jndn.tests.integration_tests {
 	
 		public void testHierarchical() {
 			ConfigPolicyManager policyManager = new ConfigPolicyManager(
-					new FileInfo(System.IO.Path.Combine(policyConfigDirectory.FullName,"/hierarchical_ruleset.conf")).FullName);
+					new FileInfo(System.IO.Path.Combine(policyConfigDirectory.FullName,"hierarchical_ruleset.conf")).FullName);
 	
 			Name dataName1 = new Name("/SecurityTestSecRule/Basic/Data1");
 			Name dataName2 = new Name("/SecurityTestSecRule/Basic/Longer/Data2");
@@ -353,7 +353,7 @@ namespace net.named_data.jndn.tests.integration_tests {
 	
 		public void testHyperRelation() {
 			ConfigPolicyManager policyManager = new ConfigPolicyManager(
-					new FileInfo(System.IO.Path.Combine(policyConfigDirectory.FullName,"/hyperrelation_ruleset.conf")).FullName);
+					new FileInfo(System.IO.Path.Combine(policyConfigDirectory.FullName,"hyperrelation_ruleset.conf")).FullName);
 	
 			Name dataName = new Name("/SecurityTestSecRule/Basic/Longer/Data2");
 			Data data1 = new Data(dataName);
