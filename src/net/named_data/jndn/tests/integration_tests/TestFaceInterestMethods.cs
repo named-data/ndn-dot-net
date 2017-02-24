@@ -55,7 +55,7 @@ namespace net.named_data.jndn.tests.integration_tests {
 	
 	public class TestFaceInterestMethods {
 		public static double getNowMilliseconds() {
-			return (double) DateTime.Now.Millisecond;
+			return net.named_data.jndn.util.Common.getNowMilliseconds();
 		}
 	
 		// Returns a CallbackCounter object so we can test data callback, nack callback

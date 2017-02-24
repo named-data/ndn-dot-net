@@ -196,7 +196,7 @@ namespace net.named_data.jndn.tests.integration_tests {
 		}
 	
 		public static double getNowMilliseconds() {
-			return (double) DateTime.Now.Millisecond;
+			return net.named_data.jndn.util.Common.getNowMilliseconds();
 		}
 	
 		static internal readonly Logger logger = ILOG.J2CsMapping.Util.Logging.Logger

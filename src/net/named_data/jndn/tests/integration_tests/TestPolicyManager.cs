@@ -228,7 +228,7 @@ namespace net.named_data.jndn.tests.integration_tests {
 				+ "BmWVlUfyAg8noGdPRS8MGQs24vw=";
 	
 		private static double getNowSeconds() {
-			return (double) DateTime.Now.Millisecond / 1000.0d;
+			return net.named_data.jndn.util.Common.getNowMilliseconds() / 1000.0d;
 		}
 	
 		private static VerificationResult doVerify(PolicyManager policyManager,

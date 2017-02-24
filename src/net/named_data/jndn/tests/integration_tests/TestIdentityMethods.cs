@@ -25,7 +25,7 @@ namespace net.named_data.jndn.tests.integration_tests {
 	
 	public class TestIdentityMethods {
 		private static double getNowSeconds() {
-			return (double) DateTime.Now.Millisecond / 1000.0d;
+			return net.named_data.jndn.util.Common.getNowMilliseconds() / 1000.0d;
 		}
 	
 		private static String RSA_DER = "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAuFoDcNtffwbfFix64fw0"
