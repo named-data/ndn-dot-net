@@ -344,7 +344,8 @@ namespace net.named_data.jndn.encrypt {
 		public static void setFriendAccess(GroupManager.Friend  friend) {
 			if (friend
 							.GetType().FullName
-					.equals("src.net.named_data.jndn.tests.integration_tests.TestGroupManager")) {
+					.endsWith(
+							"net.named_data.jndn.tests.integration_tests.TestGroupManager")) {
 				friend.setGroupManagerFriendAccess(new GroupManager.FriendAccessImpl ());
 			}
 		}

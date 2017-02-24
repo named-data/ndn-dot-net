@@ -1342,10 +1342,12 @@ namespace net.named_data.jndn.security.policy {
 		public static void setFriendAccess(ConfigPolicyManager.Friend  friend) {
 			if (friend
 							.GetType().FullName
-					.equals("src.net.named_data.jndn.tests.integration_tests.TestPolicyManager")
+					.endsWith(
+							"net.named_data.jndn.tests.integration_tests.TestPolicyManager")
 					|| friend
 											.GetType().FullName
-							.equals("src.net.named_data.jndn.tests.integration_tests.TestVerificationRules")) {
+							.endsWith(
+									"net.named_data.jndn.tests.integration_tests.TestVerificationRules")) {
 				friend.setConfigPolicyManagerFriendAccess(new ConfigPolicyManager.FriendAccessImpl ());
 			}
 		}

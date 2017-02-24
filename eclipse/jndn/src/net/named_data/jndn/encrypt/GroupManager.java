@@ -24,7 +24,6 @@ import net.named_data.jndn.encrypt.algo.Encryptor;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -382,8 +381,8 @@ public class GroupManager {
    */
   public static void setFriendAccess(Friend friend)
   {
-    if (friend.getClass().getName().equals
-          ("src.net.named_data.jndn.tests.integration_tests.TestGroupManager"))
+    if (friend.getClass().getName().endsWith
+          ("net.named_data.jndn.tests.integration_tests.TestGroupManager"))
     {
       friend.setGroupManagerFriendAccess(new FriendAccessImpl());
     }
