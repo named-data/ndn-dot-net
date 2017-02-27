@@ -121,10 +121,11 @@ namespace net.named_data.jndn.tests.integration_tests {
 	
 			int[] expressInterestCallCount = new int[] { 0 };
 	
-			// Prepare a TestFace to instantly answer calls to expressInterest.
+			// Prepare a LocalTestFace to instantly answer calls to expressInterest.
 			
 	
-			TestProducer.TestFace  face = new TestProducer.TestFace (this, timeMarker, expressInterestCallCount);
+			TestProducer.LocalTestFace  face = new TestProducer.LocalTestFace (this, timeMarker,
+					expressInterestCallCount);
 	
 			// Verify that the content key is correctly encrypted for each domain, and
 			// the produce method encrypts the provided data with the same content key.
@@ -208,19 +209,20 @@ namespace net.named_data.jndn.tests.integration_tests {
 	
 			int[] requestCount = new int[] { 0 };
 	
-			// Prepare a TestFace to instantly answer calls to expressInterest.
+			// Prepare a LocalTestFace to instantly answer calls to expressInterest.
 			
 	
-			TestProducer.TestFace2  face = new TestProducer.TestFace2 (this, expectedInterest, timeMarkerFirstHop,
-					timeMarkerSecondHop, timeMarkerThirdHop, requestCount);
+			TestProducer.LocalTestFace2  face = new TestProducer.LocalTestFace2 (this, expectedInterest,
+					timeMarkerFirstHop, timeMarkerSecondHop, timeMarkerThirdHop,
+					requestCount);
 	
 			// Verify that if a key is found, but not within the right time slot, the
 			// search is refined until a valid time slot is found.
 			ProducerDb testDb = new Sqlite3ProducerDb(
 					databaseFilePath.FullName);
 			Producer producer = new Producer(prefix, suffix, face, keyChain, testDb);
-			producer.createContentKey(testTime, new TestProducer.Anonymous_C2 (expectedInterest, requestCount, cKeyName,
-					timeMarkerThirdHop));
+			producer.createContentKey(testTime, new TestProducer.Anonymous_C2 (timeMarkerThirdHop, requestCount, cKeyName,
+					expectedInterest));
 		}
 	
 		public void testContentKeyTimeout() {
@@ -235,10 +237,10 @@ namespace net.named_data.jndn.tests.integration_tests {
 	
 			int[] timeoutCount = new int[] { 0 };
 	
-			// Prepare a TestFace to instantly answer calls to expressInterest.
+			// Prepare a LocalTestFace to instantly answer calls to expressInterest.
 			
 	
-			TestProducer.TestFace3  face = new TestProducer.TestFace3 (expectedInterest, timeoutCount);
+			TestProducer.LocalTestFace3  face = new TestProducer.LocalTestFace3 (expectedInterest, timeoutCount);
 	
 			// Verify that if no response is received, the producer appropriately times
 			// out. The result vector should not contain elements that have timed out.
@@ -260,10 +262,10 @@ namespace net.named_data.jndn.tests.integration_tests {
 	
 			int[] timeoutCount = new int[] { 0 };
 	
-			// Prepare a TestFace to instantly answer calls to expressInterest.
+			// Prepare a LocalTestFace to instantly answer calls to expressInterest.
 			
 	
-			TestProducer.TestFace4  face = new TestProducer.TestFace4 (expectedInterest, timeoutCount);
+			TestProducer.LocalTestFace4  face = new TestProducer.LocalTestFace4 (expectedInterest, timeoutCount);
 	
 			// Verify that if no response is received, the producer appropriately times
 			// out. The result vector should not contain elements that have timed out.
@@ -321,17 +323,17 @@ namespace net.named_data.jndn.tests.integration_tests {
 			}
 		}
 		public sealed class Anonymous_C2 : Producer.OnEncryptedKeys {
-			private readonly Name expectedInterest;
+			private readonly Name timeMarkerThirdHop;
 			private readonly int[] requestCount;
 			private readonly Name cKeyName;
-			private readonly Name timeMarkerThirdHop;
+			private readonly Name expectedInterest;
 	
-			public Anonymous_C2(Name expectedInterest_0, int[] requestCount_1,
-					Name cKeyName_2, Name timeMarkerThirdHop_3) {
-				this.expectedInterest = expectedInterest_0;
+			public Anonymous_C2(Name timeMarkerThirdHop_0, int[] requestCount_1,
+					Name cKeyName_2, Name expectedInterest_3) {
+				this.timeMarkerThirdHop = timeMarkerThirdHop_0;
 				this.requestCount = requestCount_1;
 				this.cKeyName = cKeyName_2;
-				this.timeMarkerThirdHop = timeMarkerThirdHop_3;
+				this.expectedInterest = expectedInterest_3;
 			}
 	
 			public void onEncryptedKeys(IList result) {
@@ -371,9 +373,9 @@ namespace net.named_data.jndn.tests.integration_tests {
 				Assert.AssertEquals(0, result.Count);
 			}
 		}
-		public class TestFace : Face {
+		public class LocalTestFace : Face {
 				private TestProducer outer_TestProducer;
-				public TestFace(TestProducer producer, Name timeMarker, int[] expressInterestCallCount) : base("localhost") {
+				public LocalTestFace(TestProducer producer, Name timeMarker, int[] expressInterestCallCount) : base("localhost") {
 					outer_TestProducer = producer;
 		
 					timeMarker_ = timeMarker;
@@ -462,11 +464,11 @@ namespace net.named_data.jndn.tests.integration_tests {
 				private readonly Name cKeyName_;
 				private readonly ProducerDb testDb_;
 			}
-		public class TestFace2 : Face {
+		public class LocalTestFace2 : Face {
 				private TestProducer outer_TestProducer;
-				public TestFace2(TestProducer producer, Name expectedInterest_0, Name timeMarkerFirstHop,
-						Name timeMarkerSecondHop, Name timeMarkerThirdHop_1,
-						int[] requestCount_2) : base("localhost") {
+				public LocalTestFace2(TestProducer producer, Name expectedInterest_0,
+						Name timeMarkerFirstHop, Name timeMarkerSecondHop,
+						Name timeMarkerThirdHop_1, int[] requestCount_2) : base("localhost") {
 					outer_TestProducer = producer;
 		
 					expectedInterest_ = expectedInterest_0;
@@ -513,8 +515,8 @@ namespace net.named_data.jndn.tests.integration_tests {
 				private readonly Name timeMarkerThirdHop_;
 				private readonly int[] requestCount_;
 			}
-		internal class TestFace3 : Face {
-			public TestFace3(Name expectedInterest_0, int[] timeoutCount_1) : base("localhost") {
+		internal class LocalTestFace3 : Face {
+			public LocalTestFace3(Name expectedInterest_0, int[] timeoutCount_1) : base("localhost") {
 				expectedInterest_ = expectedInterest_0;
 				timeoutCount_ = timeoutCount_1;
 			}
@@ -532,8 +534,8 @@ namespace net.named_data.jndn.tests.integration_tests {
 			private readonly Name expectedInterest_;
 			private readonly int[] timeoutCount_;
 		}
-		internal class TestFace4 : Face {
-			public TestFace4(Name expectedInterest_0, int[] timeoutCount_1) : base("localhost") {
+		internal class LocalTestFace4 : Face {
+			public LocalTestFace4(Name expectedInterest_0, int[] timeoutCount_1) : base("localhost") {
 				expectedInterest_ = expectedInterest_0;
 				timeoutCount_ = timeoutCount_1;
 			}
@@ -554,7 +556,7 @@ namespace net.named_data.jndn.tests.integration_tests {
 			}
 	
 			private readonly Name expectedInterest_;
-			private readonly int[] timeoutCount_;
+			private int[] timeoutCount_;
 		}
 	}
 }

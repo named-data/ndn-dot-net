@@ -322,10 +322,10 @@ namespace net.named_data.jndn.tests.integration_tests {
 			int[] cKeyCount = new int[] { 0 };
 			int[] dKeyCount = new int[] { 0 };
 	
-			// Prepare a TestFace to instantly answer calls to expressInterest.
+			// Prepare a LocalTestFace to instantly answer calls to expressInterest.
 			
 	
-			TestGroupConsumer.TestFace  face = new TestGroupConsumer.TestFace (contentData, cKeyData, dKeyData,
+			TestGroupConsumer.LocalTestFace  face = new TestGroupConsumer.LocalTestFace (contentData, cKeyData, dKeyData,
 					contentCount, cKeyCount, dKeyCount);
 	
 			// Create the consumer.
@@ -351,11 +351,11 @@ namespace net.named_data.jndn.tests.integration_tests {
 			int[] cKeyCount = new int[] { 0 };
 			int[] dKeyCount = new int[] { 0 };
 	
-			// Prepare a TestFace to instantly answer calls to expressInterest.
+			// Prepare a LocalTestFace to instantly answer calls to expressInterest.
 			
 	
-			TestGroupConsumer.TestFace2  face = new TestGroupConsumer.TestFace2 (contentData, cKeyData, dKeyData,
-					contentCount, cKeyCount, dKeyCount);
+			TestGroupConsumer.LocalTestFace2  face = new TestGroupConsumer.LocalTestFace2 (contentData, cKeyData,
+					dKeyData, contentCount, cKeyCount, dKeyCount);
 	
 			// Create the consumer.
 			Link ckeyLink = new Link();
@@ -481,9 +481,10 @@ namespace net.named_data.jndn.tests.integration_tests {
 			}
 		}
 	
-		internal class TestFace : Face {
-			public TestFace(Data contentData, Data cKeyData, Data dKeyData,
-					int[] contentCount, int[] cKeyCount, int[] dKeyCount) : base("localhost") {
+		internal class LocalTestFace : Face {
+			public LocalTestFace(Data contentData, Data cKeyData,
+					Data dKeyData, int[] contentCount, int[] cKeyCount,
+					int[] dKeyCount) : base("localhost") {
 				contentData_ = contentData;
 				cKeyData_ = cKeyData;
 				dKeyData_ = dKeyData;
@@ -519,9 +520,10 @@ namespace net.named_data.jndn.tests.integration_tests {
 			private int[] dKeyCount_;
 		}
 	
-		internal class TestFace2 : Face {
-			public TestFace2(Data contentData, Data cKeyData, Data dKeyData,
-					int[] contentCount, int[] cKeyCount, int[] dKeyCount) : base("localhost") {
+		internal class LocalTestFace2 : Face {
+			public LocalTestFace2(Data contentData, Data cKeyData,
+					Data dKeyData, int[] contentCount, int[] cKeyCount,
+					int[] dKeyCount) : base("localhost") {
 				contentData_ = contentData;
 				cKeyData_ = cKeyData;
 				dKeyData_ = dKeyData;
