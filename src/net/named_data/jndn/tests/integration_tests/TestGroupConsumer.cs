@@ -342,7 +342,7 @@ namespace net.named_data.jndn.tests.integration_tests {
 			Assert.AssertEquals("finalCount", 1, finalCount[0]);
 		}
 	
-		public void testCosumerWithLink() {
+		public void testConsumerWithLink() {
 			Data contentData = createEncryptedContent();
 			Data cKeyData = createEncryptedCKey();
 			Data dKeyData = createEncryptedDKey();
