@@ -74,21 +74,22 @@ namespace JUnitDotNet {
               }
 
               // Invoke the test and print any error.
+              bool testFailed = false;
               try {
                 methodInfo.Invoke(testInstance, null);
               } catch (TargetInvocationException ex) {
                 ++nFailed;
+                testFailed = true;
                 Console.Out.WriteLine("FAIL: " + ex.InnerException.Message);
-                continue;
               }
 
               if (tearDownMethod != null) {
                 try {
                   tearDownMethod.Invoke(testInstance, null);
                 } catch (TargetInvocationException ex) {
-                  ++nFailed;
+                  if (!testFailed)
+                    ++nFailed;
                   Console.Out.WriteLine("FAIL in tearDown: " + ex.InnerException.Message);
-                  continue;
                 }
               }
             }
