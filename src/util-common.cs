@@ -238,6 +238,16 @@ namespace net.named_data.jndn.util
         return new FileInfo(Environment.ExpandEnvironmentVariables("%HOMEDRIVE%%HOMEPATH%"));
     }
 
+    /// <summary>
+    /// Get the current directory.
+    /// </summary>
+    /// <returns>The current directory as a FileInfo object.</returns>
+    public static FileInfo
+    getCurrentDirectory()
+    {
+      return new FileInfo(Directory.GetCurrentDirectory());
+    }
+
     private static SecureRandom randomNumberGenerator_;
     private static SHA256 sha256_ = SHA256Managed.Create();
     private static DateTime unixEpoch_ = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
