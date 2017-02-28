@@ -51,9 +51,14 @@ namespace net.named_data.jndn.tests.integration_tests {
 			FilePrivateKeyStorage instance = new FilePrivateKeyStorage();
 			try {
 				instance.deleteKey(new Name("/test/KEY/123"));
-				instance.deleteKey(new Name("/test/KEY/temp1"));
 			} catch (Exception e) {
 				System.Console.Error.WriteLine("Failed to clean up generated keys");
+			}
+	
+			try {
+				instance.deleteKey(new Name("/test/KEY/temp1"));
+			} catch (Exception e_0) {
+				// Not all tests create this key so ignore if we don't delete it.
 			}
 		}
 	
