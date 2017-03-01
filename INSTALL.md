@@ -1,5 +1,60 @@
-NDN-DOT-NET:  A Named Data Networking client library for the .NET Framework
-===========================================================================
+NDN-DOT-NET: A Named Data Networking client library for the .NET Framework
+==========================================================================
+
+NDN-DOT-NET has been tested with Xamarin Studio on:
+
+ * OS X 10.10, OS X 10.11 and macOS 10.12
+ * 64-bit Ubuntu 16.04 and 16.10.
+
+Prerequisites
+=============
+
+In your application project, you must add a reference to the following assemblies:
+
+* System
+* System.Data
+* Mono.Data.Sqlite
+
+Build
+=====
+
+In the following, <NDN-DOT-NET root> is the root folder of the NDN-DOT-NET distribution.
+
+## Using ndn-dot-net.dll
+
+The easiest way to make you application is to add a reference to
+`<NDN-DOT-NET root>/bin/ndn-dot-net.dll` .
+
+## Using the src files
+
+Alternatively, if you want to experiment with changing the source code or you want
+to statically link, then add all the *.cs files in the folder `<NDN-DOT-NET root>/src` 
+(and all subfolders).
+
+## Examples
+
+To run an example, add `ndn-dot-net.dll` (or the src files, see above). Then add 
+one of the files in the folder `<NDN-DOT-NET root>/examples` . For example, 
+`<NDN-DOT-NET root>/examples/test-encode-decode-data.cs` .
+
+## Unit tests
+
+To run the unit tests, add `ndn-dot-net.dll` (or the src files, see above). Then add
+all of the files in the folder `<NDN-DOT-NET root>/tests/unit_tests` .
+Also add `<NDN-DOT-NET root>/tests/junit-dot-net.cs` (a JUnit utility) and 
+`<NDN-DOT-NET root>/tests/run-unit-tests.cs` (which has the `main` method).
+
+## Integration tests
+
+To run the integration tests, The local NFD must be running. Add `ndn-dot-net.dll` 
+(or the src files, see above). Then add all of the files in 
+the folder `<NDN-DOT-NET root>/tests/integration_tests` .
+Also add `<NDN-DOT-NET root>/tests/junit-dot-net.cs` (a JUnit utility) and 
+`<NDN-DOT-NET root>/tests/run-integration-tests.cs` (which has the `main` method).
+Finally, the executable needs to access the test files. In a terminal change directory 
+to the directory of the executable. Enter:
+
+    ln -s <NDN-DOT-NET root>/eclipse/jndn/src/net
 
 Java to C# Translation Prerequisites
 ====================================
