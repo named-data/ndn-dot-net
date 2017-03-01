@@ -16,6 +16,7 @@
 # Remove unused generated enum Extension classes.
 # Remove the generated TcpTransport.cs since we use src/tcp-transport.cs .
 # Remove the generated Common.cs since we use src/util-common.cs .
+# Move unit_tests and integration_tests to the top tests folder.
 
 (unset LANG; find . -type f -exec sed -i '' 's/^\/\/ [0-9][0-9]*\/[0-9][0-9]*\/[0-9][0-9] [0-9][0-9]*:[0-9][0-9] [AP]M *$/\/\//g' {} +)
 (unset LANG; find . -type f -exec sed -i '' 's/public override bool equals(Object other)/public override bool Equals(Object other)/g' {} +)
@@ -45,3 +46,5 @@ rm named_data/jndn/*Extension.cs named_data/jndn/encrypt/*Extension.cs named_dat
 rm named_data/jndn/security/*Extension.cs named_data/jndn/util/*Extension.cs
 rm named_data/jndn/transport/TcpTransport.cs
 rm named_data/jndn/util/Common.cs
+mv named_data/jndn/tests/unit_tests ../../tests
+mv named_data/jndn/tests/integration_tests/ ../../tests
