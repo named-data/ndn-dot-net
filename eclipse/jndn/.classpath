@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry excluding="net/named_data/jndn/encoding/ProtobufTlv.java|net/named_data/jndn/encrypt/AndroidSqlite3ConsumerDb.java|net/named_data/jndn/encrypt/AndroidSqlite3GroupManagerDb.java|net/named_data/jndn/encrypt/AndroidSqlite3ProducerDb.java|net/named_data/jndn/security/identity/AndroidSqlite3IdentityStorage.java|net/named_data/jndn/sync/ChronoSync2013.java|net/named_data/jndn/sync/SyncStateProto.java|net/named_data/jndn/transport/AsyncTcpTransport.java|net/named_data/jndn/transport/UdpTransport.java" kind="src" path="src"/>
+	<classpathentry excluding="net/named_data/jndn/encoding/ProtobufTlv.java|net/named_data/jndn/encrypt/AndroidSqlite3ConsumerDb.java|net/named_data/jndn/encrypt/AndroidSqlite3GroupManagerDb.java|net/named_data/jndn/encrypt/AndroidSqlite3ProducerDb.java|net/named_data/jndn/security/identity/AndroidSqlite3IdentityStorage.java|net/named_data/jndn/sync/ChronoSync2013.java|net/named_data/jndn/sync/SyncStateProto.java|net/named_data/jndn/transport/AsyncTcpTransport.java|net/named_data/jndn/transport/UdpTransport.java|net/named_data/jndn/ThreadPoolFace.java" kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
