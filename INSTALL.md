@@ -18,7 +18,7 @@ In your application project, you must add a reference to the following assemblie
 Build
 =====
 
-In the following, <NDN-DOT-NET root> is the root folder of the NDN-DOT-NET distribution.
+In the following, `<NDN-DOT-NET root>` is the root folder of the NDN-DOT-NET distribution.
 
 ## Using ndn-dot-net.dll
 
@@ -54,7 +54,8 @@ Also add `<NDN-DOT-NET root>/tests/junit-dot-net.cs` (a JUnit utility) and
 Finally, the executable needs to access the test files. In a terminal change directory 
 to the directory of the executable. Enter:
 
-    ln -s <NDN-DOT-NET root>/eclipse/jndn/src/net
+    mkdir tests
+    ln -s <NDN-DOT-NET root>/eclipse/jndn/src tests/src
 
 Java to C# Translation Prerequisites
 ====================================
