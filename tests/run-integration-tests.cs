@@ -27,8 +27,6 @@ namespace TestNdnDotNet {
     /// </summary>
     static void Main(string[] args)
     {
-      int nFailed = 0;
-
       // Use IntegrationTestsCommon just to get its Assembly.
       var assembly = typeof(net.named_data.jndn.tests.integration_tests.IntegrationTestsCommon).Assembly;
       JUnit.runTests(assembly, "net.named_data.jndn.tests.integration_tests");
