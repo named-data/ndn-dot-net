@@ -73,10 +73,11 @@ These steps are only needed to do the translation from jNDN Java files to C#
 Java to C# Translation
 ======================
 * Replace the snapshot in `ndn-dot-net/eclipse/jndn/src/net` with the updated jNDN
-  files from `jndn/src/net` . Also replace `ndn-dot-net/eclipse/jndn/src/net/named_data/jndn/tests`
-  with the files from `jndn/tests/src/net/named_data/jndn/tests` .
+  files from `jndn/src/net` . Also copy `jndn/tests/src/net/named_data/jndn/tests` to
+  `ndn-dot-net/eclipse/jndn/src/net/named_data/jndn/tests` .
 * In a terminal, change directory to the new folder 
-  jndn/tests/src/net/named_data/jndn/tests/integration_tests, run the following to fix the namespace.
+  `ndn-dot-net/eclipse/jndn/src/net/named_data/jndn/tests/integration_tests`, 
+  run the following to fix the namespace.
 
     sed -i '' 's/package src\.net\.named_data\.jndn\.tests\.integration_tests/package net.named_data.jndn.tests.integration_tests/g' *.java
 
