@@ -46,5 +46,7 @@ rm named_data/jndn/*Extension.cs named_data/jndn/encrypt/*Extension.cs named_dat
 rm named_data/jndn/security/*Extension.cs named_data/jndn/util/*Extension.cs
 rm named_data/jndn/transport/TcpTransport.cs
 rm named_data/jndn/util/Common.cs
+rm -rf ../../tests/unit_tests
 mv named_data/jndn/tests/unit_tests ../../tests
+rm -rf ../../tests/integration_tests
 mv named_data/jndn/tests/integration_tests/ ../../tests
