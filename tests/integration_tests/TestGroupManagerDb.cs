@@ -263,8 +263,8 @@ namespace net.named_data.jndn.tests.integration_tests {
 				Assert.Fail("Error decoding Schedule: " + ex_8.Message);
 			}
 			RepetitiveInterval repetitiveInterval = new RepetitiveInterval(
-					net.named_data.jndn.tests.unit_tests.UnitTestsCommon.fromIsoString("20150825T000000"),
-					net.named_data.jndn.tests.unit_tests.UnitTestsCommon.fromIsoString("20150921T000000"), 2, 10, 5,
+					net.named_data.jndn.encrypt.Schedule.fromIsoString("20150825T000000"),
+					net.named_data.jndn.encrypt.Schedule.fromIsoString("20150921T000000"), 2, 10, 5,
 					net.named_data.jndn.encrypt.RepetitiveInterval.RepeatUnit.DAY);
 			newSchedule.addWhiteInterval(repetitiveInterval);
 			database.updateSchedule("rieber-time", newSchedule);

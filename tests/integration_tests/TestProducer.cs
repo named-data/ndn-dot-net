@@ -103,8 +103,8 @@ namespace net.named_data.jndn.tests.integration_tests {
 			cKeyName.append(net.named_data.jndn.encrypt.algo.Encryptor.NAME_COMPONENT_C_KEY);
 	
 			Name timeMarker = new Name("20150101T100000/20150101T120000");
-			double testTime1 = net.named_data.jndn.tests.unit_tests.UnitTestsCommon.fromIsoString("20150101T100001");
-			double testTime2 = net.named_data.jndn.tests.unit_tests.UnitTestsCommon.fromIsoString("20150101T110001");
+			double testTime1 = net.named_data.jndn.encrypt.Schedule.fromIsoString("20150101T100001");
+			double testTime2 = net.named_data.jndn.encrypt.Schedule.fromIsoString("20150101T110001");
 			Name.Component testTimeRounded1 = new Name.Component(
 					"20150101T100000");
 			Name.Component testTimeRounded2 = new Name.Component(
@@ -141,14 +141,14 @@ namespace net.named_data.jndn.tests.integration_tests {
 	
 			// An initial test to confirm that keys are created for this time slot.
 			Name contentKeyName1 = producer.createContentKey(testTime1,
-					new TestProducer.Anonymous_C4 (testTimeRounded1, checkEncryptionKeys,
-							testTime1));
+					new TestProducer.Anonymous_C4 (checkEncryptionKeys, testTime1,
+							testTimeRounded1));
 	
 			// Verify that we do not repeat the search for e-keys. The total
 			//   expressInterestCallCount should be the same.
 			Name contentKeyName2 = producer.createContentKey(testTime2,
-					new TestProducer.Anonymous_C3 (testTimeRounded2, testTime2,
-							checkEncryptionKeys));
+					new TestProducer.Anonymous_C3 (testTimeRounded2, checkEncryptionKeys,
+							testTime2));
 	
 			// Confirm content key names are correct
 			Assert.AssertEquals(cKeyName, contentKeyName1.getPrefix(-1));
@@ -200,7 +200,7 @@ namespace net.named_data.jndn.tests.integration_tests {
 			cKeyName.append(suffix);
 			cKeyName.append(net.named_data.jndn.encrypt.algo.Encryptor.NAME_COMPONENT_C_KEY);
 	
-			double testTime = net.named_data.jndn.tests.unit_tests.UnitTestsCommon.fromIsoString("20150101T100001");
+			double testTime = net.named_data.jndn.encrypt.Schedule.fromIsoString("20150101T100001");
 	
 			// Create content keys required for this test case:
 			createEncryptionKey(expectedInterest, timeMarkerFirstHop);
@@ -221,8 +221,8 @@ namespace net.named_data.jndn.tests.integration_tests {
 			ProducerDb testDb = new Sqlite3ProducerDb(
 					databaseFilePath.FullName);
 			Producer producer = new Producer(prefix, suffix, face, keyChain, testDb);
-			producer.createContentKey(testTime, new TestProducer.Anonymous_C2 (timeMarkerThirdHop, requestCount, cKeyName,
-					expectedInterest));
+			producer.createContentKey(testTime, new TestProducer.Anonymous_C2 (expectedInterest, requestCount, cKeyName,
+					timeMarkerThirdHop));
 		}
 	
 		public void testContentKeyTimeout() {
@@ -233,7 +233,7 @@ namespace net.named_data.jndn.tests.integration_tests {
 			expectedInterest.append(suffix);
 			expectedInterest.append(net.named_data.jndn.encrypt.algo.Encryptor.NAME_COMPONENT_E_KEY);
 	
-			double testTime = net.named_data.jndn.tests.unit_tests.UnitTestsCommon.fromIsoString("20150101T100001");
+			double testTime = net.named_data.jndn.encrypt.Schedule.fromIsoString("20150101T100001");
 	
 			int[] timeoutCount = new int[] { 0 };
 	
@@ -258,7 +258,7 @@ namespace net.named_data.jndn.tests.integration_tests {
 			expectedInterest.append(suffix);
 			expectedInterest.append(net.named_data.jndn.encrypt.algo.Encryptor.NAME_COMPONENT_E_KEY);
 	
-			double testTime = net.named_data.jndn.tests.unit_tests.UnitTestsCommon.fromIsoString("20150101T100001");
+			double testTime = net.named_data.jndn.encrypt.Schedule.fromIsoString("20150101T100001");
 	
 			int[] timeoutCount = new int[] { 0 };
 	
@@ -289,15 +289,15 @@ namespace net.named_data.jndn.tests.integration_tests {
 		internal IDictionary decryptionKeys; // key: Name, value: Blob
 		internal IDictionary encryptionKeys; // key: Name, value: Data
 		public sealed class Anonymous_C4 : Producer.OnEncryptedKeys {
-			private readonly net.named_data.jndn.Name.Component  testTimeRounded1;
 			private readonly TestProducer.CheckEncryptionKeys  checkEncryptionKeys;
 			private readonly double testTime1;
+			private readonly net.named_data.jndn.Name.Component  testTimeRounded1;
 	
-			public Anonymous_C4(net.named_data.jndn.Name.Component  testTimeRounded1_0,
-					TestProducer.CheckEncryptionKeys  checkEncryptionKeys_1, double testTime1_2) {
-				this.testTimeRounded1 = testTimeRounded1_0;
-				this.checkEncryptionKeys = checkEncryptionKeys_1;
-				this.testTime1 = testTime1_2;
+			public Anonymous_C4(TestProducer.CheckEncryptionKeys  checkEncryptionKeys_0,
+					double testTime1_1, net.named_data.jndn.Name.Component  testTimeRounded1_2) {
+				this.checkEncryptionKeys = checkEncryptionKeys_0;
+				this.testTime1 = testTime1_1;
+				this.testTimeRounded1 = testTimeRounded1_2;
 			}
 	
 			public void onEncryptedKeys(IList keys) {
@@ -307,14 +307,14 @@ namespace net.named_data.jndn.tests.integration_tests {
 		}
 		public sealed class Anonymous_C3 : Producer.OnEncryptedKeys {
 			private readonly net.named_data.jndn.Name.Component  testTimeRounded2;
-			private readonly double testTime2;
 			private readonly TestProducer.CheckEncryptionKeys  checkEncryptionKeys;
+			private readonly double testTime2;
 	
-			public Anonymous_C3(net.named_data.jndn.Name.Component  testTimeRounded2_0, double testTime2_1,
-					TestProducer.CheckEncryptionKeys  checkEncryptionKeys_2) {
+			public Anonymous_C3(net.named_data.jndn.Name.Component  testTimeRounded2_0,
+					TestProducer.CheckEncryptionKeys  checkEncryptionKeys_1, double testTime2_2) {
 				this.testTimeRounded2 = testTimeRounded2_0;
-				this.testTime2 = testTime2_1;
-				this.checkEncryptionKeys = checkEncryptionKeys_2;
+				this.checkEncryptionKeys = checkEncryptionKeys_1;
+				this.testTime2 = testTime2_2;
 			}
 	
 			public void onEncryptedKeys(IList keys) {
@@ -323,17 +323,17 @@ namespace net.named_data.jndn.tests.integration_tests {
 			}
 		}
 		public sealed class Anonymous_C2 : Producer.OnEncryptedKeys {
-			private readonly Name timeMarkerThirdHop;
+			private readonly Name expectedInterest;
 			private readonly int[] requestCount;
 			private readonly Name cKeyName;
-			private readonly Name expectedInterest;
+			private readonly Name timeMarkerThirdHop;
 	
-			public Anonymous_C2(Name timeMarkerThirdHop_0, int[] requestCount_1,
-					Name cKeyName_2, Name expectedInterest_3) {
-				this.timeMarkerThirdHop = timeMarkerThirdHop_0;
+			public Anonymous_C2(Name expectedInterest_0, int[] requestCount_1,
+					Name cKeyName_2, Name timeMarkerThirdHop_3) {
+				this.expectedInterest = expectedInterest_0;
 				this.requestCount = requestCount_1;
 				this.cKeyName = cKeyName_2;
-				this.expectedInterest = expectedInterest_3;
+				this.timeMarkerThirdHop = timeMarkerThirdHop_3;
 			}
 	
 			public void onEncryptedKeys(IList result) {

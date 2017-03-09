@@ -16,6 +16,7 @@ namespace net.named_data.jndn.tests.integration_tests {
 	using System.ComponentModel;
 	using System.IO;
 	using System.Runtime.CompilerServices;
+	using net.named_data.jndn.encoding;
 	using net.named_data.jndn.encrypt;
 	using net.named_data.jndn.security;
 	using net.named_data.jndn.util;
@@ -44,10 +45,10 @@ namespace net.named_data.jndn.tests.integration_tests {
 			Blob keyBlob1 = net.named_data.jndn.encrypt.algo.AesAlgorithm.generateKey(paras).getKeyBits();
 			Blob keyBlob2 = net.named_data.jndn.encrypt.algo.AesAlgorithm.generateKey(paras).getKeyBits();
 	
-			double point1 = net.named_data.jndn.tests.unit_tests.UnitTestsCommon.fromIsoString("20150101T100000");
-			double point2 = net.named_data.jndn.tests.unit_tests.UnitTestsCommon.fromIsoString("20150102T100000");
-			double point3 = net.named_data.jndn.tests.unit_tests.UnitTestsCommon.fromIsoString("20150103T100000");
-			double point4 = net.named_data.jndn.tests.unit_tests.UnitTestsCommon.fromIsoString("20150104T100000");
+			double point1 = net.named_data.jndn.encrypt.Schedule.fromIsoString("20150101T100000");
+			double point2 = net.named_data.jndn.encrypt.Schedule.fromIsoString("20150102T100000");
+			double point3 = net.named_data.jndn.encrypt.Schedule.fromIsoString("20150103T100000");
+			double point4 = net.named_data.jndn.encrypt.Schedule.fromIsoString("20150104T100000");
 	
 			// Add keys into the database.
 			database.addContentKey(point1, keyBlob1);

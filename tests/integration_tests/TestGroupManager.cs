@@ -137,16 +137,16 @@ namespace net.named_data.jndn.tests.integration_tests {
 			// Set up the first schedule.
 			Schedule schedule1 = new Schedule();
 			RepetitiveInterval interval11 = new RepetitiveInterval(
-					net.named_data.jndn.tests.unit_tests.UnitTestsCommon.fromIsoString("20150825T000000"),
-					net.named_data.jndn.tests.unit_tests.UnitTestsCommon.fromIsoString("20150827T000000"), 5, 10, 2,
+					net.named_data.jndn.encrypt.Schedule.fromIsoString("20150825T000000"),
+					net.named_data.jndn.encrypt.Schedule.fromIsoString("20150827T000000"), 5, 10, 2,
 					net.named_data.jndn.encrypt.RepetitiveInterval.RepeatUnit.DAY);
 			RepetitiveInterval interval12 = new RepetitiveInterval(
-					net.named_data.jndn.tests.unit_tests.UnitTestsCommon.fromIsoString("20150825T000000"),
-					net.named_data.jndn.tests.unit_tests.UnitTestsCommon.fromIsoString("20150827T000000"), 6, 8, 1,
+					net.named_data.jndn.encrypt.Schedule.fromIsoString("20150825T000000"),
+					net.named_data.jndn.encrypt.Schedule.fromIsoString("20150827T000000"), 6, 8, 1,
 					net.named_data.jndn.encrypt.RepetitiveInterval.RepeatUnit.DAY);
 			RepetitiveInterval interval13 = new RepetitiveInterval(
-					net.named_data.jndn.tests.unit_tests.UnitTestsCommon.fromIsoString("20150827T000000"),
-					net.named_data.jndn.tests.unit_tests.UnitTestsCommon.fromIsoString("20150827T000000"), 7, 8);
+					net.named_data.jndn.encrypt.Schedule.fromIsoString("20150827T000000"),
+					net.named_data.jndn.encrypt.Schedule.fromIsoString("20150827T000000"), 7, 8);
 			schedule1.addWhiteInterval(interval11);
 			schedule1.addWhiteInterval(interval12);
 			schedule1.addBlackInterval(interval13);
@@ -154,15 +154,15 @@ namespace net.named_data.jndn.tests.integration_tests {
 			// Set up the second schedule.
 			Schedule schedule2 = new Schedule();
 			RepetitiveInterval interval21 = new RepetitiveInterval(
-					net.named_data.jndn.tests.unit_tests.UnitTestsCommon.fromIsoString("20150825T000000"),
-					net.named_data.jndn.tests.unit_tests.UnitTestsCommon.fromIsoString("20150827T000000"), 9, 12, 1,
+					net.named_data.jndn.encrypt.Schedule.fromIsoString("20150825T000000"),
+					net.named_data.jndn.encrypt.Schedule.fromIsoString("20150827T000000"), 9, 12, 1,
 					net.named_data.jndn.encrypt.RepetitiveInterval.RepeatUnit.DAY);
 			RepetitiveInterval interval22 = new RepetitiveInterval(
-					net.named_data.jndn.tests.unit_tests.UnitTestsCommon.fromIsoString("20150827T000000"),
-					net.named_data.jndn.tests.unit_tests.UnitTestsCommon.fromIsoString("20150827T000000"), 6, 8);
+					net.named_data.jndn.encrypt.Schedule.fromIsoString("20150827T000000"),
+					net.named_data.jndn.encrypt.Schedule.fromIsoString("20150827T000000"), 6, 8);
 			RepetitiveInterval interval23 = new RepetitiveInterval(
-					net.named_data.jndn.tests.unit_tests.UnitTestsCommon.fromIsoString("20150827T000000"),
-					net.named_data.jndn.tests.unit_tests.UnitTestsCommon.fromIsoString("20150827T000000"), 2, 4);
+					net.named_data.jndn.encrypt.Schedule.fromIsoString("20150827T000000"),
+					net.named_data.jndn.encrypt.Schedule.fromIsoString("20150827T000000"), 2, 4);
 			schedule2.addWhiteInterval(interval21);
 			schedule2.addWhiteInterval(interval22);
 			schedule2.addBlackInterval(interval23);
@@ -275,28 +275,28 @@ namespace net.named_data.jndn.tests.integration_tests {
 			IDictionary memberKeys = new Hashtable();
 			Interval result;
 	
-			double timePoint1 = net.named_data.jndn.tests.unit_tests.UnitTestsCommon.fromIsoString("20150825T093000");
+			double timePoint1 = net.named_data.jndn.encrypt.Schedule.fromIsoString("20150825T093000");
 			result = friendAccess
 					.calculateInterval(manager, timePoint1, memberKeys);
-			Assert.AssertEquals("20150825T090000", net.named_data.jndn.tests.unit_tests.UnitTestsCommon.toIsoString(result.getStartTime()));
-			Assert.AssertEquals("20150825T100000", net.named_data.jndn.tests.unit_tests.UnitTestsCommon.toIsoString(result.getEndTime()));
+			Assert.AssertEquals("20150825T090000", net.named_data.jndn.encrypt.Schedule.toIsoString(result.getStartTime()));
+			Assert.AssertEquals("20150825T100000", net.named_data.jndn.encrypt.Schedule.toIsoString(result.getEndTime()));
 	
-			double timePoint2 = net.named_data.jndn.tests.unit_tests.UnitTestsCommon.fromIsoString("20150827T073000");
+			double timePoint2 = net.named_data.jndn.encrypt.Schedule.fromIsoString("20150827T073000");
 			result = friendAccess
 					.calculateInterval(manager, timePoint2, memberKeys);
-			Assert.AssertEquals("20150827T070000", net.named_data.jndn.tests.unit_tests.UnitTestsCommon.toIsoString(result.getStartTime()));
-			Assert.AssertEquals("20150827T080000", net.named_data.jndn.tests.unit_tests.UnitTestsCommon.toIsoString(result.getEndTime()));
+			Assert.AssertEquals("20150827T070000", net.named_data.jndn.encrypt.Schedule.toIsoString(result.getStartTime()));
+			Assert.AssertEquals("20150827T080000", net.named_data.jndn.encrypt.Schedule.toIsoString(result.getEndTime()));
 	
-			double timePoint3 = net.named_data.jndn.tests.unit_tests.UnitTestsCommon.fromIsoString("20150827T043000");
+			double timePoint3 = net.named_data.jndn.encrypt.Schedule.fromIsoString("20150827T043000");
 			result = friendAccess
 					.calculateInterval(manager, timePoint3, memberKeys);
 			Assert.AssertEquals(false, result.isValid());
 	
-			double timePoint4 = net.named_data.jndn.tests.unit_tests.UnitTestsCommon.fromIsoString("20150827T053000");
+			double timePoint4 = net.named_data.jndn.encrypt.Schedule.fromIsoString("20150827T053000");
 			result = friendAccess
 					.calculateInterval(manager, timePoint4, memberKeys);
-			Assert.AssertEquals("20150827T050000", net.named_data.jndn.tests.unit_tests.UnitTestsCommon.toIsoString(result.getStartTime()));
-			Assert.AssertEquals("20150827T060000", net.named_data.jndn.tests.unit_tests.UnitTestsCommon.toIsoString(result.getEndTime()));
+			Assert.AssertEquals("20150827T050000", net.named_data.jndn.encrypt.Schedule.toIsoString(result.getStartTime()));
+			Assert.AssertEquals("20150827T060000", net.named_data.jndn.encrypt.Schedule.toIsoString(result.getEndTime()));
 		}
 	
 		public void testGetGroupKey() {
@@ -307,7 +307,7 @@ namespace net.named_data.jndn.tests.integration_tests {
 			setManager(manager);
 	
 			// Get the data list from the group manager.
-			double timePoint1 = net.named_data.jndn.tests.unit_tests.UnitTestsCommon.fromIsoString("20150825T093000");
+			double timePoint1 = net.named_data.jndn.encrypt.Schedule.fromIsoString("20150825T093000");
 			IList result = manager.getGroupKey(timePoint1);
 	
 			Assert.AssertEquals(4, result.Count);
@@ -381,10 +381,10 @@ namespace net.named_data.jndn.tests.integration_tests {
 					data.getName().toUri());
 	
 			// Check invalid time stamps for getting the group key.
-			double timePoint2 = net.named_data.jndn.tests.unit_tests.UnitTestsCommon.fromIsoString("20150826T083000");
+			double timePoint2 = net.named_data.jndn.encrypt.Schedule.fromIsoString("20150826T083000");
 			Assert.AssertEquals(0, manager.getGroupKey(timePoint2).Count);
 	
-			double timePoint3 = net.named_data.jndn.tests.unit_tests.UnitTestsCommon.fromIsoString("20150827T023000");
+			double timePoint3 = net.named_data.jndn.encrypt.Schedule.fromIsoString("20150827T023000");
 			Assert.AssertEquals(0, manager.getGroupKey(timePoint3).Count);
 		}
 	
