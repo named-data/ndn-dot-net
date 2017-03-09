@@ -1,10 +1,14 @@
 NDN-DOT-NET: A Named Data Networking client library for the .NET Framework
 ==========================================================================
 
-NDN-DOT-NET has been tested with Xamarin Studio on:
+NDN-DOT-NET has been tested with Mono and Xamarin Studio on:
 
  * OS X 10.10, OS X 10.11 and macOS 10.12
  * 64-bit Ubuntu 16.04 and 16.10.
+
+NDN-DOT-NET has been tested with Microsoft .NET Framework and Visual Studio on:
+
+ * Windows 7 64-bit
 
 Prerequisites
 =============
@@ -13,7 +17,7 @@ In your application project, you must add a reference to the following assemblie
 
 * System
 * System.Data
-* Mono.Data.Sqlite
+* Mono.Data.Sqlite (if not using Microsoft .NET assemblies)
 
 Build
 =====
