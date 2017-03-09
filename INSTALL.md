@@ -23,7 +23,11 @@ In the following, `<NDN-DOT-NET root>` is the root folder of the NDN-DOT-NET dis
 ## Using ndn-dot-net.dll
 
 The easiest way to make you application is to add a reference to
-`<NDN-DOT-NET root>/bin/ndn-dot-net.dll` .
+`<NDN-DOT-NET root>/bin/ndn-dot-net.dll` . 
+
+The DLL is built for .NET Framework 3.5 (for use in Unity). If your 
+application is for a different .NET Framework 4.0 version then some 
+assemblies may not load, in which case you should build from src as follows.
 
 ## Using the src files
 
@@ -46,9 +50,9 @@ Also add `<NDN-DOT-NET root>/tests/junit-dot-net.cs` (a JUnit utility) and
 
 ## Integration tests
 
-To run the integration tests, The local NFD must be running. Add `ndn-dot-net.dll` 
-(or the src files, see above). Then add all of the files in 
-the folder `<NDN-DOT-NET root>/tests/integration_tests` .
+To run the integration tests, The local NFD must be running. Add the src files (see above). 
+Then add all of the files in the folder 
+`<NDN-DOT-NET root>/tests/integration_tests` .
 Also add `<NDN-DOT-NET root>/tests/junit-dot-net.cs` (a JUnit utility) and 
 `<NDN-DOT-NET root>/tests/run-integration-tests.cs` (which has the `main` method).
 Finally, the executable needs to access the test files. In a terminal change directory 
