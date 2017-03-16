@@ -160,6 +160,20 @@ public class Certificate extends Data {
   }
 
   /**
+   * Get the public key DER encoding.
+   * @return The DER encoding Blob.
+   * @throws Error if the public key is not set.
+   */
+  public final Blob
+  getPublicKeyDer()
+  {
+    if (key_.getKeyDer().isNull())
+      throw new Error("The public key is not set");
+
+    return key_.getKeyDer();
+  }
+
+  /**
    * Check if the certificate is valid.
    * @return True if the current time is earlier than notBefore.
    */
@@ -167,7 +181,7 @@ public class Certificate extends Data {
   isTooEarly()
   {
     double now = Common.getNowMilliseconds();
-    return now < notBefore_;
+    return now < getNotBefore();
   }
 
   /**
@@ -178,7 +192,7 @@ public class Certificate extends Data {
   isTooLate()
   {
     double now = Common.getNowMilliseconds();
-    return now > notAfter_;
+    return now > getNotAfter();
   }
 
   public final boolean
@@ -198,8 +212,8 @@ public class Certificate extends Data {
   {
     DerSequence root = new DerSequence();
     DerSequence validity = new DerSequence();
-    DerGeneralizedTime notBefore = new DerGeneralizedTime(notBefore_);
-    DerGeneralizedTime notAfter = new DerGeneralizedTime(notAfter_);
+    DerGeneralizedTime notBefore = new DerGeneralizedTime(getNotBefore());
+    DerGeneralizedTime notAfter = new DerGeneralizedTime(getNotAfter());
 
     validity.addChild(notBefore);
     validity.addChild(notAfter);
@@ -287,9 +301,9 @@ public class Certificate extends Data {
     SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMdd'T'HHmmss");
     dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
     String notBeforeStr = dateFormat.format
-      (Common.millisecondsSince1970ToDate((long)Math.round(notBefore_)));
+      (Common.millisecondsSince1970ToDate((long)Math.round(getNotBefore())));
     String notAfterStr = dateFormat.format
-      (Common.millisecondsSince1970ToDate((long)Math.round(notAfter_)));
+      (Common.millisecondsSince1970ToDate((long)Math.round(getNotAfter())));
 
     s += "  NotBefore: " + notBeforeStr + "\n";
     s += "  NotAfter: " + notAfterStr + "\n";
@@ -301,7 +315,7 @@ public class Certificate extends Data {
     }
 
     s += "Public key bits:\n";
-    Blob keyDer = key_.getKeyDer();
+    Blob keyDer = getPublicKeyDer();
     String encodedKey = Common.base64Encode(keyDer.getImmutableArray());
     for (int i = 0; i < encodedKey.length(); i += 64)
       s += encodedKey.substring(i, Math.min(i + 64, encodedKey.length())) + "\n";

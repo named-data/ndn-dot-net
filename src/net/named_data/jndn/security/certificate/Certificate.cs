@@ -129,13 +129,26 @@ namespace net.named_data.jndn.security.certificate {
 		}
 	
 		/// <summary>
+		/// Get the public key DER encoding.
+		/// </summary>
+		///
+		/// <returns>The DER encoding Blob.</returns>
+		/// <exception cref="System.Exception">if the public key is not set.</exception>
+		public Blob getPublicKeyDer() {
+			if (key_.getKeyDer().isNull())
+				throw new Exception("The public key is not set");
+	
+			return key_.getKeyDer();
+		}
+	
+		/// <summary>
 		/// Check if the certificate is valid.
 		/// </summary>
 		///
 		/// <returns>True if the current time is earlier than notBefore.</returns>
 		public bool isTooEarly() {
 			double now = net.named_data.jndn.util.Common.getNowMilliseconds();
-			return now < notBefore_;
+			return now < getNotBefore();
 		}
 	
 		/// <summary>
@@ -145,7 +158,7 @@ namespace net.named_data.jndn.security.certificate {
 		/// <returns>True if the current time is later than notAfter.</returns>
 		public bool isTooLate() {
 			double now = net.named_data.jndn.util.Common.getNowMilliseconds();
-			return now > notAfter_;
+			return now > getNotAfter();
 		}
 	
 		public bool isInValidityPeriod(double time) {
@@ -162,8 +175,8 @@ namespace net.named_data.jndn.security.certificate {
 		private net.named_data.jndn.encoding.der.DerNode.DerSequence  toDer() {
 			net.named_data.jndn.encoding.der.DerNode.DerSequence  root = new net.named_data.jndn.encoding.der.DerNode.DerSequence ();
 			net.named_data.jndn.encoding.der.DerNode.DerSequence  validity = new net.named_data.jndn.encoding.der.DerNode.DerSequence ();
-			net.named_data.jndn.encoding.der.DerNode.DerGeneralizedTime  notBefore = new net.named_data.jndn.encoding.der.DerNode.DerGeneralizedTime (notBefore_);
-			net.named_data.jndn.encoding.der.DerNode.DerGeneralizedTime  notAfter = new net.named_data.jndn.encoding.der.DerNode.DerGeneralizedTime (notAfter_);
+			net.named_data.jndn.encoding.der.DerNode.DerGeneralizedTime  notBefore = new net.named_data.jndn.encoding.der.DerNode.DerGeneralizedTime (getNotBefore());
+			net.named_data.jndn.encoding.der.DerNode.DerGeneralizedTime  notAfter = new net.named_data.jndn.encoding.der.DerNode.DerGeneralizedTime (getNotAfter());
 	
 			validity.addChild(notBefore);
 			validity.addChild(notAfter);
@@ -253,10 +266,10 @@ namespace net.named_data.jndn.security.certificate {
 	
 			SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMdd'T'HHmmss");
 			dateFormat.setTimeZone(System.Collections.TimeZone.getTimeZone("UTC"));
-			String notBeforeStr = dateFormat.format(net.named_data.jndn.util.Common
-					.millisecondsSince1970ToDate((long) Math.Round(notBefore_,MidpointRounding.AwayFromZero)));
+			String notBeforeStr = dateFormat
+					.format(net.named_data.jndn.util.Common.millisecondsSince1970ToDate((long) Math.Round(getNotBefore(),MidpointRounding.AwayFromZero)));
 			String notAfterStr = dateFormat.format(net.named_data.jndn.util.Common
-					.millisecondsSince1970ToDate((long) Math.Round(notAfter_,MidpointRounding.AwayFromZero)));
+					.millisecondsSince1970ToDate((long) Math.Round(getNotAfter(),MidpointRounding.AwayFromZero)));
 	
 			s += "  NotBefore: " + notBeforeStr + "\n";
 			s += "  NotAfter: " + notAfterStr + "\n";
@@ -267,7 +280,7 @@ namespace net.named_data.jndn.security.certificate {
 			}
 	
 			s += "Public key bits:\n";
-			Blob keyDer = key_.getKeyDer();
+			Blob keyDer = getPublicKeyDer();
 			String encodedKey = net.named_data.jndn.util.Common.base64Encode(keyDer.getImmutableArray());
 			for (int i_0 = 0; i_0 < encodedKey.Length; i_0 += 64)
 				s += encodedKey.Substring(i_0,(Math.Min(i_0 + 64,encodedKey.Length))-(i_0))
