@@ -633,7 +633,7 @@ namespace net.named_data.jndn.encrypt {
 					SqlDataReader result = statement.executeQuery();
 	
 					if (result.NextResult())
-						publicKey[0] = new Blob(result.getBytes(2), false);
+						publicKey[0] = new Blob(result.getBytes(3), false);
 					else
 						throw new GroupManagerDb.Error(
 								"Sqlite3GroupManagerDb.getEKey: Cannot get the result from the database");

@@ -425,7 +425,7 @@ namespace net.named_data.jndn.tests.integration_tests {
 			Assert.AssertEquals(5, result2.Count);
 	
 			// Check that the new EKey is the same as the previous one.
-			Data data2 = (Data) result[0];
+			Data data2 = (Data) result2[0];
 			Assert.AssertEquals(
 					"/Alice/READ/data_type/E-KEY/20150825T090000/20150825T100000",
 					data2.getName().toUri());
@@ -433,7 +433,7 @@ namespace net.named_data.jndn.tests.integration_tests {
 			Assert.AssertTrue(groupEKey1.getKeyBits().equals(groupEKey2.getKeyBits()));
 	
 			// Check the second data packet.
-			data2 = (Data) result[1];
+			data2 = (Data) result2[1];
 			Assert.AssertEquals(
 					"/Alice/READ/data_type/D-KEY/20150825T090000/20150825T100000/FOR/ndn/memberA/ksk-123",
 					data2.getName().toUri());
