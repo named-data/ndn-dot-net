@@ -20,6 +20,11 @@ namespace net.named_data.jndn.transport {
 	using net.named_data.jndn.encoding;
 	using net.named_data.jndn.util;
 	
+	/// <summary>
+	/// A Transport object is used by Face to send packets and to listen for incoming
+	/// packets. See connect() and processEvents() for more details.
+	/// </summary>
+	///
 	public abstract class Transport {
 		/// <summary>
 		/// A Transport.ConnectionInfo is a base class for connection information used
