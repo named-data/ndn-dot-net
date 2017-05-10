@@ -176,5 +176,53 @@ namespace net.named_data.jndn.encrypt {
 		/// <param name="identity">The member's identity name.</param>
 		/// <exception cref="GroupManagerDb.Error">for a database error.</exception>
 		public abstract void deleteMember(Name identity);
+	
+		/// <summary>
+		/// Check if there is an EKey with the name eKeyName in the database.
+		/// </summary>
+		///
+		/// <param name="eKeyName">The name of the EKey.</param>
+		/// <returns>True if the EKey exists.</returns>
+		/// <exception cref="GroupManagerDb.Error">for a database error.</exception>
+		public abstract bool hasEKey(Name eKeyName);
+	
+		/// <summary>
+		/// Add the EKey with name eKeyName to the database.
+		/// </summary>
+		///
+		/// <param name="eKeyName">The name of the EKey. This copies the Name.</param>
+		/// <param name="publicKey">The encoded public Key of the group key pair.</param>
+		/// <param name="privateKey">The encoded private Key of the group key pair.</param>
+		/// <exception cref="GroupManagerDb.Error">If a key with name eKeyName already exists inthe database, or other database error.</exception>
+		public abstract void addEKey(Name eKeyName, Blob publicKey, Blob privateKey);
+	
+		/// <summary>
+		/// Get the group key pair with the name eKeyName from the database.
+		/// </summary>
+		///
+		/// <param name="eKeyName">The name of the EKey.</param>
+		/// <param name="publicKey">Set publicKey[0] to the encoded public Key.</param>
+		/// <param name="privateKey">Set publicKey[0] to the encoded private Key.</param>
+		/// <exception cref="GroupManagerDb.Error">If the key with name eKeyName does not existin the database, or other database error.</exception>
+		public abstract void getEKey(Name eKeyName, Blob[] publicKey,
+				Blob[] privateKey);
+	
+		/// <summary>
+		/// Delete all the EKeys in the database.
+		/// The database will keep growing because EKeys will keep being added, so this
+		/// method should be called periodically.
+		/// </summary>
+		///
+		/// <exception cref="GroupManagerDb.Error">for a database error.</exception>
+		public abstract void cleanEKeys();
+	
+		/// <summary>
+		/// Delete the EKey with name eKeyName from the database. If no key with the
+		/// name exists in the database, do nothing.
+		/// </summary>
+		///
+		/// <param name="eKeyName">The name of the EKey.</param>
+		/// <exception cref="GroupManagerDb.Error">for a database error.</exception>
+		public abstract void deleteEKey(Name eKeyName);
 	}
 }

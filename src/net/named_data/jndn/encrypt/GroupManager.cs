@@ -59,13 +59,14 @@ namespace net.named_data.jndn.encrypt {
 		/// </summary>
 		///
 		/// <param name="timeSlot">The time slot to cover as milliseconds since Jan 1, 1970 UTC.</param>
+		/// <param name="needRegenerate">false if this is not the first time this method is called, or a member was added.</param>
 		/// <returns>A List of Data packets where the first is the E-KEY data packet
 		/// with the group's public key and the rest are the D-KEY data packets with
 		/// the group's private key encrypted with the public key of each eligible
 		/// member. (Use List without generics so it works with older Java compilers.)</returns>
 		/// <exception cref="GroupManagerDb.Error">for a database error.</exception>
 		/// <exception cref="System.Security.SecurityException">for an error using the security KeyChain.</exception>
-		public IList getGroupKey(double timeSlot) {
+		public IList getGroupKey(double timeSlot, bool needRegenerate) {
 			IDictionary memberKeys = new SortedList();
 			IList result = new ArrayList();
 	
@@ -81,7 +82,18 @@ namespace net.named_data.jndn.encrypt {
 			// Generate the private and public keys.
 			Blob[] privateKeyBlob = { null };
 			Blob[] publicKeyBlob = { null };
-			generateKeyPair(privateKeyBlob, publicKeyBlob);
+			Name eKeyName = new Name(namespace_);
+			eKeyName.append(net.named_data.jndn.encrypt.algo.Encryptor.NAME_COMPONENT_E_KEY).append(startTimeStamp)
+					.append(endTimeStamp);
+	
+			if (!needRegenerate && database_.hasEKey(eKeyName))
+				getEKey(eKeyName, publicKeyBlob, privateKeyBlob);
+			else {
+				generateKeyPair(privateKeyBlob, publicKeyBlob);
+				if (database_.hasEKey(eKeyName))
+					deleteEKey(eKeyName);
+				addEKey(eKeyName, publicKeyBlob[0], privateKeyBlob[0]);
+			}
 	
 			// Add the first element to the result.
 			// The E-KEY (public key) data packet name convention is:
@@ -106,6 +118,14 @@ namespace net.named_data.jndn.encrypt {
 			}
 	
 			return result;
+		}
+	
+		/// <summary>
+		/// Call the main getGroupKey where needRegenerate is default true.
+		/// </summary>
+		///
+		public IList getGroupKey(double timeSlot) {
+			return getGroupKey(timeSlot, true);
 		}
 	
 		/// <summary>
@@ -179,6 +199,17 @@ namespace net.named_data.jndn.encrypt {
 		/// <exception cref="GroupManagerDb.Error">if there's no member with the given identityname in the database, or there's no schedule named scheduleName.</exception>
 		public void updateMemberSchedule(Name identity, String scheduleName) {
 			database_.updateMemberSchedule(identity, scheduleName);
+		}
+	
+		/// <summary>
+		/// Delete all the EKeys in the database.
+		/// The database will keep growing because EKeys will keep being added, so this
+		/// method should be called periodically.
+		/// </summary>
+		///
+		/// <exception cref="GroupManagerDb.Error">for a database error.</exception>
+		public void cleanEKeys() {
+			database_.cleanEKeys();
 		}
 	
 		/// <summary>
@@ -324,6 +355,41 @@ namespace net.named_data.jndn.encrypt {
 	
 			keyChain_.sign(data);
 			return data;
+		}
+	
+		/// <summary>
+		/// Add the EKey with name eKeyName to the database.
+		/// </summary>
+		///
+		/// <param name="eKeyName">The name of the EKey. This copies the Name.</param>
+		/// <param name="publicKey">The encoded public Key of the group key pair.</param>
+		/// <param name="privateKey">The encoded private Key of the group key pair.</param>
+		/// <exception cref="GroupManagerDb.Error">If a key with name eKeyName already exists inthe database, or other database error.</exception>
+		private void addEKey(Name eKeyName, Blob publicKey, Blob privateKey) {
+			database_.addEKey(eKeyName, publicKey, privateKey);
+		}
+	
+		/// <summary>
+		/// Get the group key pair with the name eKeyName from the database.
+		/// </summary>
+		///
+		/// <param name="eKeyName">The name of the EKey.</param>
+		/// <param name="publicKey">Set publicKey[0] to the encoded public Key.</param>
+		/// <param name="privateKey">Set publicKey[0] to the encoded private Key.</param>
+		/// <exception cref="GroupManagerDb.Error">If the key with name eKeyName does not existin the database, or other database error.</exception>
+		private void getEKey(Name eKeyName, Blob[] publicKey, Blob[] privateKey) {
+			database_.getEKey(eKeyName, publicKey, privateKey);
+		}
+	
+		/// <summary>
+		/// Delete the EKey with name eKeyName from the database. If no key with the
+		/// name exists in the database, do nothing.
+		/// </summary>
+		///
+		/// <param name="eKeyName">The name of the EKey.</param>
+		/// <exception cref="GroupManagerDb.Error">for a database error.</exception>
+		private void deleteEKey(Name eKeyName) {
+			database_.deleteEKey(eKeyName);
 		}
 	
 		/// <summary>

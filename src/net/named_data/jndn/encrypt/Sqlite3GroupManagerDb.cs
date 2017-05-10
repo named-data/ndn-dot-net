@@ -36,6 +36,7 @@ namespace net.named_data.jndn.encrypt {
 		/// <exception cref="GroupManagerDb.Error">for a database error.</exception>
 		public Sqlite3GroupManagerDb(String databaseFilePath) {
 			this.database_ = null;
+					this.privateKeyBase_ = new Hashtable<Name, Blob>();
 			try {
 				ILOG.J2CsMapping.Reflect.Helper.GetNativeType("org.sqlite.JDBC");
 			} catch (TypeLoadException ex) {
@@ -58,6 +59,8 @@ namespace net.named_data.jndn.encrypt {
 					statement.executeUpdate(net.named_data.jndn.encrypt.Sqlite3GroupManagerDbBase.INITIALIZATION2);
 					statement.executeUpdate(net.named_data.jndn.encrypt.Sqlite3GroupManagerDbBase.INITIALIZATION3);
 					statement.executeUpdate(net.named_data.jndn.encrypt.Sqlite3GroupManagerDbBase.INITIALIZATION4);
+					statement.executeUpdate(net.named_data.jndn.encrypt.Sqlite3GroupManagerDbBase.INITIALIZATION5);
+					statement.executeUpdate(net.named_data.jndn.encrypt.Sqlite3GroupManagerDbBase.INITIALIZATION6);
 				} finally {
 					statement.close();
 				}
@@ -556,6 +559,149 @@ namespace net.named_data.jndn.encrypt {
 		}
 	
 		/// <summary>
+		/// Check if there is an EKey with the name eKeyName in the database.
+		/// </summary>
+		///
+		/// <param name="eKeyName">The name of the EKey.</param>
+		/// <returns>True if the EKey exists.</returns>
+		/// <exception cref="GroupManagerDb.Error">for a database error.</exception>
+		public override bool hasEKey(Name eKeyName) {
+			try {
+				PreparedStatement statement = database_
+						.prepareStatement(net.named_data.jndn.encrypt.Sqlite3GroupManagerDbBase.SELECT_hasEKey);
+				statement.setBytes(1, eKeyName.wireEncode(net.named_data.jndn.encoding.TlvWireFormat.get())
+						.getImmutableArray());
+	
+				try {
+					SqlDataReader result = statement.executeQuery();
+	
+					return result.NextResult();
+				} finally {
+					statement.close();
+				}
+			} catch (SQLException exception) {
+				throw new GroupManagerDb.Error(
+						"Sqlite3GroupManagerDb.hasEKey: SQLite error: " + exception);
+			}
+		}
+	
+		/// <summary>
+		/// Add the EKey with name eKeyName to the database.
+		/// </summary>
+		///
+		/// <param name="eKeyName">The name of the EKey. This copies the Name.</param>
+		/// <param name="publicKey">The encoded public Key of the group key pair.</param>
+		/// <param name="privateKey">The encoded private Key of the group key pair.</param>
+		/// <exception cref="GroupManagerDb.Error">If a key with name eKeyName already exists inthe database, or other database error.</exception>
+		public override void addEKey(Name eKeyName, Blob publicKey, Blob privateKey) {
+			try {
+				PreparedStatement statement = database_
+						.prepareStatement(net.named_data.jndn.encrypt.Sqlite3GroupManagerDbBase.INSERT_addEKey);
+				statement.setBytes(1, eKeyName.wireEncode(net.named_data.jndn.encoding.TlvWireFormat.get())
+						.getImmutableArray());
+				statement.setBytes(2, publicKey.getImmutableArray());
+	
+				try {
+					statement.executeUpdate();
+				} finally {
+					statement.close();
+				}
+			} catch (SQLException exception) {
+				throw new GroupManagerDb.Error(
+						"Sqlite3GroupManagerDb.addEKey: SQLite error: " + exception);
+			}
+	
+			ILOG.J2CsMapping.Collections.Collections.Put(privateKeyBase_,new Name(eKeyName),privateKey);
+		}
+	
+		/// <summary>
+		/// Get the group key pair with the name eKeyName from the database.
+		/// </summary>
+		///
+		/// <param name="eKeyName">The name of the EKey.</param>
+		/// <param name="publicKey">Set publicKey[0] to the encoded public Key.</param>
+		/// <param name="privateKey">Set publicKey[0] to the encoded private Key.</param>
+		/// <exception cref="GroupManagerDb.Error">If the key with name eKeyName does not existin the database, or other database error.</exception>
+		public override void getEKey(Name eKeyName, Blob[] publicKey, Blob[] privateKey) {
+			try {
+				PreparedStatement statement = database_
+						.prepareStatement(net.named_data.jndn.encrypt.Sqlite3GroupManagerDbBase.SELECT_getEKey);
+				statement.setBytes(1, eKeyName.wireEncode(net.named_data.jndn.encoding.TlvWireFormat.get())
+						.getImmutableArray());
+	
+				try {
+					SqlDataReader result = statement.executeQuery();
+	
+					if (result.NextResult())
+						publicKey[0] = new Blob(result.getBytes(2), false);
+					else
+						throw new GroupManagerDb.Error(
+								"Sqlite3GroupManagerDb.getEKey: Cannot get the result from the database");
+				} finally {
+					statement.close();
+				}
+			} catch (SQLException exception) {
+				throw new GroupManagerDb.Error(
+						"Sqlite3GroupManagerDb.getEKey: SQLite error: " + exception);
+			}
+	
+			privateKey[0] = ILOG.J2CsMapping.Collections.Collections.Get(privateKeyBase_,eKeyName);
+		}
+	
+		/// <summary>
+		/// Delete all the EKeys in the database.
+		/// The database will keep growing because EKeys will keep being added, so this
+		/// method should be called periodically.
+		/// </summary>
+		///
+		/// <exception cref="GroupManagerDb.Error">for a database error.</exception>
+		public override void cleanEKeys() {
+			try {
+				PreparedStatement statement = database_
+						.prepareStatement(net.named_data.jndn.encrypt.Sqlite3GroupManagerDbBase.DELETE_cleanEKeys);
+				try {
+					statement.executeUpdate();
+				} finally {
+					statement.close();
+				}
+			} catch (SQLException exception) {
+				throw new GroupManagerDb.Error(
+						"Sqlite3GroupManagerDb.cleanEKeys: SQLite error: "
+								+ exception);
+			}
+	
+			privateKeyBase_.clear();
+		}
+	
+		/// <summary>
+		/// Delete the EKey with name eKeyName from the database. If no key with the
+		/// name exists in the database, do nothing.
+		/// </summary>
+		///
+		/// <param name="eKeyName">The name of the EKey.</param>
+		/// <exception cref="GroupManagerDb.Error">for a database error.</exception>
+		public override void deleteEKey(Name eKeyName) {
+			try {
+				PreparedStatement statement = database_
+						.prepareStatement(net.named_data.jndn.encrypt.Sqlite3GroupManagerDbBase.DELETE_deleteEKey);
+				statement.setBytes(1, eKeyName.wireEncode(net.named_data.jndn.encoding.TlvWireFormat.get())
+						.getImmutableArray());
+	
+				try {
+					statement.executeUpdate();
+				} finally {
+					statement.close();
+				}
+			} catch (SQLException exception) {
+				throw new GroupManagerDb.Error(
+						"Sqlite3GroupManagerDb.deleteEKey: SQLite error: "
+								+ exception);
+			}
+	
+			ILOG.J2CsMapping.Collections.Collections.Remove(privateKeyBase_,eKeyName);
+		}
+	
+		/// <summary>
 		/// Get the ID for the schedule.
 		/// </summary>
 		///
@@ -585,6 +731,7 @@ namespace net.named_data.jndn.encrypt {
 			}
 		}
 	
-		internal SqlConnection database_;
+		private SqlConnection database_;
+		private readonly Hashtable<Name, Blob> privateKeyBase_;
 	}
 }
