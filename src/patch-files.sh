@@ -9,7 +9,7 @@
 # Globally fix the use of static System.Array.sort .
 # Globally put test assertions in the Assert class.
 # Fix .length and .parseInt in OID.cs .
-# Fix the erroneous translation to @"\0".
+# Fix the erroneous @ on strings with a backslash.
 # Fix the erroneous translation to SqlCommand.
 # Fix the erroneous conversion of BigInteger to Int64.
 # Change IllegalBlockSizeException to the C# CryptographicException.'
@@ -39,6 +39,7 @@
 sed -i '' 's/\.length/.Length/g' named_data/jndn/encoding/OID.cs
 sed -i '' 's/\.parseInt/.Parse/g' named_data/jndn/encoding/OID.cs
 sed -i '' 's/@"\\0"/"\\0"/g' named_data/jndn/util/BoostInfoTree.cs
+sed -i '' 's/@"/"/g' named_data/jndn/tests/unit_tests/TestRegex.cs
 sed -i '' 's/SqlCommand/Statement/g' named_data/jndn/security/identity/BasicIdentityStorage.cs
 sed -i '' 's/SqlCommand/Statement/g' named_data/jndn/encrypt/Sqlite3*Db.cs
 sed -i '' 's/new Int64//g' named_data/jndn/encrypt/algo/RsaAlgorithm.cs
