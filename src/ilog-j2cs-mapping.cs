@@ -575,6 +575,9 @@ namespace ILOG.J2CsMapping.Text {
     public Matcher
     Matcher(string input) { return new Matcher(regex_, input); }
 
+    public static bool
+    matches(string pattern, string input) { return Pattern.Compile(pattern).Matcher(input).Find(); }
+
     private Regex regex_;
   }
 
