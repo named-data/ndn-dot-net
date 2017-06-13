@@ -549,7 +549,11 @@ namespace ILOG.J2CsMapping.Text {
       return match_.Groups[groupNumber].Index + match_.Groups[groupNumber].Length; 
     }
 
-    public int groupCount() { return match_.Groups.Count; }
+    public int groupCount() 
+    {
+      // Don't include the group 0.
+      return match_.Groups.Count - 1; 
+    }
 
     public string
     Group(int groupNumber) { return match_.Groups[groupNumber].Value; }
