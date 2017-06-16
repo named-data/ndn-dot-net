@@ -306,7 +306,7 @@ namespace TestNdnDotNet {
       String format = "TLV";
       Blob[] encoding = new Blob[1];
       {
-        int nIterations = useCrypto ? 30 : 200000;
+        int nIterations = useCrypto ? 40 : 400000;
         double duration = benchmarkEncodeDataSeconds
           (nIterations, useComplex, useCrypto, keyType, encoding);
         Console.Out.WriteLine("Encode " + (useComplex ? "complex " : "simple  ") +
@@ -317,7 +317,7 @@ namespace TestNdnDotNet {
       {
         // Use an extra long duration for decoding until we understand why it gets
         //   a different rate at a shorter duration.
-        int nIterations = useCrypto ? 1000 : 200000;
+        int nIterations = useCrypto ? 2000 : 400000;
         double duration = benchmarkDecodeDataSeconds
           (nIterations, useCrypto, keyType, encoding[0]);
         Console.Out.WriteLine("Decode " + (useComplex ? "complex " : "simple  ") +
