@@ -10,12 +10,14 @@
 ///
 namespace net.named_data.jndn {
 	
+	using ILOG.J2CsMapping.Util.Logging;
 	using System;
 	using System.Collections;
 	using System.ComponentModel;
 	using System.IO;
 	using System.Runtime.CompilerServices;
 	using net.named_data.jndn.util;
+	using net.named_data.jndn.util.regex;
 	
 	/// <summary>
 	/// An InterestFilter holds a Name prefix and optional regex match expression for
@@ -115,8 +117,14 @@ namespace net.named_data.jndn {
 				if (!prefix_.match(name))
 					return false;
 	
-				return null != net.named_data.jndn.util.NdnRegexMatcher.match(regexFilterPattern_,
-						name.getSubName(prefix_.size()));
+				try {
+					return new NdnRegexTopMatcher(regexFilterPattern_).match(name
+							.getSubName(prefix_.size()));
+				} catch (NdnRegexMatcherBase.Error ex) {
+					ILOG.J2CsMapping.Util.Logging.Logger.getLogger(typeof(InterestFilter).FullName).log(
+							ILOG.J2CsMapping.Util.Logging.Level.SEVERE, null, ex);
+					return false;
+				}
 			} else
 				// Just perform a prefix match.
 				return prefix_.match(name);
@@ -151,7 +159,7 @@ namespace net.named_data.jndn {
 	
 		/// <summary>
 		/// If regexFilter doesn't already have them, add ^ to the beginning and $ to
-		/// the end since these are required by NdnRegexMatcher.match.
+		/// the end since these are required by NdnRegexTopMatcher.
 		/// </summary>
 		///
 		/// <param name="regexFilter">The regex filter.</param>

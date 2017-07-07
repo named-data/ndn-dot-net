@@ -21,6 +21,7 @@ namespace net.named_data.jndn.tests.integration_tests {
 	using net.named_data.jndn.security.identity;
 	using net.named_data.jndn.security.policy;
 	using net.named_data.jndn.util;
+	using net.named_data.jndn.util.regex;
 	
 	public class TestVerificationRules : ConfigPolicyManager.Friend {
 		// Convert the int array to a ByteBuffer.

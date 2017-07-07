@@ -24,6 +24,7 @@ namespace net.named_data.jndn.security.policy {
 	using net.named_data.jndn.security;
 	using net.named_data.jndn.security.certificate;
 	using net.named_data.jndn.util;
+	using net.named_data.jndn.util.regex;
 	
 	/// <summary>
 	/// A ConfigPolicyManager manages trust according to a configuration file in the
@@ -290,14 +291,21 @@ namespace net.named_data.jndn.security.policy {
 				int stepCount, OnVerified onVerified,
 				OnDataValidationFailed onValidationFailed) {
 			String[] failureReason = new String[] { "unknown" };
-			Interest certificateInterest = getCertificateInterest(stepCount,
-					"data", data.getName(), data.getSignature(), failureReason);
+			Interest certificateInterest;
+			try {
+				certificateInterest = getCertificateInterest(stepCount, "data",
+						data.getName(), data.getSignature(), failureReason);
+			} catch (NdnRegexMatcherBase.Error ex) {
+				throw new SecurityException(
+						"ConfigPolicyManager: Error in getCertificateInterest:"
+								+ ex);
+			}
 			if (certificateInterest == null) {
 				try {
 					onValidationFailed.onDataValidationFailed(data,
 							failureReason[0]);
-				} catch (Exception ex) {
-					logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in onDataValidationFailed", ex);
+				} catch (Exception ex_0) {
+					logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in onDataValidationFailed", ex_0);
 				}
 				return null;
 			}
@@ -313,16 +321,16 @@ namespace net.named_data.jndn.security.policy {
 				if (verify(data.getSignature(), data.wireEncode(), failureReason)) {
 					try {
 						onVerified.onVerified(data);
-					} catch (Exception ex_0) {
-						logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in onVerified", ex_0);
+					} catch (Exception ex_1) {
+						logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in onVerified", ex_1);
 					}
 				} else {
 					try {
 						onValidationFailed.onDataValidationFailed(data,
 								failureReason[0]);
-					} catch (Exception ex_1) {
+					} catch (Exception ex_2) {
 						logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE,
-								"Error in onDataValidationFailed", ex_1);
+								"Error in onDataValidationFailed", ex_2);
 					}
 				}
 	
@@ -361,16 +369,22 @@ namespace net.named_data.jndn.security.policy {
 	
 			// For command interests, we need to ignore the last 4 components when
 			//   matching the name.
-			Interest certificateInterest = getCertificateInterest(stepCount,
-					"interest", interest.getName().getPrefix(-4), signature,
-					failureReason);
+			Interest certificateInterest;
+			try {
+				certificateInterest = getCertificateInterest(stepCount, "interest",
+						interest.getName().getPrefix(-4), signature, failureReason);
+			} catch (NdnRegexMatcherBase.Error ex_0) {
+				throw new SecurityException(
+						"ConfigPolicyManager: Error in getCertificateInterest:"
+								+ ex_0);
+			}
 			if (certificateInterest == null) {
 				try {
 					onValidationFailed.onInterestValidationFailed(interest,
 							failureReason[0]);
-				} catch (Exception ex_0) {
+				} catch (Exception ex_1) {
 					logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE,
-							"Error in onInterestValidationFailed", ex_0);
+							"Error in onInterestValidationFailed", ex_1);
 				}
 				return null;
 			}
@@ -395,9 +409,9 @@ namespace net.named_data.jndn.security.policy {
 					try {
 						onValidationFailed.onInterestValidationFailed(interest,
 								failureReason[0]);
-					} catch (Exception ex_1) {
+					} catch (Exception ex_2) {
 						logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE,
-								"Error in onInterestValidationFailed", ex_1);
+								"Error in onInterestValidationFailed", ex_2);
 					}
 					return null;
 				}
@@ -407,17 +421,17 @@ namespace net.named_data.jndn.security.policy {
 				if (verify(signature, interest.wireEncode(), failureReason)) {
 					try {
 						onVerified.onVerifiedInterest(interest);
-					} catch (Exception ex_2) {
-						logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in onVerifiedInterest", ex_2);
+					} catch (Exception ex_3) {
+						logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in onVerifiedInterest", ex_3);
 					}
 					updateTimestampForKey(keyName, timestamp);
 				} else {
 					try {
 						onValidationFailed.onInterestValidationFailed(interest,
 								failureReason[0]);
-					} catch (Exception ex_3) {
+					} catch (Exception ex_4) {
 						logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE,
-								"Error in onInterestValidationFailed", ex_3);
+								"Error in onInterestValidationFailed", ex_4);
 					}
 				}
 	
@@ -693,11 +707,11 @@ namespace net.named_data.jndn.security.policy {
 				// This just means the data/interest name has the signing identity as a prefix.
 				// That means everything before "ksk-?" in the key name.
 				String identityRegex = "^([^<KEY>]*)<KEY>(<>*)<ksk-.+><ID-CERT>";
-				Matcher identityMatch = net.named_data.jndn.util.NdnRegexMatcher.match(identityRegex,
-						signatureName);
-				if (identityMatch != null) {
-					Name identityPrefix = new Name(identityMatch.Group(1))
-							.append(new Name(identityMatch.Group(2)));
+				NdnRegexTopMatcher identityMatch = new NdnRegexTopMatcher(
+						identityRegex);
+				if (identityMatch.match(signatureName)) {
+					Name identityPrefix = identityMatch.expand(@"\\1").append(
+							identityMatch.expand(@"\\2"));
 					if (matchesRelation(objectName, identityPrefix, "is-prefix-of"))
 						return true;
 					else {
@@ -738,7 +752,7 @@ namespace net.named_data.jndn.security.policy {
 				// Is this a simple regex?
 				String simpleKeyRegex = keyLocatorInfo.getFirstValue("regex");
 				if (simpleKeyRegex != null) {
-					if (net.named_data.jndn.util.NdnRegexMatcher.match(simpleKeyRegex, signatureName) != null)
+					if (new NdnRegexTopMatcher(simpleKeyRegex).match(signatureName))
 						return true;
 					else {
 						failureReason[0] = "The custom signatureName \""
@@ -762,34 +776,34 @@ namespace net.named_data.jndn.security.policy {
 					if (keyRegex != null && keyExpansion != null
 							&& nameRegex != null && nameExpansion != null
 							&& relationType != null) {
-						Matcher keyMatch = net.named_data.jndn.util.NdnRegexMatcher.match(keyRegex,
-								signatureName);
-						if (keyMatch == null || keyMatch.groupCount() < 1) {
+						NdnRegexTopMatcher keyMatch = new NdnRegexTopMatcher(
+								keyRegex);
+						if (!keyMatch.match(signatureName)) {
 							failureReason[0] = "The custom hyper-relation signatureName \""
 									+ signatureName.toUri()
 									+ "\" does not match the keyRegex \""
 									+ keyRegex + "\"";
 							return false;
 						}
-						String keyMatchPrefix = expand(keyMatch, keyExpansion);
+						Name keyMatchPrefix = keyMatch.expand(keyExpansion);
 	
-						Matcher nameMatch = net.named_data.jndn.util.NdnRegexMatcher.match(nameRegex,
-								objectName);
-						if (nameMatch == null || nameMatch.groupCount() < 1) {
+						NdnRegexTopMatcher nameMatch = new NdnRegexTopMatcher(
+								nameRegex);
+						if (!nameMatch.match(objectName)) {
 							failureReason[0] = "The custom hyper-relation objectName \""
 									+ objectName.toUri()
 									+ "\" does not match the nameRegex \""
 									+ nameRegex + "\"";
 							return false;
 						}
-						String nameMatchStr = expand(nameMatch, nameExpansion);
+						Name nameMatchExpansion = nameMatch.expand(nameExpansion);
 	
-						if (matchesRelation(new Name(nameMatchStr), new Name(
-								keyMatchPrefix), relationType))
+						if (matchesRelation(nameMatchExpansion, keyMatchPrefix,
+								relationType))
 							return true;
 						else {
 							failureReason[0] = "The custom hyper-relation nameMatch \""
-									+ nameMatchStr
+									+ nameMatchExpansion.toUri()
 									+ "\" does not match the keyMatchPrefix \""
 									+ keyMatchPrefix
 									+ "\" using relation "
@@ -903,8 +917,8 @@ namespace net.named_data.jndn.security.policy {
 								passed = matchesRelation(objName, matchName,
 										matchRelation);
 							} else
-								passed = (net.named_data.jndn.util.NdnRegexMatcher.match(regexPattern,
-										objName) != null);
+								passed = new NdnRegexTopMatcher(regexPattern)
+										.match(objName);
 	
 							if (!passed)
 								break;
