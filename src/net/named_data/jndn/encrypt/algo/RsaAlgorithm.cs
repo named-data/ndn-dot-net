@@ -80,7 +80,7 @@ namespace net.named_data.jndn.encrypt.algo {
 	
 			return new EncryptKey(new Blob(publicKey.getEncoded(), false));
 		}
-
+	
 		/// <summary>
 		/// Decrypt the encryptedData using the keyBits according the encrypt params.
 		/// </summary>

@@ -195,7 +195,7 @@ namespace net.named_data.jndn.encrypt {
 			int endOffset = decoder.readNestedTlvsStart(net.named_data.jndn.encoding.tlv.Tlv.Encrypt_Schedule);
 	
 			// Decode the whiteIntervalList.
-  		ILOG.J2CsMapping.Collections.Collections.Clear(whiteIntervalList_);
+			ILOG.J2CsMapping.Collections.Collections.Clear(whiteIntervalList_);
 			int listEndOffset = decoder
 					.readNestedTlvsStart(net.named_data.jndn.encoding.tlv.Tlv.Encrypt_WhiteIntervalList);
 			while (decoder.getOffset() < listEndOffset)

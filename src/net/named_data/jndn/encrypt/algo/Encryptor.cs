@@ -82,6 +82,9 @@ namespace net.named_data.jndn.encrypt.algo {
 					return;
 				} catch (System.Security.Cryptography.CryptographicException ex) {
 					// The payload is larger than the maximum plaintext size. Continue.
+				} catch (IndexOutOfRangeException ex_1) {
+					// The payload is larger than the maximum plaintext size. Continue.
+					// (This is the exception thrown on Android.)
 				}
 	
 				// 128-bit nonce.
@@ -103,13 +106,13 @@ namespace net.named_data.jndn.encrypt.algo {
 	
 				Blob nonceContentEncoding = nonceContent.wireEncode();
 				Blob payloadContentEncoding = payloadContent.wireEncode();
-				ByteBuffer content_1 = ILOG.J2CsMapping.NIO.ByteBuffer.allocate(nonceContentEncoding
+				ByteBuffer content_2 = ILOG.J2CsMapping.NIO.ByteBuffer.allocate(nonceContentEncoding
 						.size() + payloadContentEncoding.size());
-				content_1.put(payloadContentEncoding.buf());
-				content_1.put(nonceContentEncoding.buf());
-				content_1.flip();
+				content_2.put(payloadContentEncoding.buf());
+				content_2.put(nonceContentEncoding.buf());
+				content_2.flip();
 	
-				data.setContent(new Blob(content_1, false));
+				data.setContent(new Blob(content_2, false));
 			} else
 				throw new Exception("Unsupported encryption method");
 		}
