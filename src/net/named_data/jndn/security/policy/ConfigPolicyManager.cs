@@ -710,8 +710,8 @@ namespace net.named_data.jndn.security.policy {
 				NdnRegexTopMatcher identityMatch = new NdnRegexTopMatcher(
 						identityRegex);
 				if (identityMatch.match(signatureName)) {
-					Name identityPrefix = identityMatch.expand(@"\\1").append(
-							identityMatch.expand(@"\\2"));
+					Name identityPrefix = identityMatch.expand("\\1").append(
+							identityMatch.expand("\\2"));
 					if (matchesRelation(objectName, identityPrefix, "is-prefix-of"))
 						return true;
 					else {

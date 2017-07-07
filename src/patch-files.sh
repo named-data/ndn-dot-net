@@ -40,6 +40,7 @@ sed -i '' 's/\.length/.Length/g' named_data/jndn/encoding/OID.cs
 sed -i '' 's/\.parseInt/.Parse/g' named_data/jndn/encoding/OID.cs
 sed -i '' 's/@"\\0"/"\\0"/g' named_data/jndn/util/BoostInfoTree.cs
 sed -i '' 's/@"/"/g' named_data/jndn/tests/unit_tests/TestRegex.cs
+sed -i '' 's/@"/"/g' named_data/jndn/security/policy/ConfigPolicyManager.cs
 sed -i '' 's/SqlCommand/Statement/g' named_data/jndn/security/identity/BasicIdentityStorage.cs
 sed -i '' 's/SqlCommand/Statement/g' named_data/jndn/encrypt/Sqlite3*Db.cs
 sed -i '' 's/new Int64//g' named_data/jndn/encrypt/algo/RsaAlgorithm.cs
