@@ -643,7 +643,7 @@ namespace net.named_data.jndn {
 				return components_[components_.Count - (-i)];
 		}
 	
-		public void set(String uri) {
+		public Name.Component this[int i] { get { return get(i); } }  public void set(String uri) {
 			clear();
 	
 			uri = uri.trim();
