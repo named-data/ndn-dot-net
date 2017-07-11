@@ -1,9 +1,10 @@
-Interim changes since NDN-DOT-NET v0.1 (2017-05-10)
+Interim changes since NDN-DOT-NET v0.1 (2017-07-11)
 ---------------------------------------------------
 
 Changes
 * https://redmine.named-data.net/issues/3812 In encrypt GroupManager, save private
   keys in memory to avoid regenerate group key pairs.
+* Added ExponentialReExpress to use as OnTimeout.
 
 NDN-DOT-NET v0.1 (2017-03-16)
 -----------------------------
