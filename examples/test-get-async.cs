@@ -55,7 +55,7 @@ namespace TestNdnDotNet
     static void Main(string[] args)
     {
       try {
-        var face = new Face("aleph.ndn.ucla.edu");
+        var face = new Face("memoria.ndn.ucla.edu");
 
         var counter = new Counter();
 
@@ -65,7 +65,7 @@ namespace TestNdnDotNet
         face.expressInterest(name1, counter, counter);
 
         // Try to fetch using a known name.
-        var name2 = new Name("/ndn/edu/ucla/remap/demo/ndn-js-test/hello.txt/%FDU%8D%9DM");
+        var name2 = new Name("/ndn/edu/ucla/remap/demo/ndn-js-test/hello.txt/%FDX%DC5%1F");
         Console.Out.WriteLine("Express name " + name2.toUri());
         face.expressInterest(name2, counter, counter);
 
