@@ -86,6 +86,9 @@ namespace ILOG.J2CsMapping.Collections {
     public static void 
     Clear<T>(System.Collections.Generic.ICollection<T> collection) { collection.Clear(); }
 
+    public static bool 
+    Contains<T>(T x, System.Collections.Generic.ICollection<T> collection) { return collection.Contains(x); }
+
     public static object
     Get(IDictionary map, object key) { return map[key]; }
 
@@ -106,6 +109,15 @@ namespace ILOG.J2CsMapping.Collections {
     {
       foreach (var key in other.Keys)
         dictionary[key] = other[key];
+    }
+
+    public static bool 
+    Remove<T>(System.Collections.Generic.ICollection<T> collection, T entry)
+    { 
+      // Imitate Java List.remove.
+      bool hadValue = collection.Contains(entry);
+      collection.Remove(entry); 
+      return hadValue;
     }
 
     public static object 
