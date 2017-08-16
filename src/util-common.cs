@@ -181,8 +181,8 @@ namespace net.named_data.jndn.util
         if (i + lineLength > base64.Length)
           lineLength = base64.Length - i;
 
-        result.append(base64, i, lineLength);
-        result.append('\n');
+        result.Append(base64, i, lineLength);
+        result.Append('\n');
       }
 
       return result.toString();
