@@ -149,6 +149,10 @@ namespace net.named_data.jndn.util {
     public static void
     nextBytes(this Random random, byte[] array) { random.NextBytes(array); }
 
+    // SortedList extensions.
+    public static void
+    clear(this SortedList sortedList) { sortedList.Clear(); }
+
     // StreamWriter extensions.
     public static void 
     close(this StreamWriter writer) { writer.Close(); }
