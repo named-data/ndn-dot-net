@@ -372,6 +372,10 @@ namespace net.named_data.jndn.util {
     }
   }
 
+  public class AssertionError : Exception {
+    public AssertionError(string message) : base(message) {}
+  }
+
   public class BufferOverflowException : Exception {
     public BufferOverflowException(string message) : base(message) {}
   }
