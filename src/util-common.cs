@@ -161,6 +161,34 @@ namespace net.named_data.jndn.util
     base64Encode(byte[] input) { return Convert.ToBase64String(input); }
 
     /// <summary>
+    /// Encode the input as base64.
+    /// </summary>
+    ///
+    /// <param name="input">The bytes to encode.</param>
+    /// <param name="addNewlines">If true, add newlines to the output (good for
+    /// writing to a file). If false, do not add newlines.</param>
+    /// <returns>The base64 string.</returns>
+    public static string
+    base64Encode(byte[] input, bool addNewlines) 
+    { 
+      var base64 = base64Encode(input);
+      if (!addNewlines)
+        return base64;
+
+      var result = new StringBuilder();
+      for (var i = 0; i < base64.Length; i += 64) {
+        int lineLength = 64;
+        if (i + lineLength > base64.Length)
+          lineLength = base64.Length - i;
+
+        result.append(base64, i, lineLength);
+        result.append('\n');
+      }
+
+      return result.toString();
+    }
+
+    /// <summary>
     /// Decode the input as base64.
     /// </summary>
     ///
