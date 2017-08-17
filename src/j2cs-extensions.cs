@@ -427,6 +427,10 @@ namespace net.named_data.jndn.util {
   }
 
   public class HashedSet<T> : System.Collections.Generic.HashSet<T> {
+    public bool equals(System.Collections.Generic.IEnumerable<T> other) 
+    { 
+      return SetEquals(other); 
+    }
   }
 
   // We need a generic version of Hashtable, which is j2cstranslator's conversion of HashMap.
