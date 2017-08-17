@@ -320,6 +320,14 @@ namespace net.named_data.jndn.util {
     }
 
     public static void
+    AssertEquals(double expected, double actual, double delta)
+    {
+      AssertTrue("The expected value is not equal to the actual within the delta. Expected: " +
+        expected + ", actual: " + actual + ", delta: " + delta, 
+        Math.Abs(expected - actual) <= delta);
+    }
+
+    public static void
     AssertFalse(string message, bool condition)
     {
       if (condition)
