@@ -145,13 +145,47 @@ namespace net.named_data.jndn.util {
       return dictionary.ContainsKey(key); 
     }
 
+    // IList extensions.
+    public static IList
+    tailSet(this IList list, IComparable fromElement) 
+    {
+      // Find the first where fromElement is less than or equal to the element.
+      for (var i = 0; i < list.Count; ++i) {
+        if (fromElement.CompareTo(list[i]) <= 0) {
+          var result = new ArrayList();
+          // Add the tail.
+          for (var j = i; j < list.Count; ++j)
+            result.Add(list[j]);
+
+          return result;
+        }
+      }
+
+      return new ArrayList(); 
+    }
+
     // Random extensions.
     public static void
     nextBytes(this Random random, byte[] array) { random.NextBytes(array); }
 
     // SortedList extensions.
+    public static object
+    ceilingKey(this SortedList sortedList, IComparable key) 
+    { 
+      // Find the first where key is less than or equal to the listKey.
+      foreach (var listKey in sortedList.GetKeyList()) {
+        if (key.CompareTo(listKey) <= 0)
+          return key;
+      }
+
+      return null;
+    }
+
     public static void
     clear(this SortedList sortedList) { sortedList.Clear(); }
+
+    public static IList
+    navigableKeySet(this SortedList sortedList) { return sortedList.GetKeyList(); }
 
     // StreamWriter extensions.
     public static void 
