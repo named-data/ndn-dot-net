@@ -68,11 +68,20 @@ namespace ILOG.J2CsMapping.Collections {
   }
 
   public class Collections {
-    public static void 
+    public static void
     Add(IList list, object value) { list.Add(value); }
 
-    public static void 
-    Add<T>(System.Collections.Generic.ICollection<T> list, T value) { list.Add(value); }
+    public static bool 
+    Add<T>(System.Collections.Generic.ICollection<T> list, T value) 
+    {
+      // Imitate the return value in the Java method.
+      if (list.Contains(value))
+        return false;
+      else {
+        list.Add(value);
+        return true;
+      }
+    }
 
     public static void 
     AddAll<T>
