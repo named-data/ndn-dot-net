@@ -21,6 +21,7 @@ namespace net.named_data.jndn.tests.unit_tests {
 	using net.named_data.jndn.encoding.der;
 	using net.named_data.jndn.encrypt;
 	using net.named_data.jndn.encrypt.algo;
+	using net.named_data.jndn.security;
 	using net.named_data.jndn.util;
 	
 	public class TestRsaAlgorithm {

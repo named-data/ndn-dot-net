@@ -48,6 +48,8 @@ namespace net.named_data.jndn {
 			this.lpPacket_ = null;
 			this.linkWireEncoding_ = new Blob();
 			this.linkWireEncodingFormat_ = null;
+			this.forwardingHint_ = new ChangeCounter(
+					new DelegationSet());
 			this.link_ = new ChangeCounter(null);
 			this.selectedDelegationIndex_ = -1;
 			this.defaultWireEncoding_ = new SignedBlob();
@@ -78,6 +80,8 @@ namespace net.named_data.jndn {
 			this.lpPacket_ = null;
 			this.linkWireEncoding_ = new Blob();
 			this.linkWireEncodingFormat_ = null;
+			this.forwardingHint_ = new ChangeCounter(
+					new DelegationSet());
 			this.link_ = new ChangeCounter(null);
 			this.selectedDelegationIndex_ = -1;
 			this.defaultWireEncoding_ = new SignedBlob();
@@ -107,6 +111,8 @@ namespace net.named_data.jndn {
 			this.lpPacket_ = null;
 			this.linkWireEncoding_ = new Blob();
 			this.linkWireEncodingFormat_ = null;
+			this.forwardingHint_ = new ChangeCounter(
+					new DelegationSet());
 			this.link_ = new ChangeCounter(null);
 			this.selectedDelegationIndex_ = -1;
 			this.defaultWireEncoding_ = new SignedBlob();
@@ -123,6 +129,7 @@ namespace net.named_data.jndn {
 			interestLifetimeMilliseconds_ = interest.interestLifetimeMilliseconds_;
 			nonce_ = interest.getNonce();
 	
+			forwardingHint_.set(new DelegationSet(interest.getForwardingHint()));
 			linkWireEncoding_ = interest.linkWireEncoding_;
 			linkWireEncodingFormat_ = interest.linkWireEncodingFormat_;
 			if (interest.link_.get() != null)
@@ -152,6 +159,8 @@ namespace net.named_data.jndn {
 			this.lpPacket_ = null;
 			this.linkWireEncoding_ = new Blob();
 			this.linkWireEncodingFormat_ = null;
+			this.forwardingHint_ = new ChangeCounter(
+					new DelegationSet());
 			this.link_ = new ChangeCounter(null);
 			this.selectedDelegationIndex_ = -1;
 			this.defaultWireEncoding_ = new SignedBlob();
@@ -359,6 +368,16 @@ namespace net.named_data.jndn {
 		}
 	
 		/// <summary>
+		/// Get the forwarding hint object which you can modify to add or remove
+		/// forwarding hints.
+		/// </summary>
+		///
+		/// <returns>The forwarding hint as a DelegationSet.</returns>
+		public DelegationSet getForwardingHint() {
+			return (DelegationSet) forwardingHint_.get();
+		}
+	
+		/// <summary>
 		/// Check if this interest has a link object (or a link wire encoding which
 		/// can be decoded to make the link object).
 		/// </summary>
@@ -551,6 +570,22 @@ namespace net.named_data.jndn {
 		/// <returns>This Interest so that you can chain calls to update values.</returns>
 		public Interest setExclude(Exclude exclude) {
 			exclude_.set((exclude == null) ? new Exclude() : new Exclude(exclude));
+			++changeCount_;
+			return this;
+		}
+	
+		/// <summary>
+		/// Set this interest to use a copy of the given DelegationSet object as the
+		/// forwarding hint.
+		/// </summary>
+		///
+		/// @note You can also call getForwardingHint and change the forwarding hint
+		/// directly.
+		/// <param name="forwardingHint">set to a new default DelegationSet() with no entries.</param>
+		/// <returns>This Interest so that you can chain calls to update values.</returns>
+		public Interest setForwardingHint(DelegationSet forwardingHint) {
+			forwardingHint_.set((forwardingHint == null) ? new DelegationSet()
+					: new DelegationSet(forwardingHint));
 			++changeCount_;
 			return this;
 		}
@@ -802,6 +837,7 @@ namespace net.named_data.jndn {
 			bool changed = name_.checkChanged();
 			changed = keyLocator_.checkChanged() || changed;
 			changed = exclude_.checkChanged() || changed;
+			changed = forwardingHint_.checkChanged() || changed;
 			changed = link_.checkChanged() || changed;
 			if (changed)
 				// A child object has changed, so update the change count.
@@ -832,6 +868,7 @@ namespace net.named_data.jndn {
 		private LpPacket lpPacket_;
 		private Blob linkWireEncoding_;
 		private WireFormat linkWireEncodingFormat_;
+		private readonly ChangeCounter forwardingHint_;
 		private readonly ChangeCounter link_;
 		private int selectedDelegationIndex_;
 		private SignedBlob defaultWireEncoding_;

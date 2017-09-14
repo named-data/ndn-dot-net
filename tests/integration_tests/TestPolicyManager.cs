@@ -25,6 +25,7 @@ namespace net.named_data.jndn.tests.integration_tests {
 	using net.named_data.jndn.security.certificate;
 	using net.named_data.jndn.security.identity;
 	using net.named_data.jndn.security.policy;
+	using net.named_data.jndn.security.v2;
 	using net.named_data.jndn.util;
 	
 	internal class VerificationResult : OnVerified, OnDataValidationFailed,

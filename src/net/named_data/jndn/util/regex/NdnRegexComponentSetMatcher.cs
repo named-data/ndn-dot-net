@@ -89,13 +89,14 @@ namespace net.named_data.jndn.util.regex {
 			int rcount = 0;
 	
 			while (lcount > rcount) {
+				if (index >= expr_.Length)
+					throw new NdnRegexMatcherBase.Error(
+							"Error: angle brackets mismatch");
+	
 				if (expr_[index] == '<')
 					++lcount;
 				else if (expr_[index] == '>')
 					++rcount;
-				else if (expr_[index] == 0)
-					throw new NdnRegexMatcherBase.Error(
-							"Error: square brackets mismatch");
 	
 				++index;
 			}

@@ -15,6 +15,8 @@ namespace net.named_data.jndn.security {
 	using System.ComponentModel;
 	using System.IO;
 	using System.Runtime.CompilerServices;
+	using net.named_data.jndn;
+	using net.named_data.jndn.util;
 	
 	/// <summary>
 	/// KeyParams is a base class for key parameters. Its subclasses are used to
@@ -26,10 +28,56 @@ namespace net.named_data.jndn.security {
 			return keyType_;
 		}
 	
-		protected internal KeyParams(KeyType keyType) {
+		public KeyIdType getKeyIdType() {
+			return keyIdType_;
+		}
+	
+		public void setKeyId(Name.Component keyId) {
+			keyId_ = keyId;
+		}
+	
+		public Name.Component getKeyId() {
+			return keyId_;
+		}
+	
+		/// <summary>
+		/// Create a key generation parameter.
+		/// </summary>
+		///
+		/// <param name="keyType">The type for the created key.</param>
+		/// <param name="keyIdType"></param>
+		/// <exception cref="System.AssertionError">if keyIdType is KeyIdType.USER_SPECIFIED.</exception>
+		protected internal KeyParams(KeyType keyType, KeyIdType keyIdType) {
+			this.keyId_ = new Name.Component();
+			if (keyIdType == net.named_data.jndn.security.KeyIdType.USER_SPECIFIED)
+				throw new AssertionError("KeyParams: KeyIdType is USER_SPECIFIED");
+	
 			keyType_ = keyType;
+			keyIdType_ = keyIdType;
+		}
+	
+		/// <summary>
+		/// Create a key generation parameter.
+		/// </summary>
+		///
+		/// <param name="keyType">The type for the created key.</param>
+		/// <param name="keyId"></param>
+		/// <exception cref="System.AssertionError">if keyId is empty.</exception>
+		protected internal KeyParams(KeyType keyType, Name.Component keyId) {
+			this.keyId_ = new Name.Component();
+			if (keyId.getValue().size() == 0)
+				throw new AssertionError("KeyParams: keyId is empty");
+	
+			keyType_ = keyType;
+			keyIdType_ = net.named_data.jndn.security.KeyIdType.USER_SPECIFIED;
+			keyId_ = keyId;
 		}
 	
 		private readonly KeyType keyType_;
+		private readonly KeyIdType keyIdType_;
+		private Name.Component keyId_;
+	
+		// This is to force an import of net.named_data.jndn.util.
+		private static Common dummyCommon_ = new Common();
 	}
 }

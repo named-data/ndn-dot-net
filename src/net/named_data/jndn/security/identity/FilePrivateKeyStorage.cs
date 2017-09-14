@@ -457,7 +457,7 @@ namespace net.named_data.jndn.security.identity {
 	
 				var writer = (new StreamWriter(filePath));
 				try {
-					String base64Data = net.named_data.jndn.util.Common.base64Encode(data);
+					String base64Data = net.named_data.jndn.util.Common.base64Encode(data, true);
 					writer.Write(base64Data,0,base64Data.Substring(0,base64Data.Length));
 					writer.flush();
 				} finally {

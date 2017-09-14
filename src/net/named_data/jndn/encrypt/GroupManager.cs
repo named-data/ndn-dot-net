@@ -15,12 +15,13 @@ namespace net.named_data.jndn.encrypt {
 	using System.ComponentModel;
 	using System.IO;
 	using System.Runtime.CompilerServices;
-	using System.spec;
 	using net.named_data.jndn;
 	using net.named_data.jndn.encoding.der;
 	using net.named_data.jndn.encrypt.algo;
 	using net.named_data.jndn.security;
 	using net.named_data.jndn.security.certificate;
+	using net.named_data.jndn.security.pib;
+	using net.named_data.jndn.security.tpm;
 	using net.named_data.jndn.util;
 	
 	/// <summary>
@@ -272,30 +273,11 @@ namespace net.named_data.jndn.encrypt {
 		private void generateKeyPair(Blob[] privateKeyBlob, Blob[] publicKeyBlob) {
 			RsaKeyParams paras = new RsaKeyParams(keySize_);
 	
-			DecryptKey privateKey;
-			try {
-				privateKey = net.named_data.jndn.encrypt.algo.RsaAlgorithm.generateKey(paras);
-			} catch (Exception ex) {
-				// We don't expect this error.
-				throw new Exception("Error in RsaAlgorithm.generateKey: "
-						+ ex.Message);
-			}
+			DecryptKey privateKey = net.named_data.jndn.encrypt.algo.RsaAlgorithm.generateKey(paras);
 	
 			privateKeyBlob[0] = privateKey.getKeyBits();
 	
-			EncryptKey publicKey;
-			try {
-				publicKey = net.named_data.jndn.encrypt.algo.RsaAlgorithm.deriveEncryptKey(privateKeyBlob[0]);
-			} catch (InvalidKeySpecException ex_0) {
-				// We don't expect this error.
-				throw new Exception("Error in RsaAlgorithm.deriveEncryptKey: "
-						+ ex_0.Message);
-			} catch (DerDecodingException ex_1) {
-				// We don't expect this error.
-				throw new Exception("Error in RsaAlgorithm.deriveEncryptKey: "
-						+ ex_1.Message);
-			}
-	
+			EncryptKey publicKey = net.named_data.jndn.encrypt.algo.RsaAlgorithm.deriveEncryptKey(privateKeyBlob[0]);
 			publicKeyBlob[0] = publicKey.getKeyBits();
 		}
 	

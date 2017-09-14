@@ -55,7 +55,7 @@ namespace net.named_data.jndn.tests.unit_tests {
 	
 		private static readonly ByteBuffer codedInterest = toBuffer(new int[] {
 				0x05,
-				0x50, // Interest
+				0x5C, // Interest
 				0x07, 0x0A, 0x08, 0x03, 0x6E,
 				0x64,
 				0x6E,
@@ -86,6 +86,10 @@ namespace net.named_data.jndn.tests.unit_tests {
 				0x12, 0x00, // MustBeFesh
 				0x0A, 0x04, 0x61, 0x62, 0x61, 0x62, // Nonce
 				0x0C, 0x02, 0x75, 0x30, // InterestLifetime
+				0x1e, 0x0a, // ForwardingHint
+				0x1f, 0x08, // Delegation
+				0x1e, 0x01, 0x01, // Preference=1
+				0x07, 0x03, 0x08, 0x01, 0x41, // Name=/A
 				1 });
 	
 		static internal String dump(Object s1) {
@@ -103,7 +107,8 @@ namespace net.named_data.jndn.tests.unit_tests {
 									"maxSuffixComponents: 6",
 									"keyLocator: KeyLocatorDigest: 000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
 									"exclude: abc,*", "childSelector: 1", "mustBeFresh: true",
-									"nonce: 61626162", "lifetimeMilliseconds: 30000" }));
+									"nonce: 61626162", "lifetimeMilliseconds: 30000",
+									"forwardingHint:", "  Preference: 1, Name: /A" }));
 	
 		private static ArrayList dumpInterest(Interest interest) {
 			ArrayList result = new ArrayList();
@@ -137,6 +142,15 @@ namespace net.named_data.jndn.tests.unit_tests {
 			ILOG.J2CsMapping.Collections.Collections.Add(result,dump("lifetimeMilliseconds:",
 							(interest.getInterestLifetimeMilliseconds() < 0) ? "<none>" : ""
 									+ (long) interest.getInterestLifetimeMilliseconds()));
+			if (interest.getForwardingHint().size() > 0) {
+				ILOG.J2CsMapping.Collections.Collections.Add(result,dump("forwardingHint:"));
+				for (int i = 0; i < interest.getForwardingHint().size(); ++i)
+					ILOG.J2CsMapping.Collections.Collections.Add(result,dump("  Preference: "
+											+ interest.getForwardingHint().get(i).getPreference()
+											+ ", Name: "
+											+ interest.getForwardingHint().get(i).getName().toUri()));
+			} else
+				ILOG.J2CsMapping.Collections.Collections.Add(result,dump("forwardingHint: <none>"));
 			return result;
 		}
 	
@@ -175,6 +189,7 @@ namespace net.named_data.jndn.tests.unit_tests {
 							0x19, 0x1A, 0x1B, 0x1C, 0x1D, 0x1E, 0x1F }));
 			freshInterest.getExclude().appendComponent(new Name("abc").get(0))
 					.appendAny();
+			freshInterest.getForwardingHint().add(1, new Name("/A"));
 	
 			return freshInterest;
 		}

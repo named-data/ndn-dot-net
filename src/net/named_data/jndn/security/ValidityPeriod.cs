@@ -15,6 +15,7 @@ namespace net.named_data.jndn.security {
 	using System.ComponentModel;
 	using System.IO;
 	using System.Runtime.CompilerServices;
+	using net.named_data.jndn;
 	using net.named_data.jndn.util;
 	
 	/// <summary>
@@ -128,6 +129,52 @@ namespace net.named_data.jndn.security {
 		/// to time and time is less than or equal to the end of the validity period.</returns>
 		public bool isValid(double time) {
 			return notBefore_ <= time && time <= notAfter_;
+		}
+	
+		/// <summary>
+		/// Check if the current time falls within the validity period.
+		/// </summary>
+		///
+		/// <returns>True if the beginning of the validity period is less than or equal
+		/// to the current time and the current time is less than or equal to the end
+		/// of the validity period.</returns>
+		public bool isValid() {
+			return isValid(net.named_data.jndn.util.Common.getNowMilliseconds());
+		}
+	
+		/// <summary>
+		/// If the signature is a type that has a ValidityPeriod (so that
+		/// getFromSignature will succeed), return true.
+		/// Note: This is a static method of ValidityPeriod instead of a method of
+		/// Signature so that the Signature base class does not need to be overloaded
+		/// with all the different kinds of information that various signature
+		/// algorithms may use.
+		/// </summary>
+		///
+		/// <param name="signature">An object of a subclass of Signature.</param>
+		/// <returns>True if the signature is a type that has a ValidityPeriod,
+		/// otherwise false.</returns>
+		public static bool canGetFromSignature(Signature signature) {
+			return signature  is  Sha256WithRsaSignature
+					|| signature  is  Sha256WithEcdsaSignature;
+		}
+	
+		/// <summary>
+		/// If the signature is a type that has a ValidityPeriod, then return it.
+		/// Otherwise throw an error.
+		/// </summary>
+		///
+		/// <param name="signature">An object of a subclass of Signature.</param>
+		/// <returns>The signature's ValidityPeriod. It is an error if signature doesn't
+		/// have a ValidityPeriod.</returns>
+		public static ValidityPeriod getFromSignature(Signature signature) {
+			if (signature  is  Sha256WithRsaSignature)
+				return ((Sha256WithRsaSignature) signature).getValidityPeriod();
+			else if (signature  is  Sha256WithEcdsaSignature)
+				return ((Sha256WithEcdsaSignature) signature).getValidityPeriod();
+			else
+				throw new Exception(
+						"ValidityPeriod::getFromSignature: Signature type does not have a ValidityPeriod");
 		}
 	
 		/// <summary>

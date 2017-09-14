@@ -69,6 +69,20 @@ namespace net.named_data.jndn.encoding {
 			int saveLength = encoder.getLength();
 	
 			// Encode backwards.
+			if (interest.getForwardingHint().size() > 0) {
+				if (interest.getSelectedDelegationIndex() >= 0)
+					throw new Exception(
+							"An Interest may not have a selected delegation when encoding a forwarding hint");
+				if (interest.hasLink())
+					throw new Exception(
+							"An Interest may not have a link object when encoding a forwarding hint");
+	
+				int forwardingHintSaveLength = encoder.getLength();
+				encodeDelegationSet(interest.getForwardingHint(), encoder);
+				encoder.writeTypeAndLength(net.named_data.jndn.encoding.tlv.Tlv.ForwardingHint, encoder.getLength()
+						- forwardingHintSaveLength);
+			}
+	
 			encoder.writeOptionalNonNegativeIntegerTlv(net.named_data.jndn.encoding.tlv.Tlv.SelectedDelegation,
 					interest.getSelectedDelegationIndex());
 			try {
@@ -158,6 +172,14 @@ namespace net.named_data.jndn.encoding {
 			interest.setInterestLifetimeMilliseconds(decoder
 					.readOptionalNonNegativeIntegerTlv(net.named_data.jndn.encoding.tlv.Tlv.InterestLifetime,
 							endOffset));
+	
+			if (decoder.peekType(net.named_data.jndn.encoding.tlv.Tlv.ForwardingHint, endOffset)) {
+				int forwardingHintEndOffset = decoder
+						.readNestedTlvsStart(net.named_data.jndn.encoding.tlv.Tlv.ForwardingHint);
+				decodeDelegationSet(interest.getForwardingHint(),
+						forwardingHintEndOffset, decoder, copy);
+				decoder.finishNestedTlvs(forwardingHintEndOffset);
+			}
 	
 			if (decoder.peekType(net.named_data.jndn.encoding.tlv.Tlv.Data, endOffset)) {
 				// Get the bytes of the Link TLV.
@@ -490,19 +512,7 @@ namespace net.named_data.jndn.encoding {
 		/// <returns>A Blob containing the encoding.</returns>
 		public override Blob encodeDelegationSet(DelegationSet delegationSet) {
 			TlvEncoder encoder = new TlvEncoder(256);
-	
-			// Encode backwards.
-			for (int i = delegationSet.size() - 1; i >= 0; --i) {
-				int saveLength = encoder.getLength();
-	
-				encodeName(delegationSet.get(i).getName(), new int[1], new int[1],
-						encoder);
-				encoder.writeNonNegativeIntegerTlv(net.named_data.jndn.encoding.tlv.Tlv.Link_Preference,
-						delegationSet.get(i).getPreference());
-	
-				encoder.writeTypeAndLength(net.named_data.jndn.encoding.tlv.Tlv.Link_Delegation, encoder.getLength()
-						- saveLength);
-			}
+			encodeDelegationSet(delegationSet, encoder);
 	
 			return new Blob(encoder.getOutput(), false);
 		}
@@ -522,20 +532,7 @@ namespace net.named_data.jndn.encoding {
 		public override void decodeDelegationSet(DelegationSet delegationSet,
 				ByteBuffer input, bool copy) {
 			TlvDecoder decoder = new TlvDecoder(input);
-			int endOffset = input.limit();
-	
-			delegationSet.clear();
-			while (decoder.getOffset() < endOffset) {
-				decoder.readTypeAndLength(net.named_data.jndn.encoding.tlv.Tlv.Link_Delegation);
-				int preference = (int) decoder
-						.readNonNegativeIntegerTlv(net.named_data.jndn.encoding.tlv.Tlv.Link_Preference);
-				Name name = new Name();
-				decodeName(name, new int[1], new int[1], decoder, copy);
-	
-				// Add unsorted to preserve the order so that Interest selected delegation
-				// index will work.
-				delegationSet.addUnsorted(preference, name);
-			}
+			decodeDelegationSet(delegationSet, input.limit(), decoder, copy);
 		}
 	
 		/// <summary>
@@ -1202,6 +1199,58 @@ namespace net.named_data.jndn.encoding {
 							net.named_data.jndn.encoding.tlv.Tlv.ControlParameters_ExpirationPeriod, endOffset));
 	
 			decoder.finishNestedTlvs(endOffset);
+		}
+	
+		/// <summary>
+		/// Encode delegationSet to the encoder as a sequence of NDN-TLV Delegation.
+		/// Note that the sequence of Delegation does not have an outer TLV
+		/// type and length because (when used in a Link object) it is intended to use
+		/// the type and length of a Data packet's Content.
+		/// </summary>
+		///
+		/// <param name="delegationSet">The DelegationSet object to encode.</param>
+		/// <param name="encoder">The TlvEncoder to receive the encoding.</param>
+		private static void encodeDelegationSet(DelegationSet delegationSet,
+				TlvEncoder encoder) {
+			// Encode backwards.
+			for (int i = delegationSet.size() - 1; i >= 0; --i) {
+				int saveLength = encoder.getLength();
+	
+				encodeName(delegationSet.get(i).getName(), new int[1], new int[1],
+						encoder);
+				encoder.writeNonNegativeIntegerTlv(net.named_data.jndn.encoding.tlv.Tlv.Link_Preference,
+						delegationSet.get(i).getPreference());
+	
+				encoder.writeTypeAndLength(net.named_data.jndn.encoding.tlv.Tlv.Link_Delegation, encoder.getLength()
+						- saveLength);
+			}
+		}
+	
+		/// <summary>
+		/// Decode input as a sequence of NDN-TLV Delegation and set the fields of the
+		/// delegationSet object. Note that the sequence of Delegation does not have an
+		/// outer TLV type and length because (when used in a Link object) it is
+		/// intended to use the type and length of a Data packet's Content.
+		/// </summary>
+		///
+		/// <param name="delegationSet">The DelegationSet object whose fields are updated.</param>
+		/// <param name="endOffset"></param>
+		/// <param name="decoder">The decoder with the input to decode.</param>
+		/// <param name="copy">unchanged while the Blob values are used.</param>
+		/// <exception cref="EncodingException">For invalid encoding.</exception>
+		private static void decodeDelegationSet(DelegationSet delegationSet,
+				int endOffset, TlvDecoder decoder, bool copy) {
+			delegationSet.clear();
+			while (decoder.getOffset() < endOffset) {
+				decoder.readTypeAndLength(net.named_data.jndn.encoding.tlv.Tlv.Link_Delegation);
+				int preference = (int) decoder
+						.readNonNegativeIntegerTlv(net.named_data.jndn.encoding.tlv.Tlv.Link_Preference);
+				Name name = new Name();
+				decodeName(name, new int[1], new int[1], decoder, copy);
+	
+				// Add unsorted to preserve the order in the encoding.
+				delegationSet.addUnsorted(preference, name);
+			}
 		}
 	
 		private static readonly Random random_ = new Random();

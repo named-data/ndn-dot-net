@@ -23,6 +23,7 @@ namespace net.named_data.jndn.security.policy {
 	using net.named_data.jndn.encoding.der;
 	using net.named_data.jndn.security;
 	using net.named_data.jndn.security.certificate;
+	using net.named_data.jndn.security.v2;
 	using net.named_data.jndn.util;
 	using net.named_data.jndn.util.regex;
 	
@@ -31,7 +32,7 @@ namespace net.named_data.jndn.security.policy {
 	/// Validator Configuration File Format
 	/// (http://redmine.named-data.net/projects/ndn-cxx/wiki/CommandValidatorConf)
 	/// Once a rule is matched, the ConfigPolicyManager looks in the
-	/// CertificateCache for the IdentityCertificate matching the name in the KeyLocator
+	/// CertificateCache for the certificate matching the name in the KeyLocator
 	/// and uses its public key to verify the data packet or signed interest. If the
 	/// certificate can't be found, it is downloaded, verified and installed. A chain
 	/// of certificates will be followed to a maximum depth.
@@ -44,10 +45,13 @@ namespace net.named_data.jndn.security.policy {
 		/// <summary>
 		/// Create a new ConfigPolicyManager which will act on the rules specified in
 		/// the configuration and download unknown certificates when necessary.
+		/// This creates a security v1 PolicyManager to verify certificates in format
+		/// v1. To verify certificate format v2, use the ConfigPolicyManager with a
+		/// CertificateCacheV2.
 		/// </summary>
 		///
 		/// <param name="configFileName">separately call load().</param>
-		/// <param name="certificateCache">CertificateCache.</param>
+		/// <param name="certificateCache"></param>
 		/// <param name="searchDepth"></param>
 		/// <param name="graceInterval">public key and the validation time. If omitted, use a default value.</param>
 		/// <param name="keyTimestampTtl">value.</param>
@@ -56,6 +60,7 @@ namespace net.named_data.jndn.security.policy {
 				CertificateCache certificateCache, int searchDepth,
 				double graceInterval, double keyTimestampTtl, int maxTrackedKeys) {
 			this.certificateCache_ = new CertificateCache();
+					this.certificateCacheV2_ = new CertificateCacheV2();
 					this.maxDepth_ = 5;
 					this.keyGraceInterval_ = 3000;
 					this.keyTimestampTtl_ = 3600000;
@@ -64,12 +69,14 @@ namespace net.named_data.jndn.security.policy {
 					this.keyTimestamps_ = new Hashtable();
 					this.config_ = new BoostInfoParser();
 					this.requiresVerification_ = true;
-					this.refreshManager_ = new ConfigPolicyManager.TrustAnchorRefreshManager ();
+			isSecurityV1_ = true;
 			certificateCache_ = certificateCache;
 			maxDepth_ = searchDepth;
 			keyGraceInterval_ = graceInterval;
 			keyTimestampTtl_ = keyTimestampTtl;
 			maxTrackedKeys_ = maxTrackedKeys;
+	
+			reset();
 	
 			if (configFileName != null && !configFileName.equals(""))
 				load(configFileName);
@@ -79,6 +86,7 @@ namespace net.named_data.jndn.security.policy {
 				CertificateCache certificateCache, int searchDepth,
 				double graceInterval, double keyTimestampTtl) {
 			this.certificateCache_ = new CertificateCache();
+					this.certificateCacheV2_ = new CertificateCacheV2();
 					this.maxDepth_ = 5;
 					this.keyGraceInterval_ = 3000;
 					this.keyTimestampTtl_ = 3600000;
@@ -87,11 +95,13 @@ namespace net.named_data.jndn.security.policy {
 					this.keyTimestamps_ = new Hashtable();
 					this.config_ = new BoostInfoParser();
 					this.requiresVerification_ = true;
-					this.refreshManager_ = new ConfigPolicyManager.TrustAnchorRefreshManager ();
+			isSecurityV1_ = true;
 			certificateCache_ = certificateCache;
 			maxDepth_ = searchDepth;
 			keyGraceInterval_ = graceInterval;
 			keyTimestampTtl_ = keyTimestampTtl;
+	
+			reset();
 	
 			if (configFileName != null && !configFileName.equals(""))
 				load(configFileName);
@@ -101,6 +111,7 @@ namespace net.named_data.jndn.security.policy {
 				CertificateCache certificateCache, int searchDepth,
 				double graceInterval) {
 			this.certificateCache_ = new CertificateCache();
+					this.certificateCacheV2_ = new CertificateCacheV2();
 					this.maxDepth_ = 5;
 					this.keyGraceInterval_ = 3000;
 					this.keyTimestampTtl_ = 3600000;
@@ -109,10 +120,12 @@ namespace net.named_data.jndn.security.policy {
 					this.keyTimestamps_ = new Hashtable();
 					this.config_ = new BoostInfoParser();
 					this.requiresVerification_ = true;
-					this.refreshManager_ = new ConfigPolicyManager.TrustAnchorRefreshManager ();
+			isSecurityV1_ = true;
 			certificateCache_ = certificateCache;
 			maxDepth_ = searchDepth;
 			keyGraceInterval_ = graceInterval;
+	
+			reset();
 	
 			if (configFileName != null && !configFileName.equals(""))
 				load(configFileName);
@@ -121,6 +134,7 @@ namespace net.named_data.jndn.security.policy {
 		public ConfigPolicyManager(String configFileName,
 				CertificateCache certificateCache, int searchDepth) {
 			this.certificateCache_ = new CertificateCache();
+					this.certificateCacheV2_ = new CertificateCacheV2();
 					this.maxDepth_ = 5;
 					this.keyGraceInterval_ = 3000;
 					this.keyTimestampTtl_ = 3600000;
@@ -129,9 +143,11 @@ namespace net.named_data.jndn.security.policy {
 					this.keyTimestamps_ = new Hashtable();
 					this.config_ = new BoostInfoParser();
 					this.requiresVerification_ = true;
-					this.refreshManager_ = new ConfigPolicyManager.TrustAnchorRefreshManager ();
+			isSecurityV1_ = true;
 			certificateCache_ = certificateCache;
 			maxDepth_ = searchDepth;
+	
+			reset();
 	
 			if (configFileName != null && !configFileName.equals(""))
 				load(configFileName);
@@ -140,6 +156,7 @@ namespace net.named_data.jndn.security.policy {
 		public ConfigPolicyManager(String configFileName,
 				CertificateCache certificateCache) {
 			this.certificateCache_ = new CertificateCache();
+					this.certificateCacheV2_ = new CertificateCacheV2();
 					this.maxDepth_ = 5;
 					this.keyGraceInterval_ = 3000;
 					this.keyTimestampTtl_ = 3600000;
@@ -148,15 +165,24 @@ namespace net.named_data.jndn.security.policy {
 					this.keyTimestamps_ = new Hashtable();
 					this.config_ = new BoostInfoParser();
 					this.requiresVerification_ = true;
-					this.refreshManager_ = new ConfigPolicyManager.TrustAnchorRefreshManager ();
+			isSecurityV1_ = true;
 			certificateCache_ = certificateCache;
+	
+			reset();
 	
 			if (configFileName != null && !configFileName.equals(""))
 				load(configFileName);
 		}
 	
+		/// <summary>
+		/// This creates a security v1 PolicyManager to verify certificates in format
+		/// v1. To verify certificate format v2, use the ConfigPolicyManager with a
+		/// CertificateCacheV2.
+		/// </summary>
+		///
 		public ConfigPolicyManager(String configFileName) {
 			this.certificateCache_ = new CertificateCache();
+					this.certificateCacheV2_ = new CertificateCacheV2();
 					this.maxDepth_ = 5;
 					this.keyGraceInterval_ = 3000;
 					this.keyTimestampTtl_ = 3600000;
@@ -165,7 +191,10 @@ namespace net.named_data.jndn.security.policy {
 					this.keyTimestamps_ = new Hashtable();
 					this.config_ = new BoostInfoParser();
 					this.requiresVerification_ = true;
-					this.refreshManager_ = new ConfigPolicyManager.TrustAnchorRefreshManager ();
+			isSecurityV1_ = true;
+	
+			reset();
+	
 			if (configFileName != null && !configFileName.equals(""))
 				load(configFileName);
 		}
@@ -174,10 +203,14 @@ namespace net.named_data.jndn.security.policy {
 		/// Create a new ConfigPolicyManager which will act on the rules specified in
 		/// the configuration and download unknown certificates when necessary. Use
 		/// default parameter values. You must call load().
+		/// This creates a security v1 PolicyManager to verify certificates in format
+		/// v1. To verify certificate format v2, use the ConfigPolicyManager with a
+		/// CertificateCacheV2.
 		/// </summary>
 		///
 		public ConfigPolicyManager() {
 			this.certificateCache_ = new CertificateCache();
+			this.certificateCacheV2_ = new CertificateCacheV2();
 			this.maxDepth_ = 5;
 			this.keyGraceInterval_ = 3000;
 			this.keyTimestampTtl_ = 3600000;
@@ -186,7 +219,139 @@ namespace net.named_data.jndn.security.policy {
 			this.keyTimestamps_ = new Hashtable();
 			this.config_ = new BoostInfoParser();
 			this.requiresVerification_ = true;
-			this.refreshManager_ = new ConfigPolicyManager.TrustAnchorRefreshManager ();
+			isSecurityV1_ = true;
+	
+			reset();
+		}
+	
+		/// <summary>
+		/// Create a new ConfigPolicyManager which will act on the rules specified in
+		/// the configuration and download unknown certificates when necessary. This
+		/// uses certificate format v2.
+		/// </summary>
+		///
+		/// <param name="configFileName">separately call load().</param>
+		/// <param name="certificateCache">A CertificateCacheV2 to hold known certificates.</param>
+		/// <param name="searchDepth"></param>
+		/// <param name="graceInterval">public key and the validation time. If omitted, use a default value.</param>
+		/// <param name="keyTimestampTtl">value.</param>
+		/// <param name="maxTrackedKeys"></param>
+		public ConfigPolicyManager(String configFileName,
+				CertificateCacheV2 certificateCache, int searchDepth,
+				double graceInterval, double keyTimestampTtl, int maxTrackedKeys) {
+			this.certificateCache_ = new CertificateCache();
+					this.certificateCacheV2_ = new CertificateCacheV2();
+					this.maxDepth_ = 5;
+					this.keyGraceInterval_ = 3000;
+					this.keyTimestampTtl_ = 3600000;
+					this.maxTrackedKeys_ = 1000;
+					this.fixedCertificateCache_ = new Hashtable();
+					this.keyTimestamps_ = new Hashtable();
+					this.config_ = new BoostInfoParser();
+					this.requiresVerification_ = true;
+			isSecurityV1_ = false;
+			certificateCacheV2_ = certificateCache;
+			maxDepth_ = searchDepth;
+			keyGraceInterval_ = graceInterval;
+			keyTimestampTtl_ = keyTimestampTtl;
+			maxTrackedKeys_ = maxTrackedKeys;
+	
+			reset();
+	
+			if (configFileName != null && !configFileName.equals(""))
+				load(configFileName);
+		}
+	
+		public ConfigPolicyManager(String configFileName,
+				CertificateCacheV2 certificateCache, int searchDepth,
+				double graceInterval, double keyTimestampTtl) {
+			this.certificateCache_ = new CertificateCache();
+					this.certificateCacheV2_ = new CertificateCacheV2();
+					this.maxDepth_ = 5;
+					this.keyGraceInterval_ = 3000;
+					this.keyTimestampTtl_ = 3600000;
+					this.maxTrackedKeys_ = 1000;
+					this.fixedCertificateCache_ = new Hashtable();
+					this.keyTimestamps_ = new Hashtable();
+					this.config_ = new BoostInfoParser();
+					this.requiresVerification_ = true;
+			isSecurityV1_ = false;
+			certificateCacheV2_ = certificateCache;
+			maxDepth_ = searchDepth;
+			keyGraceInterval_ = graceInterval;
+			keyTimestampTtl_ = keyTimestampTtl;
+	
+			reset();
+	
+			if (configFileName != null && !configFileName.equals(""))
+				load(configFileName);
+		}
+	
+		public ConfigPolicyManager(String configFileName,
+				CertificateCacheV2 certificateCache, int searchDepth,
+				double graceInterval) {
+			this.certificateCache_ = new CertificateCache();
+					this.certificateCacheV2_ = new CertificateCacheV2();
+					this.maxDepth_ = 5;
+					this.keyGraceInterval_ = 3000;
+					this.keyTimestampTtl_ = 3600000;
+					this.maxTrackedKeys_ = 1000;
+					this.fixedCertificateCache_ = new Hashtable();
+					this.keyTimestamps_ = new Hashtable();
+					this.config_ = new BoostInfoParser();
+					this.requiresVerification_ = true;
+			isSecurityV1_ = false;
+			certificateCacheV2_ = certificateCache;
+			maxDepth_ = searchDepth;
+			keyGraceInterval_ = graceInterval;
+	
+			reset();
+	
+			if (configFileName != null && !configFileName.equals(""))
+				load(configFileName);
+		}
+	
+		public ConfigPolicyManager(String configFileName,
+				CertificateCacheV2 certificateCache, int searchDepth) {
+			this.certificateCache_ = new CertificateCache();
+					this.certificateCacheV2_ = new CertificateCacheV2();
+					this.maxDepth_ = 5;
+					this.keyGraceInterval_ = 3000;
+					this.keyTimestampTtl_ = 3600000;
+					this.maxTrackedKeys_ = 1000;
+					this.fixedCertificateCache_ = new Hashtable();
+					this.keyTimestamps_ = new Hashtable();
+					this.config_ = new BoostInfoParser();
+					this.requiresVerification_ = true;
+			isSecurityV1_ = false;
+			certificateCacheV2_ = certificateCache;
+			maxDepth_ = searchDepth;
+	
+			reset();
+	
+			if (configFileName != null && !configFileName.equals(""))
+				load(configFileName);
+		}
+	
+		public ConfigPolicyManager(String configFileName,
+				CertificateCacheV2 certificateCache) {
+			this.certificateCache_ = new CertificateCache();
+					this.certificateCacheV2_ = new CertificateCacheV2();
+					this.maxDepth_ = 5;
+					this.keyGraceInterval_ = 3000;
+					this.keyTimestampTtl_ = 3600000;
+					this.maxTrackedKeys_ = 1000;
+					this.fixedCertificateCache_ = new Hashtable();
+					this.keyTimestamps_ = new Hashtable();
+					this.config_ = new BoostInfoParser();
+					this.requiresVerification_ = true;
+			isSecurityV1_ = false;
+			certificateCacheV2_ = certificateCache;
+	
+			reset();
+	
+			if (configFileName != null && !configFileName.equals(""))
+				load(configFileName);
 		}
 	
 		/// <summary>
@@ -194,12 +359,15 @@ namespace net.named_data.jndn.security.policy {
 		/// </summary>
 		///
 		public void reset() {
-			certificateCache_.reset();
+			if (isSecurityV1_)
+				certificateCache_.reset();
+			else
+				certificateCacheV2_.reset();
 			fixedCertificateCache_.clear();
 			keyTimestamps_.clear();
 			requiresVerification_ = true;
 			config_ = new BoostInfoParser();
-			refreshManager_ = new ConfigPolicyManager.TrustAnchorRefreshManager ();
+			refreshManager_ = new ConfigPolicyManager.TrustAnchorRefreshManager (isSecurityV1_);
 		}
 	
 		/// <summary>
@@ -295,17 +463,19 @@ namespace net.named_data.jndn.security.policy {
 			try {
 				certificateInterest = getCertificateInterest(stepCount, "data",
 						data.getName(), data.getSignature(), failureReason);
-			} catch (NdnRegexMatcherBase.Error ex) {
+			} catch (CertificateV2.Error ex) {
+				throw new SecurityException(ex.Message);
+			} catch (NdnRegexMatcherBase.Error ex_0) {
 				throw new SecurityException(
 						"ConfigPolicyManager: Error in getCertificateInterest:"
-								+ ex);
+								+ ex_0);
 			}
 			if (certificateInterest == null) {
 				try {
 					onValidationFailed.onDataValidationFailed(data,
 							failureReason[0]);
-				} catch (Exception ex_0) {
-					logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in onDataValidationFailed", ex_0);
+				} catch (Exception ex_1) {
+					logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in onDataValidationFailed", ex_1);
 				}
 				return null;
 			}
@@ -321,16 +491,16 @@ namespace net.named_data.jndn.security.policy {
 				if (verify(data.getSignature(), data.wireEncode(), failureReason)) {
 					try {
 						onVerified.onVerified(data);
-					} catch (Exception ex_1) {
-						logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in onVerified", ex_1);
+					} catch (Exception ex_2) {
+						logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in onVerified", ex_2);
 					}
 				} else {
 					try {
 						onValidationFailed.onDataValidationFailed(data,
 								failureReason[0]);
-					} catch (Exception ex_2) {
+					} catch (Exception ex_3) {
 						logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE,
-								"Error in onDataValidationFailed", ex_2);
+								"Error in onDataValidationFailed", ex_3);
 					}
 				}
 	
@@ -373,18 +543,20 @@ namespace net.named_data.jndn.security.policy {
 			try {
 				certificateInterest = getCertificateInterest(stepCount, "interest",
 						interest.getName().getPrefix(-4), signature, failureReason);
-			} catch (NdnRegexMatcherBase.Error ex_0) {
+			} catch (CertificateV2.Error ex_0) {
+				throw new SecurityException(ex_0.Message);
+			} catch (NdnRegexMatcherBase.Error ex_1) {
 				throw new SecurityException(
 						"ConfigPolicyManager: Error in getCertificateInterest:"
-								+ ex_0);
+								+ ex_1);
 			}
 			if (certificateInterest == null) {
 				try {
 					onValidationFailed.onInterestValidationFailed(interest,
 							failureReason[0]);
-				} catch (Exception ex_1) {
+				} catch (Exception ex_2) {
 					logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE,
-							"Error in onInterestValidationFailed", ex_1);
+							"Error in onInterestValidationFailed", ex_2);
 				}
 				return null;
 			}
@@ -401,17 +573,22 @@ namespace net.named_data.jndn.security.policy {
 				// the cache with bad keys.
 				Name signatureName = net.named_data.jndn.KeyLocator.getFromSignature(signature)
 						.getKeyName();
-				Name keyName = net.named_data.jndn.security.certificate.IdentityCertificate
-						.certificateNameToPublicKeyName(signatureName);
+				Name keyName;
+				if (isSecurityV1_)
+					keyName = net.named_data.jndn.security.certificate.IdentityCertificate
+							.certificateNameToPublicKeyName(signatureName);
+				else
+					// For security V2, the KeyLocator name is already the key name.
+					keyName = signatureName;
 				double timestamp = interest.getName().get(-4).toNumber();
 	
 				if (!interestTimestampIsFresh(keyName, timestamp, failureReason)) {
 					try {
 						onValidationFailed.onInterestValidationFailed(interest,
 								failureReason[0]);
-					} catch (Exception ex_2) {
+					} catch (Exception ex_3) {
 						logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE,
-								"Error in onInterestValidationFailed", ex_2);
+								"Error in onInterestValidationFailed", ex_3);
 					}
 					return null;
 				}
@@ -421,17 +598,17 @@ namespace net.named_data.jndn.security.policy {
 				if (verify(signature, interest.wireEncode(), failureReason)) {
 					try {
 						onVerified.onVerifiedInterest(interest);
-					} catch (Exception ex_3) {
-						logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in onVerifiedInterest", ex_3);
+					} catch (Exception ex_4) {
+						logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in onVerifiedInterest", ex_4);
 					}
 					updateTimestampForKey(keyName, timestamp);
 				} else {
 					try {
 						onValidationFailed.onInterestValidationFailed(interest,
 								failureReason[0]);
-					} catch (Exception ex_4) {
+					} catch (Exception ex_5) {
 						logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE,
-								"Error in onInterestValidationFailed", ex_4);
+								"Error in onInterestValidationFailed", ex_5);
 					}
 				}
 	
@@ -470,9 +647,11 @@ namespace net.named_data.jndn.security.policy {
 		/// </summary>
 		///
 		private class TrustAnchorRefreshManager {
-			public TrustAnchorRefreshManager() {
+			public TrustAnchorRefreshManager(bool isSecurityV1) {
 				this.certificateCache_ = new CertificateCache();
+				this.certificateCacheV2_ = new CertificateCacheV2();
 				this.refreshDirectories_ = new Hashtable();
+				isSecurityV1_ = isSecurityV1;
 			}
 	
 			public static IdentityCertificate loadIdentityCertificateFromFile(
@@ -513,9 +692,58 @@ namespace net.named_data.jndn.security.policy {
 				return cert;
 			}
 	
+			public static CertificateV2 loadCertificateV2FromFile(String filename) {
+				StringBuilder encodedData = new StringBuilder();
+	
+				try {
+					TextReader certFile = new FileReader(
+											filename);
+					// Use "try/finally instead of "try-with-resources" or "using"
+					// which are not supported before Java 7.
+					try {
+						String line;
+						while ((line = certFile.readLine()) != null)
+							encodedData.append(line);
+					} finally {
+						certFile.close();
+					}
+				} catch (FileNotFoundException ex) {
+					throw new SecurityException("Can't find the certificate file "
+							+ filename + ": " + ex.Message);
+				} catch (IOException ex_0) {
+					throw new SecurityException(
+							"Error reading the certificate file " + filename + ": "
+									+ ex_0.Message);
+				}
+	
+				byte[] decodedData = net.named_data.jndn.util.Common.base64Decode(encodedData.toString());
+				CertificateV2 cert = new CertificateV2();
+				try {
+					cert.wireDecode(new Blob(decodedData, false));
+				} catch (EncodingException ex_1) {
+					throw new SecurityException(
+							"Can't decode the certificate from file " + filename
+									+ ": " + ex_1.Message);
+				}
+				return cert;
+			}
+	
 			public IdentityCertificate getCertificate(Name certificateName) {
+				if (!isSecurityV1_)
+					throw new SecurityException(
+							"getCertificate: For security v2, use getCertificateV2()");
+	
 				// Assume the timestamp is already removed.
 				return certificateCache_.getCertificate(certificateName);
+			}
+	
+			public CertificateV2 getCertificateV2(Name certificateName) {
+				if (isSecurityV1_)
+					throw new SecurityException(
+							"getCertificateV2: For security v1, use getCertificate()");
+	
+				// Assume the timestamp is already removed.
+				return certificateCacheV2_.find(certificateName);
 			}
 	
 			public void addDirectory(String directoryName, double refreshPeriod) {
@@ -529,18 +757,34 @@ namespace net.named_data.jndn.security.policy {
 				for (int i = 0; i < allFiles.Length; ++i) {
 					FileInfo file = allFiles[i];
 	
-					IdentityCertificate cert;
-					try {
-						cert = loadIdentityCertificateFromFile(file.FullName);
-					} catch (SecurityException ex) {
-						// Allow files that are not certificates.
-						continue;
-					}
+					if (isSecurityV1_) {
+						IdentityCertificate cert;
+						try {
+							cert = loadIdentityCertificateFromFile(file.FullName);
+						} catch (Exception ex) {
+							// Allow files that are not certificates.
+							continue;
+						}
 	
-					// Cut off the timestamp so it matches KeyLocator Name format.
-					String certUri = cert.getName().getPrefix(-1).toUri();
-					certificateCache_.insertCertificate(cert);
-					ILOG.J2CsMapping.Collections.Collections.Add(certificateNames,certUri);
+						// Cut off the timestamp so it matches KeyLocator Name format.
+						String certUri = cert.getName().getPrefix(-1).toUri();
+						certificateCache_.insertCertificate(cert);
+						ILOG.J2CsMapping.Collections.Collections.Add(certificateNames,certUri);
+					} else {
+						CertificateV2 cert_0;
+						try {
+							cert_0 = loadCertificateV2FromFile(file.FullName);
+						} catch (Exception ex_1) {
+							// Allow files that are not certificates.
+							continue;
+						}
+	
+						// Get the key name since this is in the KeyLocator.
+						String certUri_2 = net.named_data.jndn.security.v2.CertificateV2.extractKeyNameFromCertName(
+								cert_0.getName()).toUri();
+						certificateCacheV2_.insert(cert_0);
+						ILOG.J2CsMapping.Collections.Collections.Add(certificateNames,certUri_2);
+					}
 				}
 	
 				ILOG.J2CsMapping.Collections.Collections.Put(refreshDirectories_,directoryName,new net.named_data.jndn.security.policy.ConfigPolicyManager.TrustAnchorRefreshManager.DirectoryInfo (
@@ -565,9 +809,14 @@ namespace net.named_data.jndn.security.policy {
 						// Delete the certificates associated with this directory if possible
 						//   then re-import.
 						// IdentityStorage subclasses may not support deletion.
-						for (int i = 0; i < certificateList.Count; ++i)
-							certificateCache_.deleteCertificate(new Name(
-									(String) certificateList[i]));
+						for (int i = 0; i < certificateList.Count; ++i) {
+							if (isSecurityV1_)
+								certificateCache_.deleteCertificate(new Name(
+										(String) certificateList[i]));
+							else
+								certificateCacheV2_.deleteCertificate(new Name(
+										(String) certificateList[i]));
+						}
 	
 						addDirectory(directory, info.refreshPeriod_);
 					}
@@ -587,7 +836,9 @@ namespace net.named_data.jndn.security.policy {
 				internal double refreshPeriod_;
 			} 
 	
+			private readonly bool isSecurityV1_;
 			private readonly CertificateCache certificateCache_;
+			private readonly CertificateCacheV2 certificateCacheV2_;
 			// refreshDirectories_ maps the directory name to a DirectoryInfo of
 			// the certificate names so they can be deleted when necessary, and the
 			// next refresh time.
@@ -648,7 +899,10 @@ namespace net.named_data.jndn.security.policy {
 					break;
 				}
 	
-				lookupCertificate(certID, isPath);
+				if (isSecurityV1_)
+					lookupCertificate(certID, isPath);
+				else
+					lookupCertificateV2(certID, isPath);
 			}
 		}
 	
@@ -671,22 +925,46 @@ namespace net.named_data.jndn.security.policy {
 				BoostInfoTree signerInfo = (BoostInfoTree) checker.get("signer")[0];
 				String signerType = signerInfo.getFirstValue("type");
 	
-				Certificate cert = null;
+				Name certificateName;
 				if (signerType.equals("file")) {
-					cert = lookupCertificate(signerInfo.getFirstValue("file-name"),
-							true);
-					if (cert == null) {
-						failureReason[0] = "Can't find fixed-signer certificate file: "
-								+ signerInfo.getFirstValue("file-name");
-						return false;
+					if (isSecurityV1_) {
+						Certificate cert = lookupCertificate(
+								signerInfo.getFirstValue("file-name"), true);
+						if (cert == null) {
+							failureReason[0] = "Can't find fixed-signer certificate file: "
+									+ signerInfo.getFirstValue("file-name");
+							return false;
+						}
+						certificateName = cert.getName();
+					} else {
+						CertificateV2 cert_0 = lookupCertificateV2(
+								signerInfo.getFirstValue("file-name"), true);
+						if (cert_0 == null) {
+							failureReason[0] = "Can't find fixed-signer certificate file: "
+									+ signerInfo.getFirstValue("file-name");
+							return false;
+						}
+						certificateName = cert_0.getName();
 					}
 				} else if (signerType.equals("base64")) {
-					cert = lookupCertificate(
-							signerInfo.getFirstValue("base64-string"), false);
-					if (cert == null) {
-						failureReason[0] = "Can't find fixed-signer certificate base64: "
-								+ signerInfo.getFirstValue("base64-string");
-						return false;
+					if (isSecurityV1_) {
+						Certificate cert_1 = lookupCertificate(
+								signerInfo.getFirstValue("base64-string"), false);
+						if (cert_1 == null) {
+							failureReason[0] = "Can't find fixed-signer certificate base64: "
+									+ signerInfo.getFirstValue("base64-string");
+							return false;
+						}
+						certificateName = cert_1.getName();
+					} else {
+						CertificateV2 cert_2 = lookupCertificateV2(
+								signerInfo.getFirstValue("base64-string"), false);
+						if (cert_2 == null) {
+							failureReason[0] = "Can't find fixed-signer certificate base64: "
+									+ signerInfo.getFirstValue("base64-string");
+							return false;
+						}
+						certificateName = cert_2.getName();
 					}
 				} else {
 					failureReason[0] = "Unrecognized fixed-signer signerType: "
@@ -694,11 +972,11 @@ namespace net.named_data.jndn.security.policy {
 					return false;
 				}
 	
-				if (cert.getName().equals(signatureName))
+				if (certificateName.equals(signatureName))
 					return true;
 				else {
 					failureReason[0] = "fixed-signer cert name \""
-							+ cert.getName().toUri()
+							+ certificateName.toUri()
 							+ "\" does not equal signatureName \""
 							+ signatureName.toUri() + "\"";
 					return false;
@@ -852,8 +1130,12 @@ namespace net.named_data.jndn.security.policy {
 		///
 		/// <param name="certID"></param>
 		/// <param name="isPath"></param>
-		/// <returns>The certificate object.</returns>
+		/// <returns>The IdentityCertificate or null if not found.</returns>
 		private IdentityCertificate lookupCertificate(String certID, bool isPath) {
+			if (!isSecurityV1_)
+				throw new SecurityException(
+						"lookupCertificate: For security v2, use lookupCertificateV2()");
+	
 			IdentityCertificate cert;
 	
 			if (!fixedCertificateCache_.Contains(certID)) {
@@ -878,6 +1160,49 @@ namespace net.named_data.jndn.security.policy {
 				certificateCache_.insertCertificate(cert);
 			} else
 				cert = certificateCache_.getCertificate(new Name(
+						(String) ILOG.J2CsMapping.Collections.Collections.Get(fixedCertificateCache_,certID)));
+	
+			return cert;
+		}
+	
+		/// <summary>
+		/// This looks up certificates specified as base64-encoded data or file names.
+		/// These are cached by filename or encoding to avoid repeated reading of files
+		/// or decoding.
+		/// </summary>
+		///
+		/// <param name="certID"></param>
+		/// <param name="isPath"></param>
+		/// <returns>The CertificateV2 or null if not found.</returns>
+		private CertificateV2 lookupCertificateV2(String certID, bool isPath) {
+			if (isSecurityV1_)
+				throw new SecurityException(
+						"lookupCertificateV2: For security v1, use lookupCertificate()");
+	
+			CertificateV2 cert;
+	
+			if (!fixedCertificateCache_.Contains(certID)) {
+				if (isPath)
+					// Load the certificate data (base64 encoded IdentityCertificate)
+					cert = net.named_data.jndn.security.policy.ConfigPolicyManager.TrustAnchorRefreshManager
+							.loadCertificateV2FromFile(certID);
+				else {
+					byte[] certData = net.named_data.jndn.util.Common.base64Decode(certID);
+					cert = new CertificateV2();
+					try {
+						cert.wireDecode(new Blob(certData, false));
+					} catch (EncodingException ex) {
+						throw new SecurityException(
+								"Cannot base64 decode the cert data: "
+										+ ex.Message);
+					}
+				}
+	
+				String certUri = cert.getName().getPrefix(-1).toUri();
+				ILOG.J2CsMapping.Collections.Collections.Put(fixedCertificateCache_,certID,certUri);
+				certificateCacheV2_.insert(cert);
+			} else
+				cert = certificateCacheV2_.find(new Name(
 						(String) ILOG.J2CsMapping.Collections.Collections.Get(fixedCertificateCache_,certID)));
 	
 			return cert;
@@ -1085,22 +1410,45 @@ namespace net.named_data.jndn.security.policy {
 			if (keyLocator.getType() == net.named_data.jndn.KeyLocatorType.KEYNAME) {
 				// Assume the key name is a certificate name.
 				Name signatureName = keyLocator.getKeyName();
-				IdentityCertificate certificate = refreshManager_
-						.getCertificate(signatureName);
-				if (certificate == null)
-					certificate = certificateCache_.getCertificate(signatureName);
-				if (certificate == null) {
-					failureReason[0] = "Cannot find a certificate with name "
-							+ signatureName.toUri();
-					return false;
-				}
+				Blob publicKeyDer;
+				if (isSecurityV1_) {
+					IdentityCertificate certificate = refreshManager_
+							.getCertificate(signatureName);
+					if (certificate == null)
+						certificate = certificateCache_
+								.getCertificate(signatureName);
+					if (certificate == null) {
+						failureReason[0] = "Cannot find a certificate with name "
+								+ signatureName.toUri();
+						return false;
+					}
 	
-				Blob publicKeyDer = certificate.getPublicKeyInfo().getKeyDer();
-				if (publicKeyDer.isNull()) {
-					// We don't expect this to happen.
-					failureReason[0] = "There is no public key in the certificate with name "
-							+ certificate.getName().toUri();
-					return false;
+					publicKeyDer = certificate.getPublicKeyInfo().getKeyDer();
+					if (publicKeyDer.isNull()) {
+						// We don't expect this to happen.
+						failureReason[0] = "There is no public key in the certificate with name "
+								+ certificate.getName().toUri();
+						return false;
+					}
+				} else {
+					CertificateV2 certificate_0 = refreshManager_
+							.getCertificateV2(signatureName);
+					if (certificate_0 == null)
+						certificate_0 = certificateCacheV2_.find(signatureName);
+					if (certificate_0 == null) {
+						failureReason[0] = "Cannot find a certificate with name "
+								+ signatureName.toUri();
+						return false;
+					}
+	
+					try {
+						publicKeyDer = certificate_0.getPublicKey();
+					} catch (CertificateV2.Error ex) {
+						// We don't expect this to happen.
+						failureReason[0] = "There is no public key in the certificate with name "
+								+ certificate_0.getName().toUri();
+						return false;
+					}
 				}
 	
 				if (net.named_data.jndn.security.policy.PolicyManager.verifySignature(signatureInfo, signedBlob, publicKeyDer))
@@ -1138,22 +1486,6 @@ namespace net.named_data.jndn.security.policy {
 				return null;
 			}
 	
-			if (!net.named_data.jndn.KeyLocator.canGetFromSignature(signature)) {
-				// We only support signature types with key locators.
-				failureReason[0] = "The signature type does not support a KeyLocator";
-				return null;
-			}
-	
-			KeyLocator keyLocator;
-			keyLocator = net.named_data.jndn.KeyLocator.getFromSignature(signature);
-	
-			Name signatureName = keyLocator.getKeyName();
-			// No key name in KeyLocator -> fail.
-			if (signatureName.size() == 0) {
-				failureReason[0] = "The signature KeyLocator doesn't have a key name";
-				return null;
-			}
-	
 			// first see if we can find a rule to match this packet
 			BoostInfoTree matchedRule = findMatchingRule(objectName, matchType);
 	
@@ -1161,6 +1493,23 @@ namespace net.named_data.jndn.security.policy {
 			if (matchedRule == null) {
 				failureReason[0] = "No matching rule found for "
 						+ objectName.toUri();
+				return null;
+			}
+	
+			// TODO: Do a quick check if this is sig-type sha256.
+	
+			if (!net.named_data.jndn.KeyLocator.canGetFromSignature(signature)) {
+				// We only support signature types with key locators.
+				failureReason[0] = "The signature type does not support a KeyLocator";
+				return null;
+			}
+	
+			KeyLocator keyLocator = net.named_data.jndn.KeyLocator.getFromSignature(signature);
+	
+			Name signatureName = keyLocator.getKeyName();
+			// No key name in KeyLocator -> fail.
+			if (signatureName.size() == 0) {
+				failureReason[0] = "The signature KeyLocator doesn't have a key name";
 				return null;
 			}
 	
@@ -1174,14 +1523,23 @@ namespace net.named_data.jndn.security.policy {
 	
 			// If we don't actually have the certificate yet, return a certificateInterest
 			//   for it.
-			IdentityCertificate foundCert = refreshManager_
-					.getCertificate(signatureName);
-			if (foundCert == null)
-				foundCert = certificateCache_.getCertificate(signatureName);
-			if (foundCert == null)
-				return new Interest(signatureName);
-			else
-				return new Interest();
+			if (isSecurityV1_) {
+				IdentityCertificate foundCert = refreshManager_
+						.getCertificate(signatureName);
+				if (foundCert == null)
+					foundCert = certificateCache_.getCertificate(signatureName);
+				if (foundCert == null)
+					return new Interest(signatureName);
+			} else {
+				CertificateV2 foundCert_0 = refreshManager_
+						.getCertificateV2(signatureName);
+				if (foundCert_0 == null)
+					foundCert_0 = certificateCacheV2_.find(signatureName);
+				if (foundCert_0 == null)
+					return new Interest(signatureName);
+			}
+	
+			return new Interest();
 		}
 	
 		/// <summary>
@@ -1209,34 +1567,64 @@ namespace net.named_data.jndn.security.policy {
 				}
 		
 				public void onVerified(Data data) {
-					IdentityCertificate certificate;
-					try {
-						certificate = new IdentityCertificate(data);
-					} catch (DerDecodingException ex) {
+					if (outer_ConfigPolicyManager.isSecurityV1_) {
+						IdentityCertificate certificate;
 						try {
-							onValidationFailed_.onDataValidationFailed(originalData_,
-									"Cannot decode certificate "
-											+ data.getName().toUri());
-						} catch (Exception exception) {
-							net.named_data.jndn.security.policy.ConfigPolicyManager.logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE,
-									"Error in onDataValidationFailed", exception);
+							certificate = new IdentityCertificate(data);
+						} catch (DerDecodingException ex) {
+							try {
+								onValidationFailed_.onDataValidationFailed(
+										originalData_, "Cannot decode certificate "
+												+ data.getName().toUri());
+							} catch (Exception exception) {
+								net.named_data.jndn.security.policy.ConfigPolicyManager.logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE,
+										"Error in onDataValidationFailed", exception);
+							}
+							return;
 						}
-						return;
+						outer_ConfigPolicyManager.certificateCache_.insertCertificate(certificate);
+					} else {
+						CertificateV2 certificate_0;
+						try {
+							certificate_0 = new CertificateV2(data);
+						} catch (CertificateV2.Error ex_1) {
+							try {
+								onValidationFailed_.onDataValidationFailed(
+										originalData_, "Cannot decode certificate "
+												+ data.getName().toUri());
+							} catch (Exception exception_2) {
+								net.named_data.jndn.security.policy.ConfigPolicyManager.logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE,
+										"Error in onDataValidationFailed", exception_2);
+							}
+							return;
+						}
+						try {
+							outer_ConfigPolicyManager.certificateCacheV2_.insert(certificate_0);
+						} catch (CertificateV2.Error ex_3) {
+							try {
+								onValidationFailed_.onDataValidationFailed(
+										originalData_, "Cannot insert certificate "
+												+ data.getName().toUri());
+							} catch (Exception exception_4) {
+								net.named_data.jndn.security.policy.ConfigPolicyManager.logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE,
+										"Error in onDataValidationFailed", exception_4);
+							}
+							return;
+						}
 					}
-					outer_ConfigPolicyManager.certificateCache_.insertCertificate(certificate);
 		
 					try {
 						// Now that we stored the needed certificate, increment stepCount and try again
 						//   to verify the originalData.
 						outer_ConfigPolicyManager.checkVerificationPolicy(originalData_, stepCount_ + 1,
 								onVerified_, onValidationFailed_);
-					} catch (SecurityException ex_0) {
+					} catch (Exception ex_5) {
 						try {
 							onValidationFailed_.onDataValidationFailed(originalData_,
-									"Error in checkVerificationPolicy: " + ex_0);
-						} catch (Exception exception_1) {
+									"Error in checkVerificationPolicy: " + ex_5);
+						} catch (Exception exception_6) {
 							net.named_data.jndn.security.policy.ConfigPolicyManager.logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE,
-									"Error in onDataValidationFailed", exception_1);
+									"Error in onDataValidationFailed", exception_6);
 						}
 					}
 				}
@@ -1276,35 +1664,67 @@ namespace net.named_data.jndn.security.policy {
 				}
 		
 				public void onVerified(Data data) {
-					IdentityCertificate certificate;
-					try {
-						certificate = new IdentityCertificate(data);
-					} catch (DerDecodingException ex) {
+					if (outer_ConfigPolicyManager.isSecurityV1_) {
+						IdentityCertificate certificate;
 						try {
-							onValidationFailed_.onInterestValidationFailed(
-									originalInterest_, "Cannot decode certificate "
-											+ data.getName().toUri());
-						} catch (Exception exception) {
-							net.named_data.jndn.security.policy.ConfigPolicyManager.logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE,
-									"Error in onInterestValidationFailed", exception);
+							certificate = new IdentityCertificate(data);
+						} catch (DerDecodingException ex) {
+							try {
+								onValidationFailed_.onInterestValidationFailed(
+										originalInterest_, "Cannot decode certificate "
+												+ data.getName().toUri());
+							} catch (Exception exception) {
+								net.named_data.jndn.security.policy.ConfigPolicyManager.logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE,
+										"Error in onInterestValidationFailed",
+										exception);
+							}
+							return;
 						}
-						return;
+						outer_ConfigPolicyManager.certificateCache_.insertCertificate(certificate);
+					} else {
+						CertificateV2 certificate_0;
+						try {
+							certificate_0 = new CertificateV2(data);
+						} catch (CertificateV2.Error ex_1) {
+							try {
+								onValidationFailed_.onInterestValidationFailed(
+										originalInterest_, "Cannot decode certificate "
+												+ data.getName().toUri());
+							} catch (Exception exception_2) {
+								net.named_data.jndn.security.policy.ConfigPolicyManager.logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE,
+										"Error in onInterestValidationFailed",
+										exception_2);
+							}
+							return;
+						}
+						try {
+							outer_ConfigPolicyManager.certificateCacheV2_.insert(certificate_0);
+						} catch (CertificateV2.Error ex_3) {
+							try {
+								onValidationFailed_.onInterestValidationFailed(
+										originalInterest_, "Cannot insert certificate "
+												+ data.getName().toUri());
+							} catch (Exception exception_4) {
+								net.named_data.jndn.security.policy.ConfigPolicyManager.logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE,
+										"Error in onDataValidationFailed", exception_4);
+							}
+							return;
+						}
 					}
-					outer_ConfigPolicyManager.certificateCache_.insertCertificate(certificate);
 		
 					try {
 						// Now that we stored the needed certificate, increment stepCount and try again
 						//   to verify the originalInterest.
 						outer_ConfigPolicyManager.checkVerificationPolicy(originalInterest_, stepCount_ + 1,
 								onVerified_, onValidationFailed_, wireFormat_);
-					} catch (SecurityException ex_0) {
+					} catch (Exception ex_5) {
 						try {
 							onValidationFailed_.onInterestValidationFailed(
 									originalInterest_,
-									"Error in checkVerificationPolicy: " + ex_0);
-						} catch (Exception exception_1) {
+									"Error in checkVerificationPolicy: " + ex_5);
+						} catch (Exception exception_6) {
 							net.named_data.jndn.security.policy.ConfigPolicyManager.logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE,
-									"Error in onInterestValidationFailed", exception_1);
+									"Error in onInterestValidationFailed", exception_6);
 						}
 					}
 				}
@@ -1402,7 +1822,9 @@ namespace net.named_data.jndn.security.policy {
 			}
 		}
 	
+		internal readonly bool isSecurityV1_;
 		internal CertificateCache certificateCache_;
+		internal CertificateCacheV2 certificateCacheV2_;
 		private int maxDepth_;
 		private double keyGraceInterval_;
 		private double keyTimestampTtl_;

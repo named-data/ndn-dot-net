@@ -72,7 +72,7 @@ namespace net.named_data.jndn.util.regex {
 		/// </summary>
 		///
 		/// <returns>The matched name components. You must not modify this list.</returns>
-		public System.Collections.Generic.IList<Name.Component> getMatchResult() {
+		public ArrayList<Name.Component> getMatchResult() {
 			return matchResult_;
 		}
 	

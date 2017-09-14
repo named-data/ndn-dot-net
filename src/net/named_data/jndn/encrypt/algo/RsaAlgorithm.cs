@@ -18,9 +18,9 @@ namespace net.named_data.jndn.encrypt.algo {
 	using System.Runtime.CompilerServices;
 	using System.spec;
 	using javax.crypto;
-	using net.named_data.jndn.encoding.der;
 	using net.named_data.jndn.encrypt;
 	using net.named_data.jndn.security;
+	using net.named_data.jndn.security.tpm;
 	using net.named_data.jndn.util;
 	
 	/// <summary>
@@ -37,11 +37,22 @@ namespace net.named_data.jndn.encrypt.algo {
 		/// <param name="params">The key params with the key size (in bits).</param>
 		/// <returns>The new decrypt key (PKCS8-encoded private key).</returns>
 		public static DecryptKey generateKey(RsaKeyParams paras) {
-			KeyPairGenerator generator = System.KeyPairGenerator.getInstance("RSA");
-			generator.initialize(paras.getKeySize());
-			KeyPair pair = generator.generateKeyPair();
+			TpmPrivateKey privateKey;
+			try {
+				privateKey = net.named_data.jndn.security.tpm.TpmPrivateKey.generatePrivateKey(paras);
+			} catch (ArgumentException ex) {
+				throw new SecurityException(
+						"generateKey: Error in generatePrivateKey: " + ex);
+			} catch (TpmPrivateKey.Error ex_0) {
+				throw new SecurityException(
+						"generateKey: Error in generatePrivateKey: " + ex_0);
+			}
 	
-			return new DecryptKey(new Blob(pair.getPrivate().getEncoded(), false));
+			try {
+				return new DecryptKey(privateKey.toPkcs8());
+			} catch (TpmPrivateKey.Error ex_1) {
+				throw new SecurityException("generateKey: Error in toPkcs8: " + ex_1);
+			}
 		}
 	
 		/// <summary>
@@ -51,34 +62,20 @@ namespace net.named_data.jndn.encrypt.algo {
 		/// <param name="keyBits"></param>
 		/// <returns>The new encrypt key (DER-encoded public key).</returns>
 		public static EncryptKey deriveEncryptKey(Blob keyBits) {
-			// Decode the PKCS #8 private key. (We don't use RSAPrivateCrtKey because
-			// the Android library doesn't have an easy way to decode into it.)
-			DerNode parsedNode = net.named_data.jndn.encoding.der.DerNode.parse(keyBits.buf(), 0);
-			IList pkcs8Children = parsedNode.getChildren();
-			IList algorithmIdChildren = net.named_data.jndn.encoding.der.DerNode.getSequence(pkcs8Children, 1)
-					.getChildren();
-			String oidString = ""
-					+ ((DerNode.DerOid) algorithmIdChildren[0]).toVal();
-			Blob rsaPrivateKeyDer = ((DerNode) pkcs8Children[2]).getPayload();
+			TpmPrivateKey privateKey = new TpmPrivateKey();
+			try {
+				privateKey.loadPkcs8(keyBits.buf());
+			} catch (TpmPrivateKey.Error ex) {
+				throw new SecurityException(
+						"deriveEncryptKey: Error in loadPkcs8: " + ex);
+			}
 	
-			String RSA_ENCRYPTION_OID = "1.2.840.113549.1.1.1";
-			if (!oidString.equals(RSA_ENCRYPTION_OID))
-				throw new DerDecodingException(
-						"The PKCS #8 private key is not RSA_ENCRYPTION");
-	
-			// Decode the PKCS #1 RSAPrivateKey.
-			parsedNode = net.named_data.jndn.encoding.der.DerNode.parse(rsaPrivateKeyDer.buf(), 0);
-			IList rsaPrivateKeyChildren = parsedNode.getChildren();
-			Blob modulus = ((DerNode) rsaPrivateKeyChildren[1]).getPayload();
-			Blob publicExponent = ((DerNode) rsaPrivateKeyChildren[2])
-					.getPayload();
-	
-			System.SecurityPublicKey publicKey = keyFactory_
-					.generatePublic(new RSAPublicKeySpec((modulus
-							.getImmutableArray()), (publicExponent
-							.getImmutableArray())));
-	
-			return new EncryptKey(new Blob(publicKey.getEncoded(), false));
+			try {
+				return new EncryptKey(privateKey.derivePublicKey());
+			} catch (TpmPrivateKey.Error ex_0) {
+				throw new SecurityException(
+						"deriveEncryptKey: Error in derivePublicKey: " + ex_0);
+			}
 		}
 	
 		/// <summary>
@@ -91,22 +88,19 @@ namespace net.named_data.jndn.encrypt.algo {
 		/// <returns>The decrypted data.</returns>
 		public static Blob decrypt(Blob keyBits, Blob encryptedData,
 				EncryptParams paras) {
-			PrivateKey privateKey = keyFactory_
-					.generatePrivate(new PKCS8EncodedKeySpec(keyBits
-							.getImmutableArray()));
+			TpmPrivateKey privateKey = new TpmPrivateKey();
+			try {
+				privateKey.loadPkcs8(keyBits.buf());
+			} catch (TpmPrivateKey.Error ex) {
+				throw new SecurityException("decrypt: Error in loadPkcs8: " + ex);
+			}
 	
-			String transformation;
-			if (paras.getAlgorithmType() == net.named_data.jndn.encrypt.algo.EncryptAlgorithmType.RsaPkcs)
-				transformation = "RSA/ECB/PKCS1Padding";
-			else if (paras.getAlgorithmType() == net.named_data.jndn.encrypt.algo.EncryptAlgorithmType.RsaOaep)
-				transformation = "RSA/ECB/OAEPWithSHA-1AndMGF1Padding";
-			else
-				throw new Exception("unsupported padding scheme");
-	
-			Cipher cipher = javax.crypto.Cipher.getInstance(transformation);
-			cipher.init(javax.crypto.Cipher.DECRYPT_MODE, privateKey);
-			return new Blob(cipher.doFinal(encryptedData.getImmutableArray()),
-					false);
+			try {
+				return privateKey.decrypt(encryptedData.buf(),
+						paras.getAlgorithmType());
+			} catch (TpmPrivateKey.Error ex_0) {
+				throw new SecurityException("decrypt: Error in decrypt: " + ex_0);
+			}
 		}
 	
 		/// <summary>

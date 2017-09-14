@@ -15,13 +15,26 @@ namespace net.named_data.jndn.security {
 	using System.ComponentModel;
 	using System.IO;
 	using System.Runtime.CompilerServices;
+	using net.named_data.jndn;
 	
 	public class AesKeyParams : KeyParams {
-		public AesKeyParams(int size) : base(getType()) {
+		public AesKeyParams(Name.Component keyId, int size) : base(getType(), keyId) {
 			size_ = size;
 		}
 	
-		public AesKeyParams() : base(getType()) {
+		public AesKeyParams(Name.Component keyId) : base(getType(), keyId) {
+			size_ = getDefaultSize();
+		}
+	
+		public AesKeyParams(int size, KeyIdType keyIdType) : base(getType(), keyIdType) {
+			size_ = size;
+		}
+	
+		public AesKeyParams(int size) : base(getType(), net.named_data.jndn.security.KeyIdType.RANDOM) {
+			size_ = size;
+		}
+	
+		public AesKeyParams() : base(getType(), net.named_data.jndn.security.KeyIdType.RANDOM) {
 			size_ = getDefaultSize();
 		}
 	
@@ -29,11 +42,11 @@ namespace net.named_data.jndn.security {
 			return size_;
 		}
 	
-		private static int getDefaultSize() {
+		public static int getDefaultSize() {
 			return 64;
 		}
 	
-		private static KeyType getType() {
+		public static KeyType getType() {
 			return net.named_data.jndn.security.KeyType.AES;
 		}
 	

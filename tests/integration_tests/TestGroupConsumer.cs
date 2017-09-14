@@ -26,7 +26,9 @@ namespace net.named_data.jndn.tests.integration_tests {
 	using net.named_data.jndn.encrypt.algo;
 	using net.named_data.jndn.security;
 	using net.named_data.jndn.security.identity;
+	using net.named_data.jndn.security.pib;
 	using net.named_data.jndn.security.policy;
+	using net.named_data.jndn.security.tpm;
 	using net.named_data.jndn.util;
 	
 	// Note: We name this differently than TestConsumer so that it is not the

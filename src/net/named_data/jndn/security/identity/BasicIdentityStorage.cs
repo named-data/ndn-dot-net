@@ -37,8 +37,7 @@ namespace net.named_data.jndn.security.identity {
 		///
 		public BasicIdentityStorage() {
 			this.database_ = null;
-			// NOTE: Use File because java.nio.file.Path is not available before Java 7.
-			FileInfo identityDir = new FileInfo(System.IO.Path.Combine(net.named_data.jndn.util.Common.getHomeDirectory().FullName,".ndn"));
+			FileInfo identityDir = getDefaultDatabaseDirectoryPath();
 			System.IO.Directory.CreateDirectory(identityDir.FullName);
 			FileInfo databasePath = new FileInfo(System.IO.Path.Combine(identityDir.FullName,"ndnsec-public-info.db"));
 			construct(databasePath.FullName);
@@ -890,6 +889,27 @@ namespace net.named_data.jndn.security.identity {
 				throw new SecurityException("BasicIdentityStorage: SQLite error: "
 						+ exception);
 			}
+		}
+	
+		/// <summary>
+		/// Get the default directory that the constructor uses if databaseFilePath is
+		/// omitted. This does not try to create the directory.
+		/// </summary>
+		///
+		/// <returns>The default database directory path.</returns>
+		public static FileInfo getDefaultDatabaseDirectoryPath() {
+			// NOTE: Use File because java.nio.file.Path is not available before Java 7.
+			return new FileInfo(System.IO.Path.Combine(net.named_data.jndn.util.Common.getHomeDirectory().FullName,".ndn"));
+		}
+	
+		/// <summary>
+		/// Get the default database file path that the constructor uses if
+		/// databaseDirectoryPath and databaseFilename are omitted.
+		/// </summary>
+		///
+		/// <returns>The default database file path.</returns>
+		public static FileInfo getDefaultDatabaseFilePath() {
+			return new FileInfo(System.IO.Path.Combine(getDefaultDatabaseDirectoryPath().FullName,"ndnsec-public-info.db"));
 		}
 	
 		internal SqlConnection database_;

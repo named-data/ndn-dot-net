@@ -178,7 +178,7 @@ namespace net.named_data.jndn.tests.integration_tests {
 					.appendVersion((long) getNowSeconds());
 	
 			identityManager.createIdentityAndCertificate(identityName,
-					net.named_data.jndn.security.KeyChain.DEFAULT_KEY_PARAMS);
+					net.named_data.jndn.security.KeyChain.getDefaultKeyParams());
 			Name keyName1 = identityManager
 					.getDefaultKeyNameForIdentity(identityName);
 			IdentityCertificate cert2 = identityManager.selfSign(keyName1);

@@ -52,7 +52,7 @@ namespace net.named_data.jndn.tests.integration_tests {
 	
 			// register the prefix and count when it registers successfully
 			face.registerPrefix(new Name("/test/register/callbacks"),
-					(OnInterestCallback) null, new TestRegistrationCallbacks.Anonymous_C1 (startTime), new TestRegistrationCallbacks.Anonymous_C0 (startTime, counter));
+					(OnInterestCallback) null, new TestRegistrationCallbacks.Anonymous_C1 (startTime), new TestRegistrationCallbacks.Anonymous_C0 (counter, startTime));
 	
 			// wait until complete or the test times out
 			long endTime = startTime + MAX_TEST_DURATION_MS;
@@ -79,12 +79,12 @@ namespace net.named_data.jndn.tests.integration_tests {
 		}
 	
 		public sealed class Anonymous_C0 : OnRegisterSuccess {
-			private readonly long startTime;
 			private readonly TestRegistrationCallbacks.Counter  counter;
+			private readonly long startTime;
 	
-			public Anonymous_C0(long startTime_0, TestRegistrationCallbacks.Counter  counter_1) {
-				this.startTime = startTime_0;
-				this.counter = counter_1;
+			public Anonymous_C0(TestRegistrationCallbacks.Counter  counter_0, long startTime_1) {
+				this.counter = counter_0;
+				this.startTime = startTime_1;
 			}
 	
 			public void onRegisterSuccess(Name prefix,

@@ -156,14 +156,14 @@ namespace net.named_data.jndn.util.regex {
 					primaryBackrefManager_);
 		}
 	
-		private String getItemFromExpand(String expand, int[] offset) {
+		static private String getItemFromExpand(String expand, int[] offset) {
 			int begin = offset[0];
 	
 			if (expand[offset[0]] == '\\') {
 				++offset[0];
 				if (offset[0] >= expand.Length)
 					throw new NdnRegexMatcherBase.Error(
-							"wrong format of expand string!");
+							"Wrong format of expand string!");
 	
 				while (offset[0] < expand.Length
 						&& expand[offset[0]] <= '9'
@@ -171,19 +171,19 @@ namespace net.named_data.jndn.util.regex {
 					++offset[0];
 					if (offset[0] > expand.Length)
 						throw new NdnRegexMatcherBase.Error(
-								"wrong format of expand string!");
+								"Wrong format of expand string!");
 				}
 	
 				if (offset[0] > begin + 1)
 					return expand.Substring(begin,(offset[0])-(begin));
 				else
 					throw new NdnRegexMatcherBase.Error(
-							"wrong format of expand string!");
+							"Wrong format of expand string!");
 			} else if (expand[offset[0]] == '<') {
 				++offset[0];
 				if (offset[0] >= expand.Length)
 					throw new NdnRegexMatcherBase.Error(
-							"wrong format of expand string!");
+							"Wrong format of expand string!");
 	
 				int left = 1;
 				int right = 0;
@@ -196,13 +196,13 @@ namespace net.named_data.jndn.util.regex {
 					++offset[0];
 					if (offset[0] >= expand.Length)
 						throw new NdnRegexMatcherBase.Error(
-								"wrong format of expand string!");
+								"Wrong format of expand string!");
 				}
 	
 				return expand.Substring(begin,(offset[0])-(begin));
 			} else
 				throw new NdnRegexMatcherBase.Error(
-						"wrong format of expand string!");
+						"Wrong format of expand string!");
 		}
 	
 		private static String convertSpecialChar(String str) {

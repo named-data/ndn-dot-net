@@ -15,13 +15,26 @@ namespace net.named_data.jndn.security {
 	using System.ComponentModel;
 	using System.IO;
 	using System.Runtime.CompilerServices;
+	using net.named_data.jndn;
 	
 	public class RsaKeyParams : KeyParams {
-		public RsaKeyParams(int size) : base(getType()) {
+		public RsaKeyParams(Name.Component keyId, int size) : base(getType(), keyId) {
 			size_ = size;
 		}
 	
-		public RsaKeyParams() : base(getType()) {
+		public RsaKeyParams(Name.Component keyId) : base(getType(), keyId) {
+			size_ = getDefaultSize();
+		}
+	
+		public RsaKeyParams(int size, KeyIdType keyIdType) : base(getType(), keyIdType) {
+			size_ = size;
+		}
+	
+		public RsaKeyParams(int size) : base(getType(), net.named_data.jndn.security.KeyIdType.RANDOM) {
+			size_ = size;
+		}
+	
+		public RsaKeyParams() : base(getType(), net.named_data.jndn.security.KeyIdType.RANDOM) {
 			size_ = getDefaultSize();
 		}
 	
@@ -29,11 +42,11 @@ namespace net.named_data.jndn.security {
 			return size_;
 		}
 	
-		private static int getDefaultSize() {
+		public static int getDefaultSize() {
 			return 2048;
 		}
 	
-		private static KeyType getType() {
+		public static KeyType getType() {
 			return net.named_data.jndn.security.KeyType.RSA;
 		}
 	

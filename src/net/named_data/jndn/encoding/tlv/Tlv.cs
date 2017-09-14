@@ -47,6 +47,7 @@ namespace net.named_data.jndn.encoding.tlv {
 		public const int SignatureType = 27;
 		public const int KeyLocator = 28;
 		public const int KeyLocatorDigest = 29;
+		public const int ForwardingHint = 30;
 		public const int SelectedDelegation = 32;
 		public const int FaceInstance = 128;
 		public const int ForwardingEntry = 129;

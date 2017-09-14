@@ -162,7 +162,7 @@ namespace net.named_data.jndn.security.policy {
 		/// <param name="signedBlob">the SignedBlob with the signed portion to verify.</param>
 		/// <param name="publicKeyDer">The DER-encoded public key used to verify the signature.</param>
 		/// <returns>true if the signature verifies, false if not.</returns>
-		protected static internal bool verifySha256WithRsaSignature(Blob signature,
+		public static bool verifySha256WithRsaSignature(Blob signature,
 				SignedBlob signedBlob, Blob publicKeyDer) {
 			KeyFactory keyFactory = null;
 			try {
@@ -215,7 +215,7 @@ namespace net.named_data.jndn.security.policy {
 		/// <param name="signedBlob">the SignedBlob with the signed portion to verify.</param>
 		/// <param name="publicKeyDer">The DER-encoded public key used to verify the signature.</param>
 		/// <returns>true if the signature verifies, false if not.</returns>
-		protected static internal bool verifySha256WithEcdsaSignature(Blob signature,
+		public static bool verifySha256WithEcdsaSignature(Blob signature,
 				SignedBlob signedBlob, Blob publicKeyDer) {
 			KeyFactory keyFactory = null;
 			try {
@@ -269,7 +269,7 @@ namespace net.named_data.jndn.security.policy {
 		/// <param name="signature">The signature bits.</param>
 		/// <param name="signedBlob">the SignedBlob with the signed portion to verify.</param>
 		/// <returns>true if the signature verifies, false if not.</returns>
-		protected static internal bool verifyDigestSha256Signature(Blob signature,
+		public static bool verifyDigestSha256Signature(Blob signature,
 				SignedBlob signedBlob) {
 			// Set signedPortionDigest to the digest of the signed portion of the signedBlob.
 			byte[] signedPortionDigest = net.named_data.jndn.util.Common

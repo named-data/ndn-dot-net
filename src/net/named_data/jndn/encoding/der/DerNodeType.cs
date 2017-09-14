@@ -50,5 +50,6 @@ namespace net.named_data.jndn.encoding.der {
 		public const int EmbeddedPdv = 43;
 		public const int Sequence = 48;
 		public const int Set = 49;
+		public const int ExplicitlyTagged = 0xa0;
 	}
 }

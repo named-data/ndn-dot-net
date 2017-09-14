@@ -28,7 +28,9 @@ namespace net.named_data.jndn.tests.integration_tests {
 	using net.named_data.jndn.security;
 	using net.named_data.jndn.security.certificate;
 	using net.named_data.jndn.security.identity;
+	using net.named_data.jndn.security.pib;
 	using net.named_data.jndn.security.policy;
+	using net.named_data.jndn.security.tpm;
 	using net.named_data.jndn.util;
 	
 	public class TestGroupManager : GroupManager.Friend {

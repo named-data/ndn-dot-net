@@ -106,6 +106,9 @@ namespace net.named_data.jndn.encoding.der {
 				int lenCount = sizeLen & ((1 << 7) - 1);
 				size = 0;
 				while (lenCount > 0) {
+					if (inputBuf.limit() <= idx)
+						throw new DerDecodingException(
+								"DerNode::parse: The input length is too small");
 					byte b = inputBuf.get(idx);
 					idx += 1;
 					header.ensuredPut(b);
@@ -157,6 +160,9 @@ namespace net.named_data.jndn.encoding.der {
 		/// <param name="startIdx">The offset into the buffer.</param>
 		/// <returns>An object of a subclass of DerNode.</returns>
 		public static DerNode parse(ByteBuffer inputBuf, int startIdx) {
+			if (inputBuf.limit() <= startIdx)
+				throw new DerDecodingException(
+						"DerNode::parse: The input length is too small");
 			int nodeType = ((int) inputBuf.get(startIdx)) & 0xff;
 			// Don't increment idx. We're just peeking.
 	
@@ -179,6 +185,8 @@ namespace net.named_data.jndn.encoding.der {
 				newNode = new DerNode.DerPrintableString ();
 			else if (nodeType == net.named_data.jndn.encoding.der.DerNodeType.GeneralizedTime)
 				newNode = new DerNode.DerGeneralizedTime ();
+			else if ((nodeType & 0xe0) == net.named_data.jndn.encoding.der.DerNodeType.ExplicitlyTagged)
+				newNode = new DerNode.DerExplicitlyTagged (nodeType & 0x1f);
 			else
 				throw new DerDecodingException("Unimplemented DER type " + nodeType);
 	
@@ -817,6 +825,66 @@ namespace net.named_data.jndn.encoding.der {
 			}
 	
 			private static readonly SimpleDateFormat dateFormat_ = getDateFormat();
+		}
+	
+		/// <summary>
+		/// A DerExplicitlyTagged extends DerNode to represent an explicitly-tagged
+		/// type which wraps another DerNode.
+		/// </summary>
+		///
+		public class DerExplicitlyTagged : DerNode {
+			/// <summary>
+			/// Create a DerExplicitlyTagged with the given tag number.
+			/// </summary>
+			///
+			/// <param name="tagNumber">The explicit tag number from 0x00 to 0x1f.</param>
+			public DerExplicitlyTagged(int tagNumber) : base(net.named_data.jndn.encoding.der.DerNodeType.ExplicitlyTagged) {
+				this.innerNode_ = null;
+				tagNumber_ = tagNumber;
+			}
+	
+			/// <summary>
+			/// Override the base encode to return raw data encoding for the explicit tag
+			/// and encoded inner node.
+			/// </summary>
+			///
+			/// <returns>The raw data encoding.</returns>
+			public override Blob encode() {
+				throw new NotSupportedException(
+						"DerExplicitlyTagged.encode is not implemented");
+			}
+	
+			/// <summary>
+			/// Override the base decode to decode and store the inner DerNode.
+			/// </summary>
+			///
+			/// <param name="inputBuf">position.</param>
+			/// <param name="startIdx">The offset into the buffer.</param>
+			protected internal override void decode(ByteBuffer inputBuf, int startIdx) {
+				base.decode(inputBuf,startIdx);
+				innerNode_ = net.named_data.jndn.encoding.der.DerNode.parse(getPayload().buf());
+			}
+	
+			/// <summary>
+			/// Get the tag number.
+			/// </summary>
+			///
+			/// <returns>The tag number.</returns>
+			public int getTagNumber() {
+				return tagNumber_;
+			}
+	
+			/// <summary>
+			/// Get the inner node that is wrapped by the explicit tag.
+			/// </summary>
+			///
+			/// <returns>The inner node, or null if node specified.</returns>
+			public DerNode getInnerNode() {
+				return innerNode_;
+			}
+	
+			private readonly int tagNumber_;
+			private DerNode innerNode_;
 		}
 	
 		protected internal DerNode.DerStructure  parent_;

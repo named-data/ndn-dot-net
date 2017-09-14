@@ -118,22 +118,6 @@ namespace net.named_data.jndn.tests.integration_tests {
 			face = new Face("localhost");
 		}
 	
-		public void testAnyInterest() {
-			String uri = "/";
-			CallbackCounter counter = runExpressNameTest(face, uri);
-			Assert.AssertTrue("Timeout on expressed interest",
-					counter.onTimeoutCallCount_ == 0);
-	
-			// check that the callback was correct
-			Assert.AssertEquals("Expected 1 onData callback, got "
-					+ counter.onDataCallCount_, 1, counter.onDataCallCount_);
-	
-			// just check that the interest was returned correctly.
-			Interest callbackInterest = counter.interest_;
-			Assert.AssertTrue("Interest returned on callback had different name",
-					callbackInterest.getName().equals(new Name(uri)));
-		}
-	
 		/*
 		TODO: Replace this with a test that connects to a Face on localhost
 		def test_specific_interest(self):

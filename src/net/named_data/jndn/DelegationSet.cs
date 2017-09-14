@@ -28,13 +28,14 @@ namespace net.named_data.jndn {
 	/// not necessarily a "set").
 	/// </summary>
 	///
-	public class DelegationSet {
+	public class DelegationSet : ChangeCountable {
 		/// <summary>
 		/// Create a DelegationSet with an empty list of delegations.
 		/// </summary>
 		///
 		public DelegationSet() {
 			this.delegations_ = new ArrayList<Delegation>();
+			this.changeCount_ = 0;
 		}
 	
 		/// <summary>
@@ -44,6 +45,7 @@ namespace net.named_data.jndn {
 		/// <param name="delegationSet">The DelegationSet to copy values from.</param>
 		public DelegationSet(DelegationSet delegationSet) {
 			this.delegations_ = new ArrayList<Delegation>();
+			this.changeCount_ = 0;
 			delegations_.AddRange(delegationSet.delegations_);
 		}
 	
@@ -126,6 +128,7 @@ namespace net.named_data.jndn {
 			}
 	
 			delegations_.Insert(i, newDelegation);
+			++changeCount_;
 		}
 	
 		/// <summary>
@@ -139,6 +142,7 @@ namespace net.named_data.jndn {
 		/// <param name="name">The delegation name. This makes a copy of the name.</param>
 		public void addUnsorted(int preference, Name name) {
 			ILOG.J2CsMapping.Collections.Collections.Add(delegations_,new DelegationSet.Delegation (preference, name));
+			++changeCount_;
 		}
 	
 		/// <summary>
@@ -157,6 +161,8 @@ namespace net.named_data.jndn {
 				}
 			}
 	
+			if (wasRemoved)
+				++changeCount_;
 			return wasRemoved;
 		}
 	
@@ -166,6 +172,7 @@ namespace net.named_data.jndn {
 		///
 		public void clear() {
 			ILOG.J2CsMapping.Collections.Collections.Clear(delegations_);
+			++changeCount_;
 		}
 	
 		/// <summary>
@@ -270,6 +277,16 @@ namespace net.named_data.jndn {
 			wireDecode(input.buf());
 		}
 	
+		/// <summary>
+		/// Get the change count, which is incremented each time this object is changed.
+		/// </summary>
+		///
+		/// <returns>The change count.</returns>
+		public long getChangeCount() {
+			return changeCount_;
+		}
+	
 		private readonly ArrayList<Delegation> delegations_;
+		private long changeCount_;
 	}
 }

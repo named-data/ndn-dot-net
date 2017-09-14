@@ -82,6 +82,15 @@ namespace net.named_data.jndn.tests.unit_tests {
 			Assert.AssertEquals(true, res);
 			Assert.AssertEquals(1, cm.getMatchResult().Count);
 			Assert.AssertEquals("d", cm.getMatchResult()[0].toEscapedString());
+	
+			backRef = new NdnRegexBackrefManager();
+			try {
+				new NdnRegexComponentSetMatcher("[<a]", backRef);
+				Assert.Fail("Did not throw the expected exception");
+			} catch (NdnRegexMatcherBase.Error ex) {
+			} catch (Exception ex_0) {
+				Assert.Fail("Did not throw the expected exception");
+			}
 		}
 	
 		public void testRepeatMatcher() {
@@ -92,7 +101,7 @@ namespace net.named_data.jndn.tests.unit_tests {
 			Assert.AssertEquals(true, res);
 			Assert.AssertEquals(0, cm.getMatchResult().Count);
 	
-			cm.match(new Name("/a/b/c"), 0, 2);
+			res = cm.match(new Name("/a/b/c"), 0, 2);
 			Assert.AssertEquals(true, res);
 			Assert.AssertEquals(2, cm.getMatchResult().Count);
 			Assert.AssertEquals("a", cm.getMatchResult()[0].toEscapedString());

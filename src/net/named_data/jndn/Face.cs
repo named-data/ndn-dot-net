@@ -215,7 +215,7 @@ namespace net.named_data.jndn {
 		/// removePendingInterest.</returns>
 		/// <exception cref="IOException">For I/O error in sending the interest.</exception>
 		/// <exception cref="System.Exception">If the encoded interest size exceeds getMaxNdnPacketSize().</exception>
-		public virtual long expressInterest(Name name, Interest interestTemplate,
+		public long expressInterest(Name name, Interest interestTemplate,
 				OnData onData, OnTimeout onTimeout, OnNetworkNack onNetworkNack,
 				WireFormat wireFormat) {
 			long pendingInterestId = node_.getNextEntryId();
@@ -537,7 +537,7 @@ namespace net.named_data.jndn {
 		/// removeRegisteredPrefix.</returns>
 		/// <exception cref="IOException">For I/O error in sending the registration request.</exception>
 		/// <exception cref="System.Security.SecurityException">If signing a command interest for NFD and cannotfind the private key for the certificateName.</exception>
-		public virtual long registerPrefix(Name prefix, OnInterestCallback onInterest,
+		public long registerPrefix(Name prefix, OnInterestCallback onInterest,
 				OnRegisterFailed onRegisterFailed,
 				OnRegisterSuccess onRegisterSuccess, ForwardingFlags flags,
 				WireFormat wireFormat) {
@@ -755,7 +755,7 @@ namespace net.named_data.jndn {
 		/// <param name="filter"></param>
 		/// <param name="onInterest">onInterest.onInterest(prefix, interest, face, interestFilterId, filter). NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
 		/// <returns>The interest filter ID which can be used with unsetInterestFilter.</returns>
-		public virtual long setInterestFilter(InterestFilter filter,
+		public long setInterestFilter(InterestFilter filter,
 				OnInterestCallback onInterest) {
 			long interestFilterId = node_.getNextEntryId();
 	
@@ -892,7 +892,7 @@ namespace net.named_data.jndn {
 		///
 		/// <param name="delayMilliseconds">The delay in milliseconds.</param>
 		/// <param name="callback">This calls callback.run() after the delay.</param>
-		public virtual void callLater(double delayMilliseconds, IRunnable callback) {
+		public void callLater(double delayMilliseconds, IRunnable callback) {
 			node_.callLater(delayMilliseconds, callback);
 		}
 	

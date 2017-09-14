@@ -5,7 +5,7 @@
 // ${CustomMessageForDisclaimer}                                                                             
 // --------------------------------------------------------------------------------------------------
  /// <summary>
-/// Copyright (C) 2014-2017 Regents of the University of California.
+/// Copyright (C) 2017 Regents of the University of California.
 /// </summary>
 ///
 namespace net.named_data.jndn.tests.unit_tests {
@@ -17,10 +17,11 @@ namespace net.named_data.jndn.tests.unit_tests {
 	using System.ComponentModel;
 	using System.IO;
 	using System.Runtime.CompilerServices;
+	using System.Text;
 	using net.named_data.jndn;
 	using net.named_data.jndn.encoding;
 	using net.named_data.jndn.security;
-	using net.named_data.jndn.security.certificate;
+	using net.named_data.jndn.security.v2;
 	using net.named_data.jndn.util;
 	
 	public class TestCertificate {
@@ -50,16 +51,6 @@ namespace net.named_data.jndn.tests.unit_tests {
 				0xf2, 0xf1, 0xc5, 0x6a, 0x30, 0xd3, 0x50, 0x8c, 0xc8, 0x9a, 0xdf,
 				0xef, 0xed, 0x35, 0xe7, 0x7a, 0x62, 0xea, 0x76, 0x7c, 0xbb, 0x08,
 				0x26, 0xc7, 0x02, 0x01, 0x11 });
-	
-		private static readonly ByteBuffer SIG_INFO = toBuffer(new int[] { 0x16, 0x55,
-				0x1B, 0x01, 0x01, 0x1C, 0x26, 0x07, 0x24, 0x08, 0x03, 0x6E, 0x64,
-				0x6E, 0x08, 0x05, 0x73, 0x69, 0x74, 0x65, 0x31, 0x08, 0x11, 0x6B,
-				0x73, 0x6B, 0x2D, 0x32, 0x35, 0x31, 0x36, 0x34, 0x32, 0x35, 0x33,
-				0x37, 0x37, 0x30, 0x39, 0x34, 0x08, 0x03, 0x4B, 0x45, 0x59, 0xFD,
-				0x00, 0xFD, 0x26, 0xFD, 0x00, 0xFE, 0x0F, 0x32, 0x30, 0x31, 0x35,
-				0x30, 0x38, 0x31, 0x34, 0x54, 0x32, 0x32, 0x33, 0x37, 0x33, 0x39,
-				0xFD, 0x00, 0xFF, 0x0F, 0x32, 0x30, 0x31, 0x35, 0x30, 0x38, 0x31,
-				0x38, 0x54, 0x32, 0x32, 0x33, 0x37, 0x33, 0x38 });
 	
 		private static readonly ByteBuffer SIG_VALUE = toBuffer(new int[] {
 				0x17,
@@ -280,16 +271,73 @@ namespace net.named_data.jndn.tests.unit_tests {
 			return signatureInfo;
 		}
 	
-		public void testConstruction() {
-			// Debug: This should be a Certificate.
-			Data certificate = new Data();
+		public void testConstructor() {
+			CertificateV2 certificate = new CertificateV2();
 			certificate.wireDecode(new Blob(CERT, false));
 	
-			// TODO: Finish tests.
+			Assert.AssertEquals(new Name(
+					"/ndn/site1/KEY/ksk-1416425377094/0123/%FD%00%00%01I%C9%8B"),
+					certificate.getName());
+			Assert.AssertEquals(new Name("/ndn/site1/KEY/ksk-1416425377094"),
+					certificate.getKeyName());
+			Assert.AssertEquals(new Name("/ndn/site1"), certificate.getIdentity());
+			Assert.AssertEquals(new Name.Component("0123"), certificate.getIssuerId());
+			Assert.AssertEquals(new Name.Component("ksk-1416425377094"),
+					certificate.getKeyId());
+			Assert.AssertEquals(new Name("/ndn/site1/KEY/ksk-2516425377094"), net.named_data.jndn.KeyLocator
+					.getFromSignature(certificate.getSignature()).getKeyName());
+			Assert.AssertEquals(net.named_data.jndn.tests.unit_tests.UnitTestsCommon.fromIsoString("20150814T223739"), certificate
+					.getValidityPeriod().getNotBefore(), 0);
+			Assert.AssertEquals(net.named_data.jndn.tests.unit_tests.UnitTestsCommon.fromIsoString("20150818T223738"), certificate
+					.getValidityPeriod().getNotAfter(), 0);
+	
+			try {
+				certificate.getPublicKey();
+			} catch (Exception ex) {
+				Assert.Fail(ex.Message);
+			}
+	
+			Data data = new Data();
+			data.wireDecode(new Blob(CERT, false));
+			CertificateV2 certificate2 = new CertificateV2(data);
+			Assert.AssertEquals(certificate.getName(), certificate2.getName());
+			Assert.AssertTrue(certificate.getPublicKey().equals(
+					certificate2.getPublicKey()));
+		}
+	
+		public void testSetters() {
+			CertificateV2 certificate = new CertificateV2();
+			certificate.setName(new Name(
+					"/ndn/site1/KEY/ksk-1416425377094/0123/%FD%00%00%01I%C9%8B"));
+			certificate.getMetaInfo().setFreshnessPeriod(3600 * 1000.0d);
+			certificate.setContent(new Blob(PUBLIC_KEY, false));
+			certificate.setSignature(generateFakeSignature());
+	
+			Assert.AssertEquals(new Name(
+					"/ndn/site1/KEY/ksk-1416425377094/0123/%FD%00%00%01I%C9%8B"),
+					certificate.getName());
+			Assert.AssertEquals(new Name("/ndn/site1/KEY/ksk-1416425377094"),
+					certificate.getKeyName());
+			Assert.AssertEquals(new Name("/ndn/site1"), certificate.getIdentity());
+			Assert.AssertEquals(new Name.Component("0123"), certificate.getIssuerId());
+			Assert.AssertEquals(new Name.Component("ksk-1416425377094"),
+					certificate.getKeyId());
+			Assert.AssertEquals(new Name("/ndn/site1/KEY/ksk-2516425377094"), net.named_data.jndn.KeyLocator
+					.getFromSignature(certificate.getSignature()).getKeyName());
+			Assert.AssertEquals(net.named_data.jndn.tests.unit_tests.UnitTestsCommon.fromIsoString("20141111T050000"), certificate
+					.getValidityPeriod().getNotBefore(), 0);
+			Assert.AssertEquals(net.named_data.jndn.tests.unit_tests.UnitTestsCommon.fromIsoString("20141111T060000"), certificate
+					.getValidityPeriod().getNotAfter(), 0);
+	
+			try {
+				certificate.getPublicKey();
+			} catch (Exception ex) {
+				Assert.Fail(ex.Message);
+			}
 		}
 	
 		public void testValidityPeriodChecking() {
-			Certificate certificate = new Certificate();
+			CertificateV2 certificate = new CertificateV2();
 			certificate.setName(new Name(
 					"/ndn/site1/KEY/ksk-1416425377094/0123/%FD%00%00%01I%C9%8B"));
 			certificate.getMetaInfo().setFreshnessPeriod(3600 * 1000.0d);
@@ -297,16 +345,35 @@ namespace net.named_data.jndn.tests.unit_tests {
 			certificate.setSignature(generateFakeSignature());
 	
 			Assert.AssertEquals(true,
-					certificate
-							.isInValidityPeriod(net.named_data.jndn.tests.unit_tests.UnitTestsCommon.fromIsoString("20141111T050000")));
+					certificate.isValid(net.named_data.jndn.tests.unit_tests.UnitTestsCommon.fromIsoString("20141111T050000")));
 			Assert.AssertEquals(true,
-					certificate
-							.isInValidityPeriod(net.named_data.jndn.tests.unit_tests.UnitTestsCommon.fromIsoString("20141111T060000")));
+					certificate.isValid(net.named_data.jndn.tests.unit_tests.UnitTestsCommon.fromIsoString("20141111T060000")));
 			Assert.AssertEquals(false,
-					certificate
-							.isInValidityPeriod(net.named_data.jndn.tests.unit_tests.UnitTestsCommon.fromIsoString("20141111T045959")));
+					certificate.isValid(net.named_data.jndn.tests.unit_tests.UnitTestsCommon.fromIsoString("20141111T045959")));
 			Assert.AssertEquals(false,
-					certificate
-							.isInValidityPeriod(net.named_data.jndn.tests.unit_tests.UnitTestsCommon.fromIsoString("20141111T060001")));
+					certificate.isValid(net.named_data.jndn.tests.unit_tests.UnitTestsCommon.fromIsoString("20141111T060001")));
 		}
-	}}
+	
+		public void testPrintCertificateInfo() {
+			String expectedCertificateInfo = "Certificate name:\n"
+					+ "  /ndn/site1/KEY/ksk-1416425377094/0123/%FD%00%00%01I%C9%8B\n"
+					+ "Validity:\n"
+					+ "  NotBefore: 20150814T223739\n"
+					+ "  NotAfter: 20150818T223738\n"
+					+ "Public key bits:\n"
+					+ "MIGdMA0GCSqGSIb3DQEBAQUAA4GLADCBhwKBgQCeBj5HhbI0N6qFR6wDJIO1nKgF\n"
+					+ "OiQe64kBu+mbssMirGjj8GwCzmimxNCnBpCcqhsIHYtDmjNnRG0hoxuImpdeWcQV\n"
+					+ "C9ksvVEHYYKtwbjXv5vPfSTCY/OXF+v+YiW6W02Kwnq9Q4qPuPLxxWow01CMyJrf\n"
+					+ "7+0153pi6nZ8uwgmxwIBEQ==\n" + "Signature Information:\n"
+					+ "  Signature Type: SignatureSha256WithRsa\n"
+					+ "  Key Locator: Name=/ndn/site1/KEY/ksk-2516425377094\n";
+	
+			CertificateV2 certificate = new CertificateV2();
+			certificate.wireDecode(new Blob(CERT, false));
+	
+			StringBuilder actual = new StringBuilder();
+			certificate.printCertificate(actual);
+			Assert.AssertEquals(expectedCertificateInfo, actual.toString());
+		}
+	}
+}
