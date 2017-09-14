@@ -43,8 +43,9 @@ sed -i '' 's/@"\\0"/"\\0"/g' named_data/jndn/util/BoostInfoTree.cs
 sed -i '' 's/@"/"/g' named_data/jndn/tests/unit_tests/TestRegex.cs
 sed -i '' 's/@"/"/g' named_data/jndn/security/policy/ConfigPolicyManager.cs
 sed -i '' 's/SqlCommand/Statement/g' named_data/jndn/security/identity/BasicIdentityStorage.cs
+sed -i '' 's/SqlCommand/Statement/g' named_data/jndn/security/pib/PibSqlite3.cs
 sed -i '' 's/SqlCommand/Statement/g' named_data/jndn/encrypt/Sqlite3*Db.cs
-sed -i '' 's/new Int64//g' named_data/jndn/encrypt/algo/RsaAlgorithm.cs
+sed -i '' 's/new Int64//g' named_data/jndn/security/tpm/TpmPrivateKey.cs
 sed -i '' 's/IllegalBlockSizeException/System.Security.Cryptography.CryptographicException/g' named_data/jndn/encrypt/algo/Encryptor.cs
 sed -i '' 's/IList/System.Collections.Generic.IList/g' named_data/jndn/util/regex/NdnRegexMatcherBase.cs
 sed -i '' 's/public void set/public Name.Component this[int i] { get { return get(i); } }  public void set/g' named_data/jndn/Name.cs
