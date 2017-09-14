@@ -15,7 +15,6 @@ namespace net.named_data.jndn.encrypt {
 	using System.ComponentModel;
 	using System.IO;
 	using System.Runtime.CompilerServices;
-	using net.named_data.jndn.util;
 	
 	/// <summary>
 	/// EncryptError holds the ErrorCode enum and OnError callback definition for
