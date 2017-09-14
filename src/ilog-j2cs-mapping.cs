@@ -75,12 +75,9 @@ namespace ILOG.J2CsMapping.Collections {
     Add<T>(System.Collections.Generic.ICollection<T> list, T value) 
     {
       // Imitate the return value in the Java method.
-      if (list.Contains(value))
-        return false;
-      else {
-        list.Add(value);
-        return true;
-      }
+      var wasAdded = !list.Contains(value);
+      list.Add(value);
+      return wasAdded;
     }
 
     public static void 
