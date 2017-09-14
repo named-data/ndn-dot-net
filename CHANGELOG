@@ -1,11 +1,27 @@
-Interim changes since NDN-DOT-NET v0.1 (2017-07-11)
+Interim changes since NDN-DOT-NET v0.1 (2017-09-14)
 ---------------------------------------------------
 
+Bug fixes
+* https://redmine.named-data.net/issues/4023 Ported the latest NDN regex code
+  from ndn-cxx which fixes errors for complex expressions.
+
 Changes
+* https://redmine.named-data.net/issues/4045 Major update to add security v2.
+  Added CertificateV2, SafeBag and classes related to Pib and Tpm.
+  In KeyChain, added security v2 constructors and methods.
+  The default KeyChain constructor checks for and uses security v2 storage.
+  Updated ConfigPolicyManager to support CertficiateV2.
+  Updated SelfVerifyPolicyManager to support security v2 PibImpl,
+  Updated examples to use the security v2 KeyChain.
+  Added security v2 unit and integration tests.
 * https://redmine.named-data.net/issues/3812 In encrypt GroupManager, save private
   keys in memory to avoid regenerate group key pairs.
 * Added ExponentialReExpress to use as OnTimeout.
 * In Name, added array operator for get(i).
+
+Deprecated
+* In Interest, deprecated link object and selected delegation methods.
+  Use get/setForwardingHint.
 
 NDN-DOT-NET v0.1 (2017-03-16)
 -----------------------------
