@@ -99,7 +99,14 @@ namespace ILOG.J2CsMapping.Collections {
     Get(IDictionary map, object key) { return map[key]; }
 
     public static TValue
-    Get<TKey, TValue>(IDictionary<TKey, TValue> dictionary, TKey key) { return dictionary[key]; }
+    Get<TKey, TValue>(IDictionary<TKey, TValue> dictionary, TKey key)
+      where TValue : class
+    { 
+      // Imitate Java Map.get which returns null if not found.
+      TValue result = null;
+      dictionary.TryGetValue(key, out result);
+      return result;
+    }
 
     public static void
     Put(IDictionary map, object key, object value) { map[key] = value; }
