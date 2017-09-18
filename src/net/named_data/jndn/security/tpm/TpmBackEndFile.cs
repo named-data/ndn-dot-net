@@ -167,7 +167,8 @@ namespace net.named_data.jndn.security.tpm {
 			TpmPrivateKey key = new TpmPrivateKey();
 			StringBuilder base64 = new StringBuilder();
 			try {
-				TextReader reader = new System.IO.StreamReader(toFilePath(keyName).OpenWrite());
+				TextReader reader = new FileReader(
+									toFilePath(keyName).FullName);
 				// Use "try/finally instead of "try-with-resources" or "using"
 				// which are not supported before Java 7.
 				try {
@@ -200,7 +201,7 @@ namespace net.named_data.jndn.security.tpm {
 		/// <param name="keyName">The name of the key.</param>
 		/// <param name="key">The private key to save.</param>
 		private void saveKey(Name keyName, TpmPrivateKey key) {
-			FileInfo filePath = toFilePath(keyName);
+			String filePath = toFilePath(keyName).FullName;
 			String base64;
 			try {
 				base64 = net.named_data.jndn.util.Common.base64Encode(key.toPkcs1().getImmutableArray(),
@@ -210,7 +211,7 @@ namespace net.named_data.jndn.security.tpm {
 			}
 	
 			try {
-				var writer = (new System.IO.StreamWriter(filePath.OpenRead()));
+				var writer = (new StreamWriter(filePath));
 				// Use "try/finally instead of "try-with-resources" or "using"
 				// which are not supported before Java 7.
 				try {
