@@ -31,40 +31,7 @@ namespace net.named_data.jndn.security.pib {
 	/// PibMemory.
 	/// </summary>
 	///
-	public class PibSqlite3 : PibImpl {
-		protected internal const String INITIALIZATION1 = "CREATE TABLE IF NOT EXISTS                         \n"
-				+ "  tpmInfo(                                         \n"
-				+ "    tpm_locator           BLOB                     \n"
-				+ "  );                                               \n";
-		protected internal const String INITIALIZATION2 = "CREATE TABLE IF NOT EXISTS                         \n"
-				+ "  identities(                                      \n"
-				+ "    id                    INTEGER PRIMARY KEY,     \n"
-				+ "    identity              BLOB NOT NULL,           \n"
-				+ "    is_default            INTEGER DEFAULT 0        \n"
-				+ "  );                                               \n";
-		protected internal const String INITIALIZATION3 = "CREATE UNIQUE INDEX IF NOT EXISTS                  \n"
-				+ "  identityIndex ON identities(identity);           \n";
-		protected internal const String INITIALIZATION4 = "CREATE TABLE IF NOT EXISTS                         \n"
-				+ "  keys(                                            \n"
-				+ "    id                    INTEGER PRIMARY KEY,     \n"
-				+ "    identity_id           INTEGER NOT NULL,        \n"
-				+ "    key_name              BLOB NOT NULL,           \n"
-				+ "    key_bits              BLOB NOT NULL,           \n"
-				+ "    is_default            INTEGER DEFAULT 0        \n"
-				+ "  );                                               \n";
-		protected internal const String INITIALIZATION5 = "CREATE UNIQUE INDEX IF NOT EXISTS                  \n"
-				+ "  keyIndex ON keys(key_name);                      \n";
-		protected internal const String INITIALIZATION6 = "CREATE TABLE IF NOT EXISTS                         \n"
-				+ "  certificates(                                    \n"
-				+ "    id                    INTEGER PRIMARY KEY,     \n"
-				+ "    key_id                INTEGER NOT NULL,        \n"
-				+ "    certificate_name      BLOB NOT NULL,           \n"
-				+ "    certificate_data      BLOB NOT NULL,           \n"
-				+ "    is_default            INTEGER DEFAULT 0        \n"
-				+ "  );                                               \n";
-		protected internal const String INITIALIZATION7 = "CREATE UNIQUE INDEX IF NOT EXISTS                  \n"
-				+ "  certIndex ON certificates(certificate_name);     \n";
-	
+	public class PibSqlite3 : PibSqlite3Base {
 		/// <summary>
 		/// Create a new PibSqlite3 to work with an SQLite3 file. This assumes that the
 		/// database directory does not contain a PIB database of an older version.
@@ -134,13 +101,13 @@ namespace net.named_data.jndn.security.pib {
 				// not supported before Java 7.
 				try {
 					// Initialize the PIB tables.
-					statement.executeUpdate(INITIALIZATION1);
-					statement.executeUpdate(INITIALIZATION2);
-					statement.executeUpdate(INITIALIZATION3);
-					statement.executeUpdate(INITIALIZATION4);
-					statement.executeUpdate(INITIALIZATION5);
-					statement.executeUpdate(INITIALIZATION6);
-					statement.executeUpdate(INITIALIZATION7);
+					statement.executeUpdate(net.named_data.jndn.security.pib.PibSqlite3Base.INITIALIZATION1);
+					statement.executeUpdate(net.named_data.jndn.security.pib.PibSqlite3Base.INITIALIZATION2);
+					statement.executeUpdate(net.named_data.jndn.security.pib.PibSqlite3Base.INITIALIZATION3);
+					statement.executeUpdate(net.named_data.jndn.security.pib.PibSqlite3Base.INITIALIZATION4);
+					statement.executeUpdate(net.named_data.jndn.security.pib.PibSqlite3Base.INITIALIZATION5);
+					statement.executeUpdate(net.named_data.jndn.security.pib.PibSqlite3Base.INITIALIZATION6);
+					statement.executeUpdate(net.named_data.jndn.security.pib.PibSqlite3Base.INITIALIZATION7);
 				} finally {
 					statement.close();
 				}
@@ -199,7 +166,7 @@ namespace net.named_data.jndn.security.pib {
 		public override String getTpmLocator() {
 			try {
 				PreparedStatement statement = database_
-						.prepareStatement("SELECT tpm_locator FROM tpmInfo");
+						.prepareStatement(net.named_data.jndn.security.pib.PibSqlite3Base.SELECT_getTpmLocator);
 				try {
 					SqlDataReader result = statement.executeQuery();
 	
@@ -227,7 +194,7 @@ namespace net.named_data.jndn.security.pib {
 		public override bool hasIdentity(Name identityName) {
 			try {
 				PreparedStatement statement = database_
-						.prepareStatement("SELECT id FROM identities WHERE identity=?");
+						.prepareStatement(net.named_data.jndn.security.pib.PibSqlite3Base.SELECT_hasIdentity);
 				statement
 						.setBytes(1, identityName.wireEncode().getImmutableArray());
 				try {
@@ -287,9 +254,7 @@ namespace net.named_data.jndn.security.pib {
 				ArrayList<Int32> keyIds = new ArrayList<Int32>();
 	
 				PreparedStatement statement = database_
-						.prepareStatement("SELECT keys.id "
-								+ "FROM keys JOIN identities ON keys.identity_id=identities.id "
-								+ "WHERE identities.identity=?");
+						.prepareStatement(net.named_data.jndn.security.pib.PibSqlite3Base.SELECT_removeIdentity);
 				statement.setBytes(1, identityBytes);
 	
 				try {
@@ -304,7 +269,7 @@ namespace net.named_data.jndn.security.pib {
 				/* foreach */
 				foreach (int keyId  in  keyIds) {
 					statement = database_
-							.prepareStatement("DELETE FROM certificates WHERE key_id=?");
+							.prepareStatement(net.named_data.jndn.security.pib.PibSqlite3Base.DELETE_removeIdentity_certificates);
 					statement.setInt(1, keyId);
 					try {
 						statement.executeUpdate();
@@ -316,7 +281,7 @@ namespace net.named_data.jndn.security.pib {
 				/* foreach */
 				foreach (int keyId_0  in  keyIds) {
 					statement = database_
-							.prepareStatement("DELETE FROM keys WHERE id=?");
+							.prepareStatement(net.named_data.jndn.security.pib.PibSqlite3Base.DELETE_removeIdentity_keys);
 					statement.setInt(1, keyId_0);
 					try {
 						statement.executeUpdate();
@@ -327,7 +292,7 @@ namespace net.named_data.jndn.security.pib {
 	
 				// Now, delete from identities.
 				statement = database_
-						.prepareStatement("DELETE FROM identities WHERE identity=?");
+						.prepareStatement(net.named_data.jndn.security.pib.PibSqlite3Base.DELETE_removeIdentity_identity);
 				statement.setBytes(1, identityBytes);
 				try {
 					statement.executeUpdate();
@@ -348,11 +313,11 @@ namespace net.named_data.jndn.security.pib {
 			try {
 				// We don't use triggers, so manually delete from keys and certificates.
 				Statement statement = database_.CreateCommand();
-				statement.executeUpdate("DELETE FROM certificates");
-				statement.executeUpdate("DELETE FROM keys");
+				statement.executeUpdate(net.named_data.jndn.security.pib.PibSqlite3Base.DELETE_clearIdentities_certificates);
+				statement.executeUpdate(net.named_data.jndn.security.pib.PibSqlite3Base.DELETE_clearIdentities_keys);
 	
 				// Now, delete from identities.
-				statement.executeUpdate("DELETE FROM identities");
+				statement.executeUpdate(net.named_data.jndn.security.pib.PibSqlite3Base.DELETE_clearIdentities_identities);
 			} catch (SQLException exception) {
 				throw new PibImpl.Error("PibSqlite3: SQLite error: " + exception);
 			}
@@ -369,7 +334,7 @@ namespace net.named_data.jndn.security.pib {
 	
 			try {
 				PreparedStatement statement = database_
-						.prepareStatement("SELECT identity FROM identities");
+						.prepareStatement(net.named_data.jndn.security.pib.PibSqlite3Base.SELECT_getIdentities);
 	
 				try {
 					SqlDataReader result = statement.executeQuery();
@@ -420,7 +385,7 @@ namespace net.named_data.jndn.security.pib {
 	
 				// We don't use a trigger, so manually reset the previous default identity.
 				statement = database_
-						.prepareStatement("UPDATE identities SET is_default=0 WHERE is_default=1");
+						.prepareStatement(net.named_data.jndn.security.pib.PibSqlite3Base.UPDATE_setDefaultIdentity_reset);
 				try {
 					statement.executeUpdate();
 				} finally {
@@ -429,7 +394,7 @@ namespace net.named_data.jndn.security.pib {
 	
 				// Now set the current default identity.
 				statement = database_
-						.prepareStatement("UPDATE identities SET is_default=1 WHERE identity=?");
+						.prepareStatement(net.named_data.jndn.security.pib.PibSqlite3Base.UPDATE_setDefaultIdentity_set);
 				statement.setBytes(1, identityBytes);
 				try {
 					statement.executeUpdate();
@@ -453,7 +418,7 @@ namespace net.named_data.jndn.security.pib {
 				Statement statement = database_.CreateCommand();
 				try {
 					SqlDataReader result = statement
-							.executeQuery("SELECT identity FROM identities WHERE is_default=1");
+							.executeQuery(net.named_data.jndn.security.pib.PibSqlite3Base.SELECT_getDefaultIdentity);
 	
 					if (result.NextResult()) {
 						Name name = new Name();
@@ -487,7 +452,7 @@ namespace net.named_data.jndn.security.pib {
 		public override bool hasKey(Name keyName) {
 			try {
 				PreparedStatement statement = database_
-						.prepareStatement("SELECT id FROM keys WHERE key_name=?");
+						.prepareStatement(net.named_data.jndn.security.pib.PibSqlite3Base.SELECT_hasKey);
 				statement.setBytes(1, keyName.wireEncode().getImmutableArray());
 				try {
 					SqlDataReader result = statement.executeQuery();
@@ -519,8 +484,7 @@ namespace net.named_data.jndn.security.pib {
 			if (!hasKey(keyName)) {
 				try {
 					PreparedStatement statement = database_
-							.prepareStatement("INSERT INTO keys (identity_id, key_name, key_bits) "
-									+ "VALUES ((SELECT id FROM identities WHERE identity=?), ?, ?)");
+							.prepareStatement(net.named_data.jndn.security.pib.PibSqlite3Base.INSERT_addKey);
 					statement.setBytes(1, identityName.wireEncode()
 							.getImmutableArray());
 					statement.setBytes(2, keyName.wireEncode().getImmutableArray());
@@ -538,7 +502,7 @@ namespace net.named_data.jndn.security.pib {
 			} else {
 				try {
 					PreparedStatement statement_0 = database_
-							.prepareStatement("UPDATE keys SET key_bits=? WHERE key_name=?");
+							.prepareStatement(net.named_data.jndn.security.pib.PibSqlite3Base.UPDATE_addKey);
 					statement_0.setBytes(1, new Blob(key, false).getImmutableArray());
 					statement_0.setBytes(2, keyName.wireEncode().getImmutableArray());
 	
@@ -576,7 +540,7 @@ namespace net.named_data.jndn.security.pib {
 			try {
 				// We don't use triggers, so manually delete from certificates.
 				PreparedStatement statement = database_
-						.prepareStatement("DELETE FROM certificates WHERE key_id=(SELECT id FROM keys WHERE key_name=?)");
+						.prepareStatement(net.named_data.jndn.security.pib.PibSqlite3Base.DELETE_removeKey_certificates);
 				statement.setBytes(1, keyNameBytes);
 				try {
 					statement.executeUpdate();
@@ -585,8 +549,7 @@ namespace net.named_data.jndn.security.pib {
 				}
 	
 				// Now, delete from keys.
-				statement = database_
-						.prepareStatement("DELETE FROM keys WHERE key_name=?");
+				statement = database_.prepareStatement(net.named_data.jndn.security.pib.PibSqlite3Base.DELETE_removeKey_keys);
 				statement.setBytes(1, keyNameBytes);
 				try {
 					statement.executeUpdate();
@@ -609,7 +572,8 @@ namespace net.named_data.jndn.security.pib {
 		public override Blob getKeyBits(Name keyName) {
 			try {
 				PreparedStatement statement = database_
-						.prepareStatement("SELECT key_bits FROM keys WHERE key_name=?");
+						.prepareStatement("SELECT key_bits "
+								+ net.named_data.jndn.security.pib.PibSqlite3Base.FROM_WHERE_getKeyBits);
 				statement.setBytes(1, keyName.wireEncode().getImmutableArray());
 	
 				try {
@@ -643,9 +607,7 @@ namespace net.named_data.jndn.security.pib {
 	
 			try {
 				PreparedStatement statement = database_
-						.prepareStatement("SELECT key_name "
-								+ "FROM keys JOIN identities ON keys.identity_id=identities.id "
-								+ "WHERE identities.identity=?");
+						.prepareStatement(net.named_data.jndn.security.pib.PibSqlite3Base.SELECT_getKeysOfIdentity);
 				statement
 						.setBytes(1, identityName.wireEncode().getImmutableArray());
 	
@@ -688,7 +650,7 @@ namespace net.named_data.jndn.security.pib {
 			try {
 				// We don't use a trigger, so manually reset the previous default key.
 				PreparedStatement statement = database_
-						.prepareStatement("UPDATE keys SET is_default=0 WHERE is_default=1");
+						.prepareStatement(net.named_data.jndn.security.pib.PibSqlite3Base.UPDATE_setDefaultKeyOfIdentity_reset);
 				try {
 					statement.executeUpdate();
 				} finally {
@@ -697,7 +659,7 @@ namespace net.named_data.jndn.security.pib {
 	
 				// Now set the current default identity.
 				statement = database_
-						.prepareStatement("UPDATE keys SET is_default=1 WHERE key_name=?");
+						.prepareStatement(net.named_data.jndn.security.pib.PibSqlite3Base.UPDATE_setDefaultKeyOfIdentity_set);
 				statement.setBytes(1, keyName.wireEncode().getImmutableArray());
 				try {
 					statement.executeUpdate();
@@ -725,8 +687,7 @@ namespace net.named_data.jndn.security.pib {
 			try {
 				PreparedStatement statement = database_
 						.prepareStatement("SELECT key_name "
-								+ "FROM keys JOIN identities ON keys.identity_id=identities.id "
-								+ "WHERE identities.identity=? AND keys.is_default=1");
+								+ net.named_data.jndn.security.pib.PibSqlite3Base.FROM_WHERE_getDefaultKeyOfIdentity);
 				statement
 						.setBytes(1, identityName.wireEncode().getImmutableArray());
 	
@@ -765,7 +726,7 @@ namespace net.named_data.jndn.security.pib {
 		public override bool hasCertificate(Name certificateName) {
 			try {
 				PreparedStatement statement = database_
-						.prepareStatement("SELECT id FROM certificates WHERE certificate_name=?");
+						.prepareStatement(net.named_data.jndn.security.pib.PibSqlite3Base.SELECT_hasCertificate);
 				statement.setBytes(1, certificateName.wireEncode()
 						.getImmutableArray());
 				try {
@@ -800,9 +761,7 @@ namespace net.named_data.jndn.security.pib {
 			if (!hasCertificate(certificate.getName())) {
 				try {
 					PreparedStatement statement = database_
-							.prepareStatement("INSERT INTO certificates "
-									+ "(key_id, certificate_name, certificate_data) "
-									+ "VALUES ((SELECT id FROM keys WHERE key_name=?), ?, ?)");
+							.prepareStatement(net.named_data.jndn.security.pib.PibSqlite3Base.INSERT_addCertificate);
 					statement.setBytes(1, certificate.getKeyName().wireEncode()
 							.getImmutableArray());
 					statement.setBytes(2, certificate.getName().wireEncode()
@@ -822,7 +781,7 @@ namespace net.named_data.jndn.security.pib {
 			} else {
 				try {
 					PreparedStatement statement_0 = database_
-							.prepareStatement("UPDATE certificates SET certificate_data=? WHERE certificate_name=?");
+							.prepareStatement(net.named_data.jndn.security.pib.PibSqlite3Base.UPDATE_addCertificate);
 					statement_0.setBytes(1, certificate.wireEncode()
 							.getImmutableArray());
 					statement_0.setBytes(2, certificate.getName().wireEncode()
@@ -861,7 +820,7 @@ namespace net.named_data.jndn.security.pib {
 		public override void removeCertificate(Name certificateName) {
 			try {
 				PreparedStatement statement = database_
-						.prepareStatement("DELETE FROM certificates WHERE certificate_name=?");
+						.prepareStatement(net.named_data.jndn.security.pib.PibSqlite3Base.DELETE_removeCertificate);
 				statement.setBytes(1, certificateName.wireEncode()
 						.getImmutableArray());
 				try {
@@ -928,9 +887,7 @@ namespace net.named_data.jndn.security.pib {
 	
 			try {
 				PreparedStatement statement = database_
-						.prepareStatement("SELECT certificate_name "
-								+ "FROM certificates JOIN keys ON certificates.key_id=keys.id "
-								+ "WHERE keys.key_name=?");
+						.prepareStatement(net.named_data.jndn.security.pib.PibSqlite3Base.SELECT_getCertificatesOfKey);
 				statement.setBytes(1, keyName.wireEncode().getImmutableArray());
 	
 				try {
@@ -973,7 +930,7 @@ namespace net.named_data.jndn.security.pib {
 			try {
 				// We don't use a trigger, so manually reset the previous default certificate.
 				PreparedStatement statement = database_
-						.prepareStatement("UPDATE certificates SET is_default=0 WHERE is_default=1");
+						.prepareStatement(net.named_data.jndn.security.pib.PibSqlite3Base.UPDATE_setDefaultCertificateOfKey_reset);
 				try {
 					statement.executeUpdate();
 				} finally {
@@ -982,7 +939,7 @@ namespace net.named_data.jndn.security.pib {
 	
 				// Now set the current default identity.
 				statement = database_
-						.prepareStatement("UPDATE certificates SET is_default=1 WHERE certificate_name=?");
+						.prepareStatement(net.named_data.jndn.security.pib.PibSqlite3Base.UPDATE_setDefaultCertificateOfKey_set);
 				statement.setBytes(1, certificateName.wireEncode()
 						.getImmutableArray());
 				try {
@@ -1007,8 +964,7 @@ namespace net.named_data.jndn.security.pib {
 			try {
 				PreparedStatement statement = database_
 						.prepareStatement("SELECT certificate_data "
-								+ "FROM certificates JOIN keys ON certificates.key_id=keys.id "
-								+ "WHERE certificates.is_default=1 AND keys.key_name=?");
+								+ net.named_data.jndn.security.pib.PibSqlite3Base.FROM_WHERE_getDefaultCertificateOfKey);
 				statement.setBytes(1, keyName.wireEncode().getImmutableArray());
 	
 				try {
@@ -1059,7 +1015,7 @@ namespace net.named_data.jndn.security.pib {
 				Statement statement = database_.CreateCommand();
 				try {
 					SqlDataReader result = statement
-							.executeQuery("SELECT identity FROM identities WHERE is_default=1");
+							.executeQuery(net.named_data.jndn.security.pib.PibSqlite3Base.SELECT_hasDefaultIdentity);
 					return result.NextResult();
 				} finally {
 					statement.close();
@@ -1072,9 +1028,7 @@ namespace net.named_data.jndn.security.pib {
 		private bool hasDefaultKeyOfIdentity(Name identityName) {
 			try {
 				PreparedStatement statement = database_
-						.prepareStatement("SELECT key_name "
-								+ "FROM keys JOIN identities ON keys.identity_id=identities.id "
-								+ "WHERE identities.identity=? AND keys.is_default=1");
+						.prepareStatement(net.named_data.jndn.security.pib.PibSqlite3Base.SELECT_hasDefaultKeyOfIdentity);
 				statement
 						.setBytes(1, identityName.wireEncode().getImmutableArray());
 				try {
@@ -1091,9 +1045,7 @@ namespace net.named_data.jndn.security.pib {
 		private bool hasDefaultCertificateOfKey(Name keyName) {
 			try {
 				PreparedStatement statement = database_
-						.prepareStatement("SELECT certificate_data "
-								+ "FROM certificates JOIN keys ON certificates.key_id=keys.id "
-								+ "WHERE certificates.is_default=1 AND keys.key_name=?");
+						.prepareStatement(net.named_data.jndn.security.pib.PibSqlite3Base.SELECT_hasDefaultCertificateOfKey);
 				statement.setBytes(1, keyName.wireEncode().getImmutableArray());
 				try {
 					SqlDataReader result = statement.executeQuery();
