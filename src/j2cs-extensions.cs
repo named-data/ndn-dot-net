@@ -175,7 +175,7 @@ namespace net.named_data.jndn.util {
       // Find the first where key is less than or equal to the listKey.
       foreach (var listKey in sortedList.GetKeyList()) {
         if (key.CompareTo(listKey) <= 0)
-          return key;
+          return listKey;
       }
 
       return null;
