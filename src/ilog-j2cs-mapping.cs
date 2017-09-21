@@ -742,23 +742,53 @@ namespace ILOG.J2CsMapping.Util {
 namespace ILOG.J2CsMapping.Util.Logging {
   public enum Level { SEVERE, WARNING, INFO, CONFIG, FINE, FINER, FINEST }
 
+  public delegate void Write(string message);
+
   public class Logger {
-    public Logger(string className) {
+    private Logger(string className) {
       className_ = className;
+      level_ = (className == "" ? Level.INFO : rootLogger_.level_);
     }
 
     public static Logger 
-    getLogger(string className) { return new Logger(className); }
+    getLogger(string className) 
+    { 
+      if (className == "")
+        return rootLogger_;
+      else
+        return new Logger(className); 
+    }
+
+    public void log(Level level, string message, object[] args)
+    {
+      if (level > level_)
+        return;
+      
+      if (message == null)
+        message = "";
+      
+      for (var i = 0; i < args.Length; ++i)
+        message = message.Replace("{" + i + "}", "" + args[i]);
+      
+      Write(level + ": " + message);
+    }
 
     public void log(Level level, string message, object arg)
     {
-      // TODO: Implement.
+      if (level > level_)
+        return;
+
+      log(level, message, arg == null ? new object[0] : new object[] { arg });
     }
 
     public void log(Level level, string message) { log(level, message, null); }
 
-    public void setLevel(Level level) {}
+    public void setLevel(Level level) { level_ = level; }
 
     private string className_;
+    private Level level_;
+    private static Logger rootLogger_ = new Logger("");
+    public static Write Write = 
+      delegate(string message) { Console.Out.WriteLine(message); };
   }
 }
