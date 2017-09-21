@@ -766,9 +766,11 @@ namespace ILOG.J2CsMapping.Util.Logging {
       
       if (message == null)
         message = "";
-      
-      for (var i = 0; i < args.Length; ++i)
-        message = message.Replace("{" + i + "}", "" + args[i]);
+
+      if (args != null) {
+        for (var i = 0; i < args.Length; ++i)
+          message = message.Replace("{" + i + "}", "" + args[i]);
+      }
       
       Write(level + ": " + message);
     }
