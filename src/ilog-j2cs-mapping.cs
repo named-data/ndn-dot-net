@@ -747,7 +747,6 @@ namespace ILOG.J2CsMapping.Util.Logging {
   public class Logger {
     private Logger(string className) {
       className_ = className;
-      level_ = (className == "" ? Level.INFO : rootLogger_.level_);
     }
 
     public static Logger 
@@ -761,7 +760,8 @@ namespace ILOG.J2CsMapping.Util.Logging {
 
     public void log(Level level, string message, object[] args)
     {
-      if (level > level_)
+      // For now, only setting the level on the root logger.
+      if (level > rootLogger_.level_)
         return;
       
       if (message == null)
@@ -777,7 +777,8 @@ namespace ILOG.J2CsMapping.Util.Logging {
 
     public void log(Level level, string message, object arg)
     {
-      if (level > level_)
+      // For now, only setting the level on the root logger.
+      if (level > rootLogger_.level_)
         return;
 
       log(level, message, arg == null ? new object[0] : new object[] { arg });
@@ -785,10 +786,17 @@ namespace ILOG.J2CsMapping.Util.Logging {
 
     public void log(Level level, string message) { log(level, message, null); }
 
-    public void setLevel(Level level) { level_ = level; }
+    public void setLevel(Level level) 
+    { 
+      if (this == rootLogger_)
+        level_ = level;
+      else
+        throw new Exception
+          ("setLevel is only supported for the root logger Logger.getLogger(\"\")");
+    }
 
     private string className_;
-    private Level level_;
+    private Level level_ = Level.INFO;
     private static Logger rootLogger_ = new Logger("");
     public static Write Write = 
       delegate(string message) { Console.Out.WriteLine(message); };
