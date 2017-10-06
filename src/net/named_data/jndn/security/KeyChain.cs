@@ -17,7 +17,6 @@ namespace net.named_data.jndn.security {
 	using System.ComponentModel;
 	using System.IO;
 	using System.Runtime.CompilerServices;
-	using System.spec;
 	using net.named_data.jndn;
 	using net.named_data.jndn.encoding;
 	using net.named_data.jndn.encoding.der;
@@ -480,7 +479,7 @@ namespace net.named_data.jndn.security {
 		/// parameters, and set its signature.
 		/// </summary>
 		///
-		/// <param name="data"></param>
+		/// <param name="data">and updates the wireEncoding.</param>
 		/// <param name="params">The signing parameters.</param>
 		/// <param name="wireFormat">A WireFormat object used to encode the input.</param>
 		/// <exception cref="KeyChain.Error">if signing fails.</exception>
@@ -508,7 +507,7 @@ namespace net.named_data.jndn.security {
 		/// Use the default WireFormat.getDefaultWireFormat()
 		/// </summary>
 		///
-		/// <param name="data"></param>
+		/// <param name="data">and updates the wireEncoding.</param>
 		/// <param name="params">The signing parameters.</param>
 		/// <exception cref="KeyChain.Error">if signing fails.</exception>
 		/// <exception cref="KeyChain.InvalidSigningInfoError">if params is invalid, or if theidentity, key or certificate specified in params does not exist.</exception>
@@ -523,7 +522,7 @@ namespace net.named_data.jndn.security {
 		/// default identity. Otherwise use the PIB.
 		/// </summary>
 		///
-		/// <param name="data"></param>
+		/// <param name="data">wireEncoding.</param>
 		/// <param name="wireFormat">A WireFormat object used to encode the input.</param>
 		public void sign(Data data, WireFormat wireFormat) {
 			if (isSecurityV1_) {
@@ -543,7 +542,7 @@ namespace net.named_data.jndn.security {
 		/// Use the default WireFormat.getDefaultWireFormat()
 		/// </summary>
 		///
-		/// <param name="data"></param>
+		/// <param name="data">wireEncoding.</param>
 		public void sign(Data data) {
 			sign(data, net.named_data.jndn.encoding.WireFormat.getDefaultWireFormat());
 		}
@@ -684,12 +683,9 @@ namespace net.named_data.jndn.security {
 	
 			// Set the signature-info.
 			SigningInfo signingInfo = new SigningInfo(key);
-			Name[] dummyKeyName = new Name[1];
-			certificate
-					.setSignature(prepareSignatureInfo(signingInfo, dummyKeyName));
 			// Set a 20-year validity period.
-			net.named_data.jndn.security.ValidityPeriod.getFromSignature(certificate.getSignature()).setPeriod(
-					now, now + 20 * 365 * 24 * 3600 * 1000.0d);
+			signingInfo.setValidityPeriod(new ValidityPeriod(now, now + 20 * 365
+					* 24 * 3600 * 1000.0d));
 	
 			sign(certificate, signingInfo);
 	
@@ -761,41 +757,9 @@ namespace net.named_data.jndn.security {
 				tpm_.deleteKey_(keyName);
 				throw new Pib.Error("Error decoding public key " + ex_2);
 			}
-			// TODO: Move verify into PublicKey?
-			bool isVerified = false;
-			try {
-				if (publicKey.getKeyType() == net.named_data.jndn.security.KeyType.ECDSA) {
-					KeyFactory keyFactory = System.KeyFactory.getInstance("EC");
-					System.SecurityPublicKey publicKeyImpl = keyFactory
-							.generatePublic(new X509EncodedKeySpec(publicKey
-									.getKeyDer().getImmutableArray()));
-					System.SecuritySignature signatureImpl = System.SecuritySignature
-							.getInstance("SHA256withECDSA");
-					signatureImpl.initVerify(publicKeyImpl);
-					signatureImpl.update(content.buf());
-					isVerified = signatureImpl.verify(signatureBits
-							.getImmutableArray());
-				} else if (publicKey.getKeyType() == net.named_data.jndn.security.KeyType.RSA) {
-					KeyFactory keyFactory_3 = System.KeyFactory.getInstance("RSA");
-					System.SecurityPublicKey publicKeyImpl_4 = keyFactory_3
-							.generatePublic(new X509EncodedKeySpec(publicKey
-									.getKeyDer().getImmutableArray()));
-					System.SecuritySignature signatureImpl_5 = System.SecuritySignature
-							.getInstance("SHA256withRSA");
-					signatureImpl_5.initVerify(publicKeyImpl_4);
-					signatureImpl_5.update(content.buf());
-					isVerified = signatureImpl_5.verify(signatureBits
-							.getImmutableArray());
-				} else
-					// We don't expect this.
-					throw new AssertionError("Unrecognized key type");
-			} catch (Exception ex_6) {
-				// Promote to Pib.Error.
-				tpm_.deleteKey_(keyName);
-				throw new Pib.Error("Error verifying with the public key " + ex_6);
-			}
 	
-			if (!isVerified) {
+			if (!net.named_data.jndn.security.VerificationHelpers.verifySignature(content, signatureBits,
+					publicKey)) {
 				tpm_.deleteKey_(keyName);
 				throw new KeyChain.Error("Certificate `"
 						+ certificate.getName().toUri() + "` and private key `"
@@ -2120,12 +2084,21 @@ namespace net.named_data.jndn.security {
 	
 			Signature signatureInfo;
 	
-			if (key.getKeyType() == net.named_data.jndn.security.KeyType.RSA)
+			if (key.getKeyType() == net.named_data.jndn.security.KeyType.RSA
+					&& paras.getDigestAlgorithm() == net.named_data.jndn.security.DigestAlgorithm.SHA256)
 				signatureInfo = new Sha256WithRsaSignature();
-			else if (key.getKeyType() == net.named_data.jndn.security.KeyType.ECDSA)
+			else if (key.getKeyType() == net.named_data.jndn.security.KeyType.ECDSA
+					&& paras.getDigestAlgorithm() == net.named_data.jndn.security.DigestAlgorithm.SHA256)
 				signatureInfo = new Sha256WithEcdsaSignature();
 			else
 				throw new KeyChain.Error("Unsupported key type");
+	
+			if (paras.getValidityPeriod().hasPeriod()
+					&& net.named_data.jndn.security.ValidityPeriod.canGetFromSignature(signatureInfo))
+				// Set the ValidityPeriod from the SigningInfo params.
+				net.named_data.jndn.security.ValidityPeriod.getFromSignature(signatureInfo).setPeriod(
+						paras.getValidityPeriod().getNotBefore(),
+						paras.getValidityPeriod().getNotAfter());
 	
 			KeyLocator keyLocator = net.named_data.jndn.KeyLocator.getFromSignature(signatureInfo);
 			keyLocator.setType(net.named_data.jndn.KeyLocatorType.KEYNAME);

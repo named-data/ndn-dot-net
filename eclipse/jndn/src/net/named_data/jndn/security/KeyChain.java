@@ -22,8 +22,6 @@ package net.named_data.jndn.security;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.security.KeyFactory;
-import java.security.spec.X509EncodedKeySpec;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.logging.Level;
@@ -489,8 +487,9 @@ public class KeyChain {
   /**
    * Wire encode the Data object, sign it according to the supplied signing
    * parameters, and set its signature.
-   * @param data The Data object to be signed.  This updates its signature and
-   * key locator field and wireEncoding.
+   * @param data The Data object to be signed. This replaces its Signature
+   * object based on the type of key and other info in the SigningInfo params,
+   * and updates the wireEncoding.
    * @param params The signing parameters.
    * @param wireFormat A WireFormat object used to encode the input.
    * @throws KeyChain.Error if signing fails.
@@ -521,8 +520,9 @@ public class KeyChain {
    * Wire encode the Data object, sign it according to the supplied signing
    * parameters, and set its signature.
    * Use the default WireFormat.getDefaultWireFormat()
-   * @param data The Data object to be signed.  This updates its signature and
-   * key locator field and wireEncoding.
+   * @param data The Data object to be signed. This replaces its Signature
+   * object based on the type of key and other info in the SigningInfo params,
+   * and updates the wireEncoding.
    * @param params The signing parameters.
    * @throws KeyChain.Error if signing fails.
    * @throws KeyChain.InvalidSigningInfoError if params is invalid, or if the
@@ -540,8 +540,9 @@ public class KeyChain {
    * identity, and set its signature.
    * If this is a security v1 KeyChain then use the IdentityManager to get the
    * default identity. Otherwise use the PIB.
-   * @param data The Data object to be signed.  This updates its signature and
-   * key locator field and wireEncoding.
+   * @param data The Data object to be signed. This replaces its Signature
+   * object based on the type of key of the default identity, and updates the
+   * wireEncoding.
    * @param wireFormat A WireFormat object used to encode the input.
    */
   public final void
@@ -563,8 +564,9 @@ public class KeyChain {
    * If this is a security v1 KeyChain then use the IdentityManager to get the
    * default identity. Otherwise use the PIB.
    * Use the default WireFormat.getDefaultWireFormat()
-   * @param data The Data object to be signed.  This updates its signature and
-   * key locator field and wireEncoding.
+   * @param data The Data object to be signed. This replaces its Signature
+   * object based on the type of key of the default identity, and updates the
+   * wireEncoding.
    */
   public final void
   sign(Data data)
@@ -730,11 +732,9 @@ public class KeyChain {
 
     // Set the signature-info.
     SigningInfo signingInfo = new SigningInfo(key);
-    Name[] dummyKeyName = new Name[1];
-    certificate.setSignature(prepareSignatureInfo(signingInfo, dummyKeyName));
     // Set a 20-year validity period.
-    ValidityPeriod.getFromSignature(certificate.getSignature()).setPeriod
-      (now, now + 20 * 365 * 24 * 3600 * 1000.0);
+    signingInfo.setValidityPeriod
+      (new ValidityPeriod(now, now + 20 * 365 * 24 * 3600 * 1000.0));
 
     sign(certificate, signingInfo);
 
@@ -811,39 +811,8 @@ public class KeyChain {
       tpm_.deleteKey_(keyName);
       throw new Pib.Error("Error decoding public key " + ex);
     }
-    // TODO: Move verify into PublicKey?
-    boolean isVerified = false;
-    try {
-      if (publicKey.getKeyType() == KeyType.ECDSA) {
-        KeyFactory keyFactory = KeyFactory.getInstance("EC");
-        java.security.PublicKey publicKeyImpl = keyFactory.generatePublic
-          (new X509EncodedKeySpec(publicKey.getKeyDer().getImmutableArray()));
-        java.security.Signature signatureImpl =
-          java.security.Signature.getInstance("SHA256withECDSA");
-        signatureImpl.initVerify(publicKeyImpl);
-        signatureImpl.update(content.buf());
-        isVerified = signatureImpl.verify(signatureBits.getImmutableArray());
-      }
-      else if (publicKey.getKeyType() == KeyType.RSA) {
-        KeyFactory keyFactory = KeyFactory.getInstance("RSA");
-        java.security.PublicKey publicKeyImpl = keyFactory.generatePublic
-          (new X509EncodedKeySpec(publicKey.getKeyDer().getImmutableArray()));
-        java.security.Signature signatureImpl =
-          java.security.Signature.getInstance("SHA256withRSA");
-        signatureImpl.initVerify(publicKeyImpl);
-        signatureImpl.update(content.buf());
-        isVerified = signatureImpl.verify(signatureBits.getImmutableArray());
-      }
-      else
-        // We don't expect this.
-        throw new AssertionError("Unrecognized key type");
-    } catch (Exception ex) {
-      // Promote to Pib.Error.
-      tpm_.deleteKey_(keyName);
-      throw new Pib.Error("Error verifying with the public key " + ex);
-    }
 
-    if (!isVerified) {
+    if (!VerificationHelpers.verifySignature(content, signatureBits, publicKey)) {
       tpm_.deleteKey_(keyName);
       throw new KeyChain.Error("Certificate `" + certificate.getName().toUri() +
         "` and private key `" + keyName.toUri() + "` do not match");
@@ -2333,12 +2302,21 @@ public class KeyChain {
 
     Signature signatureInfo;
 
-    if (key.getKeyType() == KeyType.RSA)
+    if (key.getKeyType() == KeyType.RSA &&
+        params.getDigestAlgorithm() == DigestAlgorithm.SHA256)
       signatureInfo = new Sha256WithRsaSignature();
-    else if (key.getKeyType() == KeyType.ECDSA)
+    else if (key.getKeyType() == KeyType.ECDSA &&
+             params.getDigestAlgorithm() == DigestAlgorithm.SHA256)
       signatureInfo = new Sha256WithEcdsaSignature();
     else
       throw new KeyChain.Error("Unsupported key type");
+
+    if (params.getValidityPeriod().hasPeriod() &&
+        ValidityPeriod.canGetFromSignature(signatureInfo))
+      // Set the ValidityPeriod from the SigningInfo params.
+      ValidityPeriod.getFromSignature(signatureInfo).setPeriod
+        (params.getValidityPeriod().getNotBefore(),
+         params.getValidityPeriod().getNotAfter());
 
     KeyLocator keyLocator = KeyLocator.getFromSignature(signatureInfo);
     keyLocator.setType(KeyLocatorType.KEYNAME);
