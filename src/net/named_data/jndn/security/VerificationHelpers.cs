@@ -55,23 +55,21 @@ namespace net.named_data.jndn.security {
 						rsaSignature.update(buffer);
 						return rsaSignature.verify(signature);
 					} catch (Exception ex) {
-						// Don't expect this to happen.
 						return false;
 					}
 				} else if (publicKey.getKeyType() == net.named_data.jndn.security.KeyType.ECDSA) {
 					try {
-						KeyFactory keyFactory_3 = System.KeyFactory.getInstance("EC");
-						System.SecurityPublicKey securityPublicKey_4 = keyFactory_3
+						KeyFactory keyFactory_0 = System.KeyFactory.getInstance("EC");
+						System.SecurityPublicKey securityPublicKey_1 = keyFactory_0
 								.generatePublic(new X509EncodedKeySpec(publicKey
 										.getKeyDer().getImmutableArray()));
 	
 						System.SecuritySignature ecdsaSignature = System.SecuritySignature
 								.getInstance("SHA256withECDSA");
-						ecdsaSignature.initVerify(securityPublicKey_4);
+						ecdsaSignature.initVerify(securityPublicKey_1);
 						ecdsaSignature.update(buffer);
 						return ecdsaSignature.verify(signature);
-					} catch (Exception ex_5) {
-						// Don't expect this to happen.
+					} catch (Exception ex_2) {
 						return false;
 					}
 				} else
