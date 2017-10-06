@@ -8,7 +8,7 @@
 /// Copyright (C) 2017 Regents of the University of California.
 /// </summary>
 ///
-namespace net.named_data.jndn.tests.unit_tests {
+namespace net.named_data.jndn.tests.integration_tests {
 	
 	using System;
 	using System.Collections;
@@ -20,21 +20,22 @@ namespace net.named_data.jndn.tests.unit_tests {
 	using net.named_data.jndn.security.pib;
 	using net.named_data.jndn.security.tpm;
 	using net.named_data.jndn.security.v2;
+	using net.named_data.jndn.util;
 	
 	public class TestKeyChain {
-		internal KeyChain keyChain_;
+		internal IdentityManagementFixture fixture_;
 	
 		public void setUp() {
-			keyChain_ = new KeyChain("pib-memory:", "tpm-memory:");
+			fixture_ = new IdentityManagementFixture();
 		}
 	
 		public void testManagement() {
 			Name identityName = new Name("/test/id");
 			Name identity2Name = new Name("/test/id2");
 	
-			Assert.AssertEquals(0, keyChain_.getPib().getIdentities_().size());
+			Assert.AssertEquals(0, fixture_.keyChain_.getPib().getIdentities_().size());
 			try {
-				keyChain_.getPib().getDefaultIdentity();
+				fixture_.keyChain_.getPib().getDefaultIdentity();
 				Assert.Fail("Did not throw the expected exception");
 			} catch (Pib.Error ex) {
 			} catch (Exception ex_0) {
@@ -42,14 +43,14 @@ namespace net.named_data.jndn.tests.unit_tests {
 			}
 	
 			// Create an identity.
-			PibIdentity id = keyChain_.createIdentityV2(identityName);
+			PibIdentity id = fixture_.keyChain_.createIdentityV2(identityName);
 			Assert.AssertTrue(id != null);
-			Assert.AssertTrue(keyChain_.getPib().getIdentities_().getIdentities_()
-					.Contains(identityName));
+			Assert.AssertTrue(fixture_.keyChain_.getPib().getIdentities_()
+					.getIdentities_().Contains(identityName));
 	
 			// The first added identity becomes the default identity.
 			try {
-				keyChain_.getPib().getDefaultIdentity();
+				fixture_.keyChain_.getPib().getDefaultIdentity();
 			} catch (Exception ex_1) {
 				Assert.Fail("Unexpected exception: " + ex_1.Message);
 			}
@@ -78,7 +79,7 @@ namespace net.named_data.jndn.tests.unit_tests {
 			}
 	
 			Assert.AssertEquals(1, id.getKeys_().size());
-			keyChain_.deleteKey(id, key);
+			fixture_.keyChain_.deleteKey(id, key);
 			/* TODO: Implement key validity.
 			    // The key instance should not be valid anymore.
 			    assertTrue(!key);
@@ -95,7 +96,7 @@ namespace net.named_data.jndn.tests.unit_tests {
 			Assert.AssertEquals(0, id.getKeys_().size());
 	
 			// Create another key.
-			keyChain_.createKey(id);
+			fixture_.keyChain_.createKey(id);
 			// The added key becomes the default key.
 			try {
 				id.getDefaultKey();
@@ -114,7 +115,7 @@ namespace net.named_data.jndn.tests.unit_tests {
 			}
 	
 			// Create a third key.
-			PibKey key3 = keyChain_.createKey(id);
+			PibKey key3 = fixture_.keyChain_.createKey(id);
 			Assert.AssertTrue(!key3.getName().equals(key2.getName()));
 			// The added key will not be the default key, because the default key already exists.
 			Assert.AssertTrue(id.getDefaultKey().getName().equals(key2.getName()));
@@ -127,9 +128,10 @@ namespace net.named_data.jndn.tests.unit_tests {
 	
 			// Delete the certificate.
 			Assert.AssertEquals(1, key3.getCertificates_().size());
-			CertificateV2 key3Cert1 = new ILOG.J2CsMapping.Collections.IteratorAdapter(key3.getCertificates_().getCertificates_().Values.GetEnumerator()).Next();
+			CertificateV2 key3Cert1 = (CertificateV2) ILOG.J2CsMapping.Collections.Collections.ToArray(key3.getCertificates_()
+									.getCertificates_().Values)[0];
 			Name key3CertName = key3Cert1.getName();
-			keyChain_.deleteCertificate(key3, key3CertName);
+			fixture_.keyChain_.deleteCertificate(key3, key3CertName);
 			Assert.AssertEquals(0, key3.getCertificates_().size());
 			try {
 				key3.getDefaultCertificate();
@@ -140,7 +142,7 @@ namespace net.named_data.jndn.tests.unit_tests {
 			}
 	
 			// Add a certificate.
-			keyChain_.addCertificate(key3, key3Cert1);
+			fixture_.keyChain_.addCertificate(key3, key3Cert1);
 			Assert.AssertEquals(1, key3.getCertificates_().size());
 			try {
 				key3.getDefaultCertificate();
@@ -149,7 +151,7 @@ namespace net.named_data.jndn.tests.unit_tests {
 			}
 	
 			// Overwriting the certificate should work.
-			keyChain_.addCertificate(key3, key3Cert1);
+			fixture_.keyChain_.addCertificate(key3, key3Cert1);
 			Assert.AssertEquals(1, key3.getCertificates_().size());
 			// Add another certificate.
 			CertificateV2 key3Cert2 = new CertificateV2(key3Cert1);
@@ -157,43 +159,61 @@ namespace net.named_data.jndn.tests.unit_tests {
 			key3Cert2Name.append("Self");
 			key3Cert2Name.appendVersion(1);
 			key3Cert2.setName(key3Cert2Name);
-			keyChain_.addCertificate(key3, key3Cert2);
+			fixture_.keyChain_.addCertificate(key3, key3Cert2);
 			Assert.AssertEquals(2, key3.getCertificates_().size());
 	
 			// Set the default certificate.
 			Assert.AssertTrue(key3.getDefaultCertificate().getName().equals(key3CertName));
-			keyChain_.setDefaultCertificate(key3, key3Cert2);
+			fixture_.keyChain_.setDefaultCertificate(key3, key3Cert2);
 			Assert.AssertTrue(key3.getDefaultCertificate().getName().equals(key3Cert2Name));
 	
 			// Set the default key.
 			Assert.AssertTrue(id.getDefaultKey().getName().equals(key2.getName()));
-			keyChain_.setDefaultKey(id, key3);
+			fixture_.keyChain_.setDefaultKey(id, key3);
 			Assert.AssertTrue(id.getDefaultKey().getName().equals(key3.getName()));
 	
 			// Set the default identity.
-			PibIdentity id2 = keyChain_.createIdentityV2(identity2Name);
-			Assert.AssertTrue(keyChain_.getPib().getDefaultIdentity().getName()
+			PibIdentity id2 = fixture_.keyChain_.createIdentityV2(identity2Name);
+			Assert.AssertTrue(fixture_.keyChain_.getPib().getDefaultIdentity().getName()
 					.equals(id.getName()));
-			keyChain_.setDefaultIdentity(id2);
-			Assert.AssertTrue(keyChain_.getPib().getDefaultIdentity().getName()
+			fixture_.keyChain_.setDefaultIdentity(id2);
+			Assert.AssertTrue(fixture_.keyChain_.getPib().getDefaultIdentity().getName()
 					.equals(id2.getName()));
 	
 			// Delete an identity.
-			keyChain_.deleteIdentity(id);
+			fixture_.keyChain_.deleteIdentity(id);
 			/* TODO: Implement identity validity.
 			    // The identity instance should not be valid any more.
 			    BOOST_CHECK(!id);
 			*/
 			try {
-				keyChain_.getPib().getIdentity(identityName);
+				fixture_.keyChain_.getPib().getIdentity(identityName);
 				Assert.Fail("Did not throw the expected exception");
 			} catch (Pib.Error ex_13) {
 			} catch (Exception ex_14) {
 				Assert.Fail("Did not throw the expected exception");
 			}
 	
-			Assert.AssertTrue(!keyChain_.getPib().getIdentities_().getIdentities_()
-					.Contains(identityName));
+			Assert.AssertTrue(!fixture_.keyChain_.getPib().getIdentities_()
+					.getIdentities_().Contains(identityName));
 		}
+	
+		public void testSelfSignedCertValidity() {
+			CertificateV2 certificate = fixture_
+					.addIdentity(
+							new Name(
+									"/Security/V2/TestKeyChain/SelfSignedCertValidity"))
+					.getDefaultKey().getDefaultCertificate();
+			Assert.AssertTrue(certificate.isValid());
+			// Check 10 years from now.
+			Assert.AssertTrue(certificate.isValid(net.named_data.jndn.util.Common.getNowMilliseconds() + 10 * 365
+					* 24 * 3600 * 1000.0d));
+			// Check that notAfter is later than 10 years from now.
+			Assert.AssertTrue(certificate.getValidityPeriod().getNotAfter() > net.named_data.jndn.util.Common
+					.getNowMilliseconds() + 10 * 365 * 24 * 3600 * 1000.0d);
+		}
+	
+		// This is to force an import of net.named_data.jndn.util.
+		private static Common dummyCommon_ = new Common();
 	}
 }
