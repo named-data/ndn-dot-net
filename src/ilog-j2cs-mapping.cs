@@ -174,6 +174,15 @@ namespace ILOG.J2CsMapping.Collections {
       collection.CopyTo(result, 0);
       return result;
     }
+      
+    public static TValue[]
+    ToArray<TKey, TValue>
+      (System.Collections.Generic.Dictionary<TKey, TValue>.ValueCollection collection)
+    { 
+      var result = new TValue[collection.Count];
+      collection.CopyTo(result, 0);
+      return result;
+    }
   }
 
   public class ListSet : ArrayList {
