@@ -101,10 +101,8 @@ namespace net.named_data.jndn.tests.integration_tests {
 	
 				Blob publicKey = key.derivePublicKey();
 	
-				// TODO: Move verify to PublicKey?
-				bool result = net.named_data.jndn.security.policy.PolicyManager.verifySha256WithRsaSignature(
-						signature, new SignedBlob(content, 0, content.size()),
-						publicKey);
+				bool result = net.named_data.jndn.security.VerificationHelpers.verifySignature(content,
+						signature, publicKey);
 				Assert.AssertEquals(true, result);
 	
 				tpm.deleteKey(keyName);
@@ -156,8 +154,8 @@ namespace net.named_data.jndn.tests.integration_tests {
 		      Blob publicKey = key.derivePublicKey();
 	
 		      // TODO: Move verify to PublicKey?
-		      boolean result = PolicyManager.verifySha256WithEcdsaSignature
-		        (signature, new SignedBlob(content, 0, content.size()), publicKey);
+		      boolean result = VerificationHelpers.verifySignature
+		        (content, signature, publicKey);
 		      assertEquals(true, result);
 	
 		      tpm.deleteKey(ecKeyName);

@@ -271,39 +271,14 @@ namespace net.named_data.jndn.tests.unit_tests {
 				TpmPrivateKey key = net.named_data.jndn.security.tpm.TpmPrivateKey
 						.generatePrivateKey(dataSet.keyParams);
 				Blob publicKeyBits = key.derivePublicKey();
-				PublicKey publicKey = new PublicKey(publicKeyBits);
 	
 				Blob data = new Blob(new int[] { 0x01, 0x02, 0x03, 0x04 });
 	
 				// Sign and verify.
 				Blob signature = key.sign(data.buf(), net.named_data.jndn.security.DigestAlgorithm.SHA256);
 	
-				// TODO: Move verify into PublicKey?
-				bool result = false;
-				if (dataSet.keyParams.getKeyType() == net.named_data.jndn.security.KeyType.ECDSA) {
-					KeyFactory keyFactory = System.KeyFactory.getInstance("EC");
-					System.SecurityPublicKey publicKeyImpl = keyFactory
-							.generatePublic(new X509EncodedKeySpec(publicKey
-									.getKeyDer().getImmutableArray()));
-					System.SecuritySignature signatureImpl = System.SecuritySignature
-							.getInstance("SHA256withECDSA");
-					signatureImpl.initVerify(publicKeyImpl);
-					signatureImpl.update(data.buf());
-					result = signatureImpl.verify(signature.getImmutableArray());
-				} else if (dataSet.keyParams.getKeyType() == net.named_data.jndn.security.KeyType.RSA) {
-					KeyFactory keyFactory_0 = System.KeyFactory.getInstance("RSA");
-					System.SecurityPublicKey publicKeyImpl_1 = keyFactory_0
-							.generatePublic(new X509EncodedKeySpec(publicKey
-									.getKeyDer().getImmutableArray()));
-					System.SecuritySignature signatureImpl_2 = System.SecuritySignature
-							.getInstance("SHA256withRSA");
-					signatureImpl_2.initVerify(publicKeyImpl_1);
-					signatureImpl_2.update(data.buf());
-					result = signatureImpl_2.verify(signature.getImmutableArray());
-				} else
-					// We don't expect this.
-					Assert.Fail("Unrecognized key type");
-	
+				bool result = net.named_data.jndn.security.VerificationHelpers.verifySignature(data,
+						signature, new PublicKey(publicKeyBits));
 				Assert.AssertTrue(result);
 	
 				// Check that another generated private key is different.

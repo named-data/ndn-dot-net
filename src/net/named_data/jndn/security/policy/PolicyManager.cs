@@ -15,10 +15,10 @@ namespace net.named_data.jndn.security.policy {
 	using System.ComponentModel;
 	using System.IO;
 	using System.Runtime.CompilerServices;
-	using System.spec;
 	using net.named_data.jndn;
 	using net.named_data.jndn.encoding;
 	using net.named_data.jndn.security;
+	using net.named_data.jndn.security.certificate;
 	using net.named_data.jndn.util;
 	
 	/// <summary>
@@ -135,147 +135,20 @@ namespace net.named_data.jndn.security.policy {
 		protected static internal bool verifySignature(
 				net.named_data.jndn.Signature signature, SignedBlob signedBlob,
 				Blob publicKeyDer) {
-			if (signature  is  Sha256WithRsaSignature) {
+			if (signature  is  Sha256WithRsaSignature
+					|| signature  is  Sha256WithEcdsaSignature) {
 				if (publicKeyDer.isNull())
 					return false;
-				return verifySha256WithRsaSignature(signature.getSignature(),
-						signedBlob, publicKeyDer);
-			} else if (signature  is  Sha256WithEcdsaSignature) {
-				if (publicKeyDer.isNull())
-					return false;
-				return verifySha256WithEcdsaSignature(signature.getSignature(),
-						signedBlob, publicKeyDer);
+				return net.named_data.jndn.security.VerificationHelpers.verifySignature(signedBlob.signedBuf(),
+						signature.getSignature(), new PublicKey(publicKeyDer),
+						net.named_data.jndn.security.DigestAlgorithm.SHA256);
 			} else if (signature  is  DigestSha256Signature)
-				return verifyDigestSha256Signature(signature.getSignature(),
-						signedBlob);
+				return net.named_data.jndn.security.VerificationHelpers.verifyDigest(signedBlob.signedBuf(),
+						signature.getSignature(), net.named_data.jndn.security.DigestAlgorithm.SHA256);
 			else
 				// We don't expect this to happen.
 				throw new SecurityException(
 						"PolicyManager.verify: Signature type is unknown");
-		}
-	
-		/// <summary>
-		/// Verify the RSA signature on the SignedBlob using the given public key.
-		/// </summary>
-		///
-		/// <param name="signature">The signature bits.</param>
-		/// <param name="signedBlob">the SignedBlob with the signed portion to verify.</param>
-		/// <param name="publicKeyDer">The DER-encoded public key used to verify the signature.</param>
-		/// <returns>true if the signature verifies, false if not.</returns>
-		public static bool verifySha256WithRsaSignature(Blob signature,
-				SignedBlob signedBlob, Blob publicKeyDer) {
-			KeyFactory keyFactory = null;
-			try {
-				keyFactory = System.KeyFactory.getInstance("RSA");
-			} catch (Exception exception) {
-				// Don't expect this to happen.
-				throw new SecurityException("RSA is not supported: "
-						+ exception.Message);
-			}
-	
-			System.SecurityPublicKey publicKey = null;
-			try {
-				publicKey = keyFactory.generatePublic(new X509EncodedKeySpec(
-						publicKeyDer.getImmutableArray()));
-			} catch (InvalidKeySpecException exception_0) {
-				// Don't expect this to happen.
-				throw new SecurityException("X509EncodedKeySpec is not supported: "
-						+ exception_0.Message);
-			}
-	
-			System.SecuritySignature rsaSignature = null;
-			try {
-				rsaSignature = System.SecuritySignature.getInstance("SHA256withRSA");
-			} catch (Exception e) {
-				// Don't expect this to happen.
-				throw new SecurityException(
-						"SHA256withRSA algorithm is not supported");
-			}
-	
-			try {
-				rsaSignature.initVerify(publicKey);
-			} catch (InvalidKeyException exception_1) {
-				throw new SecurityException("InvalidKeyException: "
-						+ exception_1.Message);
-			}
-			try {
-				rsaSignature.update(signedBlob.signedBuf());
-				return rsaSignature.verify(signature.getImmutableArray());
-			} catch (SignatureException exception_2) {
-				throw new SecurityException("SignatureException: "
-						+ exception_2.Message);
-			}
-		}
-	
-		/// <summary>
-		/// Verify the ECDSA signature on the SignedBlob using the given public key.
-		/// </summary>
-		///
-		/// <param name="signature">The signature bits.</param>
-		/// <param name="signedBlob">the SignedBlob with the signed portion to verify.</param>
-		/// <param name="publicKeyDer">The DER-encoded public key used to verify the signature.</param>
-		/// <returns>true if the signature verifies, false if not.</returns>
-		public static bool verifySha256WithEcdsaSignature(Blob signature,
-				SignedBlob signedBlob, Blob publicKeyDer) {
-			KeyFactory keyFactory = null;
-			try {
-				keyFactory = System.KeyFactory.getInstance("EC");
-			} catch (Exception exception) {
-				// Don't expect this to happen.
-				throw new SecurityException("EC is not supported: "
-						+ exception.Message);
-			}
-	
-			System.SecurityPublicKey publicKey = null;
-			try {
-				publicKey = keyFactory.generatePublic(new X509EncodedKeySpec(
-						publicKeyDer.getImmutableArray()));
-			} catch (InvalidKeySpecException exception_0) {
-				// Don't expect this to happen.
-				throw new SecurityException("X509EncodedKeySpec is not supported: "
-						+ exception_0.Message);
-			}
-	
-			System.SecuritySignature ecSignature = null;
-			try {
-				ecSignature = System.SecuritySignature
-						.getInstance("SHA256withECDSA");
-			} catch (Exception e) {
-				// Don't expect this to happen.
-				throw new SecurityException(
-						"SHA256withECDSA algorithm is not supported");
-			}
-	
-			try {
-				ecSignature.initVerify(publicKey);
-			} catch (InvalidKeyException exception_1) {
-				throw new SecurityException("InvalidKeyException: "
-						+ exception_1.Message);
-			}
-			try {
-				ecSignature.update(signedBlob.signedBuf());
-				return ecSignature.verify(signature.getImmutableArray());
-			} catch (SignatureException exception_2) {
-				throw new SecurityException("SignatureException: "
-						+ exception_2.Message);
-			}
-		}
-	
-		/// <summary>
-		/// Verify the DigestSha256 signature on the SignedBlob by verifying that the
-		/// digest of SignedBlob equals the signature.
-		/// </summary>
-		///
-		/// <param name="signature">The signature bits.</param>
-		/// <param name="signedBlob">the SignedBlob with the signed portion to verify.</param>
-		/// <returns>true if the signature verifies, false if not.</returns>
-		public static bool verifyDigestSha256Signature(Blob signature,
-				SignedBlob signedBlob) {
-			// Set signedPortionDigest to the digest of the signed portion of the signedBlob.
-			byte[] signedPortionDigest = net.named_data.jndn.util.Common
-					.digestSha256(signedBlob.signedBuf());
-	
-			return ILOG.J2CsMapping.Collections.Arrays.Equals(signedPortionDigest,signature.getImmutableArray());
 		}
 	}
 }
