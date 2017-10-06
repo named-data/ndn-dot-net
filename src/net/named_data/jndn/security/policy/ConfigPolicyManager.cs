@@ -362,7 +362,7 @@ namespace net.named_data.jndn.security.policy {
 			if (isSecurityV1_)
 				certificateCache_.reset();
 			else
-				certificateCacheV2_.reset();
+				certificateCacheV2_.clear();
 			fixedCertificateCache_.clear();
 			keyTimestamps_.clear();
 			requiresVerification_ = true;

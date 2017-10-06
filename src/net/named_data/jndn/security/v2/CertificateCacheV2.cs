@@ -145,7 +145,7 @@ namespace net.named_data.jndn.security.v2 {
 		/// Clear all certificates from the cache.
 		/// </summary>
 		///
-		public void reset() {
+		public void clear() {
 			certificatesByName_.clear();
 			// TODO: certificatesByTime_.clear();
 		}
