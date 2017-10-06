@@ -62,6 +62,7 @@ namespace net.named_data.jndn.security {
 		/// <param name="signerType">The type of signer.</param>
 		/// <param name="signerName"></param>
 		public SigningInfo(SigningInfo.SignerType  signerType, Name signerName) {
+			this.validityPeriod_ = new ValidityPeriod();
 			reset(signerType);
 			name_ = new Name(signerName);
 			digestAlgorithm_ = net.named_data.jndn.security.DigestAlgorithm.SHA256;
@@ -74,6 +75,7 @@ namespace net.named_data.jndn.security {
 		///
 		/// <param name="signerType">The type of signer.</param>
 		public SigningInfo(SigningInfo.SignerType  signerType) {
+			this.validityPeriod_ = new ValidityPeriod();
 			reset(signerType);
 			digestAlgorithm_ = net.named_data.jndn.security.DigestAlgorithm.SHA256;
 		}
@@ -85,6 +87,7 @@ namespace net.named_data.jndn.security {
 		/// </summary>
 		///
 		public SigningInfo() {
+			this.validityPeriod_ = new ValidityPeriod();
 			reset(net.named_data.jndn.security.SigningInfo.SignerType.NULL);
 			digestAlgorithm_ = net.named_data.jndn.security.DigestAlgorithm.SHA256;
 		}
@@ -96,6 +99,7 @@ namespace net.named_data.jndn.security {
 		///
 		/// <param name="identity">identity.getName().</param>
 		public SigningInfo(PibIdentity identity) {
+			this.validityPeriod_ = new ValidityPeriod();
 			digestAlgorithm_ = net.named_data.jndn.security.DigestAlgorithm.SHA256;
 			setPibIdentity(identity);
 		}
@@ -107,6 +111,7 @@ namespace net.named_data.jndn.security {
 		///
 		/// <param name="key">key.getName().</param>
 		public SigningInfo(PibKey key) {
+			this.validityPeriod_ = new ValidityPeriod();
 			digestAlgorithm_ = net.named_data.jndn.security.DigestAlgorithm.SHA256;
 			setPibKey(key);
 		}
@@ -119,6 +124,7 @@ namespace net.named_data.jndn.security {
 		/// <param name="signingString">Default signing: "" (the empty string). Signing with the default certificate of the default key for the identity with the specified name: `id:/my-identity`. Signing with the default certificate of the key with the specified name: `key:/my-identity/ksk-1`. Signing with the certificate with the specified name: `cert:/my-identity/KEY/ksk-1/ID-CERT/%FD%01`. Signing with sha256 digest: `id:/localhost/identity/digest-sha256` (the value returned by getDigestSha256Identity()).</param>
 		/// <exception cref="System.ArgumentException">if the signingString format is invalid.</exception>
 		public SigningInfo(String signingString) {
+			this.validityPeriod_ = new ValidityPeriod();
 			reset(net.named_data.jndn.security.SigningInfo.SignerType.NULL);
 			digestAlgorithm_ = net.named_data.jndn.security.DigestAlgorithm.SHA256;
 	
@@ -295,6 +301,30 @@ namespace net.named_data.jndn.security {
 		}
 	
 		/// <summary>
+		/// Set the validity period for the signature info.
+		/// Note that the equivalent ndn-cxx method uses a semi-prepared SignatureInfo,
+		/// but this method only uses the ValidityPeriod from the SignatureInfo.
+		/// </summary>
+		///
+		/// <param name="validityPeriod">The validity period, which is copied.</param>
+		/// <returns>This SigningInfo.</returns>
+		public SigningInfo setValidityPeriod(ValidityPeriod validityPeriod) {
+			validityPeriod_ = new ValidityPeriod(validityPeriod);
+			return this;
+		}
+	
+		/// <summary>
+		/// Get the validity period for the signature info.
+		/// Note that the equivalent ndn-cxx method uses a semi-prepared SignatureInfo,
+		/// but this method only uses the ValidityPeriod from the SignatureInfo.
+		/// </summary>
+		///
+		/// <returns>The validity period.</returns>
+		public ValidityPeriod getValidityPeriod() {
+			return validityPeriod_;
+		}
+	
+		/// <summary>
 		/// Get the string representation of this SigningInfo.
 		/// </summary>
 		///
@@ -341,6 +371,7 @@ namespace net.named_data.jndn.security {
 			name_ = new Name();
 			identity_ = null;
 			key_ = null;
+			validityPeriod_ = new ValidityPeriod();
 		}
 	
 		private SigningInfo.SignerType  type_;
@@ -348,7 +379,7 @@ namespace net.named_data.jndn.security {
 		private PibIdentity identity_;
 		private PibKey key_;
 		private DigestAlgorithm digestAlgorithm_;
-		// Omit signatureInfo_ until we need it.
+		private ValidityPeriod validityPeriod_;
 	
 		// This is to force an import of net.named_data.jndn.util.
 		private static Common dummyCommon_ = new Common();

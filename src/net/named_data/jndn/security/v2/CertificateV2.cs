@@ -183,6 +183,18 @@ namespace net.named_data.jndn.security.v2 {
 			return getValidityPeriod().isValid(time);
 		}
 	
+		/// <summary>
+		/// Check if the current time falls within the validity period.
+		/// </summary>
+		///
+		/// <returns>True if the beginning of the validity period is less than or equal
+		/// to the current time and the current time is less than or equal to the end
+		/// of the validity period.</returns>
+		/// <exception cref="System.ArgumentException">If the SignatureInfo doesn't have aValidityPeriod.</exception>
+		public bool isValid() {
+			return getValidityPeriod().isValid();
+		}
+	
 		// TODO: getExtension
 	
 		/// <summary>

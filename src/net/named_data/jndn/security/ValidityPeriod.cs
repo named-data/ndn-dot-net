@@ -49,6 +49,19 @@ namespace net.named_data.jndn.security {
 		}
 	
 		/// <summary>
+		/// Create a ValidityPeriod with the given period.
+		/// </summary>
+		///
+		/// <param name="notBefore">second.</param>
+		/// <param name="notAfter">second.</param>
+		public ValidityPeriod(double notBefore, double notAfter) {
+			this.notBefore_ = System.Double.MaxValue;
+			this.notAfter_ = -System.Double.MaxValue;
+			this.changeCount_ = 0;
+			setPeriod(notBefore, notAfter);
+		}
+	
+		/// <summary>
 		/// Check if the period has been set.
 		/// </summary>
 		///
@@ -139,7 +152,9 @@ namespace net.named_data.jndn.security {
 		/// to the current time and the current time is less than or equal to the end
 		/// of the validity period.</returns>
 		public bool isValid() {
-			return isValid(net.named_data.jndn.util.Common.getNowMilliseconds());
+			// Round up to the nearest second like in setPeriod.
+			return isValid(Math.Round(Math.Ceiling(Math.Round(net.named_data.jndn.util.Common
+											.getNowMilliseconds(),MidpointRounding.AwayFromZero) / 1000.0d) * 1000.0d,MidpointRounding.AwayFromZero));
 		}
 	
 		/// <summary>

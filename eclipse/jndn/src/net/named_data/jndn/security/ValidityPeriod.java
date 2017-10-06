@@ -46,6 +46,20 @@ public class ValidityPeriod implements ChangeCountable {
   }
 
   /**
+   * Create a ValidityPeriod with the given period.
+   * @param notBefore The beginning of the validity period range as milliseconds
+   * since Jan 1, 1970 UTC. Note that this is rounded up to the nearest whole
+   * second.
+   * @param notAfter The end of the validity period range as milliseconds
+   * since Jan 1, 1970 UTC. Note that this is rounded down to the nearest whole
+   * second.
+   */
+  public ValidityPeriod(double notBefore, double notAfter)
+  {
+    setPeriod(notBefore, notAfter);
+  }
+
+  /**
    * Check if the period has been set.
    * @return True if the period has been set, false if the period is not
    * specified (after calling the default constructor or clear).
@@ -141,7 +155,12 @@ public class ValidityPeriod implements ChangeCountable {
    * of the validity period.
    */
   public final boolean
-  isValid() { return isValid(Common.getNowMilliseconds()); }
+  isValid()
+  {
+    // Round up to the nearest second like in setPeriod.
+    return isValid(Math.round
+      (Math.ceil(Math.round(Common.getNowMilliseconds()) / 1000.0) * 1000.0));
+  }
 
   /**
    * If the signature is a type that has a ValidityPeriod (so that
