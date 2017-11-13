@@ -657,7 +657,7 @@ namespace net.named_data.jndn.security.pib {
 					statement.close();
 				}
 	
-				// Now set the current default identity.
+				// Now set the current default key.
 				statement = database_
 						.prepareStatement(net.named_data.jndn.security.pib.PibSqlite3Base.UPDATE_setDefaultKeyOfIdentity_set);
 				statement.setBytes(1, keyName.wireEncode().getImmutableArray());
@@ -873,7 +873,7 @@ namespace net.named_data.jndn.security.pib {
 	
 		/// <summary>
 		/// Get a list of certificate names of the key with id keyName. The returned
-		/// certificate names can be used to create a CertificateContainer. With a
+		/// certificate names can be used to create a PibCertificateContainer. With a
 		/// certificate name and a backend implementation, one can obtain the
 		/// certificate.
 		/// </summary>
@@ -937,7 +937,7 @@ namespace net.named_data.jndn.security.pib {
 					statement.close();
 				}
 	
-				// Now set the current default identity.
+				// Now set the current default certificate.
 				statement = database_
 						.prepareStatement(net.named_data.jndn.security.pib.PibSqlite3Base.UPDATE_setDefaultCertificateOfKey_set);
 				statement.setBytes(1, certificateName.wireEncode()

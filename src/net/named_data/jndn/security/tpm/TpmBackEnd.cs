@@ -71,7 +71,7 @@ namespace net.named_data.jndn.security.tpm {
 		/// <param name="params">The KeyParams for creating the key.</param>
 		/// <returns>The handle of the created key.</returns>
 		/// <exception cref="Tpm.Error">if params is invalid.</exception>
-		/// <exception cref="TpmBackEnd.Error">if the key already exists or cannot be created.</exception>
+		/// <exception cref="TpmBackEnd.Error">if the key cannot be created.</exception>
 		public TpmKeyHandle createKey(Name identityName, KeyParams paras) {
 			// Do key name checking.
 			if (paras.getKeyIdType() == net.named_data.jndn.security.KeyIdType.USER_SPECIFIED) {
@@ -266,7 +266,7 @@ namespace net.named_data.jndn.security.tpm {
 		/// <param name="keyName">The name of the key to use in the TPM.</param>
 		/// <param name="pkcs8">unencrypted PKCS #8 PrivateKeyInfo.</param>
 		/// <param name="password">If the password is null, import an unencrypted PKCS #8 PrivateKeyInfo.</param>
-		/// <exception cref="TpmBackEnd.Error">if a key with name keyName already exists, or foran error importing the key.</exception>
+		/// <exception cref="TpmBackEnd.Error">for an error importing the key.</exception>
 		protected internal virtual void doImportKey(Name keyName, ByteBuffer pkcs8,
 				ByteBuffer password) {
 			throw new TpmBackEnd.Error ("TpmBackEnd doImportKey is not implemented");

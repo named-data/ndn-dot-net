@@ -666,7 +666,7 @@ public class PibSqlite3 extends PibSqlite3Base {
         statement.close();
       }
 
-      // Now set the current default identity.
+      // Now set the current default key.
       statement = database_.prepareStatement
         (UPDATE_setDefaultKeyOfIdentity_set);
       statement.setBytes(1, keyName.wireEncode().getImmutableArray());
@@ -874,7 +874,7 @@ public class PibSqlite3 extends PibSqlite3Base {
 
   /**
    * Get a list of certificate names of the key with id keyName. The returned
-   * certificate names can be used to create a CertificateContainer. With a
+   * certificate names can be used to create a PibCertificateContainer. With a
    * certificate name and a backend implementation, one can obtain the
    * certificate.
    * @param keyName The name of the key.
@@ -941,7 +941,7 @@ public class PibSqlite3 extends PibSqlite3Base {
         statement.close();
       }
 
-      // Now set the current default identity.
+      // Now set the current default certificate.
       statement = database_.prepareStatement
         (UPDATE_setDefaultCertificateOfKey_set);
       statement.setBytes(1, certificateName.wireEncode().getImmutableArray());

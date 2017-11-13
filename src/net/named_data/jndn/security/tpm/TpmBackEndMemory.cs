@@ -126,7 +126,7 @@ namespace net.named_data.jndn.security.tpm {
 		/// <param name="keyName">The name of the key to use in the TPM.</param>
 		/// <param name="pkcs8">unencrypted PKCS #8 PrivateKeyInfo.</param>
 		/// <param name="password">If the password is null, import an unencrypted PKCS #8 PrivateKeyInfo.</param>
-		/// <exception cref="TpmBackEnd.Error">if a key with name keyName already exists, or foran error importing the key.</exception>
+		/// <exception cref="TpmBackEnd.Error">for an error importing the key.</exception>
 		protected internal override void doImportKey(Name keyName, ByteBuffer pkcs8,
 				ByteBuffer password) {
 			try {

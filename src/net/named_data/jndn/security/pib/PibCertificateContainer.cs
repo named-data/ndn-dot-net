@@ -131,7 +131,7 @@ namespace net.named_data.jndn.security.pib {
 		}
 	
 		/// <summary>
-		/// Create a CertificateContainer for a key with keyName. This constructor
+		/// Create a PibCertificateContainer for a key with keyName. This constructor
 		/// should only be called by PibKeyImpl.
 		/// </summary>
 		///

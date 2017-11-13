@@ -753,9 +753,9 @@ namespace net.named_data.jndn.security {
 			try {
 				publicKey = new PublicKey(publicKeyBits);
 			} catch (UnrecognizedKeyFormatException ex_2) {
-				// Promote to Pib.Error.
+				// Promote to KeyChain.Error.
 				tpm_.deleteKey_(keyName);
-				throw new Pib.Error("Error decoding public key " + ex_2);
+				throw new KeyChain.Error("Error decoding public key " + ex_2);
 			}
 	
 			if (!net.named_data.jndn.security.VerificationHelpers.verifySignature(content, signatureBits,
