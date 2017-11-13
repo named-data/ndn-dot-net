@@ -813,9 +813,17 @@ namespace net.named_data.jndn.security.policy {
 							if (isSecurityV1_)
 								certificateCache_.deleteCertificate(new Name(
 										(String) certificateList[i]));
-							else
-								certificateCacheV2_.deleteCertificate(new Name(
-										(String) certificateList[i]));
+							else {
+								// The name in the CertificateCacheV2 contains the but the name in
+								// the certificateList does not, so find the certificate based on
+								// the prefix first.
+								CertificateV2 foundCertificate = certificateCacheV2_
+										.find(new Name((String) certificateList[i]));
+								if (foundCertificate != null)
+									certificateCacheV2_
+											.deleteCertificate(foundCertificate
+													.getName());
+							}
 						}
 	
 						addDirectory(directory, info.refreshPeriod_);
