@@ -51,8 +51,8 @@ namespace net.named_data.jndn.security.pib {
 						+ keyName.toUri() + "` does not match the identity name `"
 						+ identityName_.toUri() + "`");
 	
-			ILOG.J2CsMapping.Collections.Collections.Add(keyNames_,keyName);
 			// Copy the Name.
+			ILOG.J2CsMapping.Collections.Collections.Add(keyNames_,new Name(keyName));
 			ILOG.J2CsMapping.Collections.Collections.Put(keys_,new Name(keyName),new PibKeyImpl(keyName, key, pibImpl_));
 	
 			return get(keyName);
