@@ -329,6 +329,10 @@ namespace TestNdnDotNet {
 
     static void Main(string[] args)
     {
+      // Turn off logging.
+      ILOG.J2CsMapping.Util.Logging.Logger.getLogger("").setLevel 
+        (ILOG.J2CsMapping.Util.Logging.Level.SEVERE);
+
       KeyType keyType = KeyType.RSA;
       benchmarkEncodeDecodeData(false, false, keyType);
       benchmarkEncodeDecodeData(true, false, keyType);
