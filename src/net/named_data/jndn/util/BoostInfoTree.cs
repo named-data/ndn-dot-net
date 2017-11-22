@@ -59,7 +59,7 @@ namespace net.named_data.jndn.util {
 		/// <param name="treeName">The name of the new sub-tree.</param>
 		/// <param name="newTree">The sub-tree to add.</param>
 		public void addSubtree(String treeName, BoostInfoTree newTree) {
-			ArrayList subtreeList = find(treeName);
+			ArrayList<BoostInfoTree> subtreeList = find(treeName);
 			if (subtreeList != null)
 				ILOG.J2CsMapping.Collections.Collections.Add(subtreeList,newTree);
 			else {
@@ -102,8 +102,8 @@ namespace net.named_data.jndn.util {
 		///
 		/// <param name="key">The key which may be a path separated with '/'.</param>
 		/// <returns>A new ArrayList of BoostInfoTree which are the subtrees.</returns>
-		public ArrayList get(String key) {
-			ArrayList foundVals = new ArrayList();
+		public ArrayList<BoostInfoTree> get(String key) {
+			ArrayList<BoostInfoTree> foundVals = new ArrayList<BoostInfoTree>();
 	
 			// Strip beginning '/'.
 			key = ILOG.J2CsMapping.Util.StringUtil.ReplaceFirst(key,"^/+","");
@@ -113,11 +113,11 @@ namespace net.named_data.jndn.util {
 			}
 			String[] path = ILOG.J2CsMapping.Text.RegExUtil.Split(key, "/");
 	
-			ArrayList subtrees = find(path[0]);
+			ArrayList<BoostInfoTree> subtrees = find(path[0]);
 			if (subtrees == null)
 				return foundVals;
 			if (path.Length == 1)
-				return (ArrayList) subtrees.Clone();
+				return (ArrayList<BoostInfoTree>) subtrees.Clone();
 	
 			// newPath = path.slice(1).join('/')
 			// Implement manually because older Java versions don't have join.
@@ -129,8 +129,8 @@ namespace net.named_data.jndn.util {
 			}
 	
 			for (int i_0 = 0; i_0 < subtrees.Count; ++i_0) {
-				BoostInfoTree t = (BoostInfoTree) subtrees[i_0];
-				ArrayList partial = t.get(newPath);
+				BoostInfoTree t = subtrees[i_0];
+				ArrayList<BoostInfoTree> partial = t.get(newPath);
 				foundVals.AddRange(partial);
 			}
 	
@@ -144,9 +144,9 @@ namespace net.named_data.jndn.util {
 		/// <param name="key">The key which may be a path separated with '/'.</param>
 		/// <returns>A pointer to the string value or null if not found.</returns>
 		public String getFirstValue(String key) {
-			ArrayList list = get(key);
+			ArrayList<BoostInfoTree> list = get(key);
 			if (list.Count >= 1)
-				return ((BoostInfoTree) list[0]).value_;
+				return list[0].value_;
 			else
 				return null;
 		}
@@ -185,7 +185,7 @@ namespace net.named_data.jndn.util {
 						s += nextLevel
 								+ entry.treeName_
 								+ " "
-								+ ((BoostInfoTree) entry.subtreeList_[iSubTree])
+								+ (entry.subtreeList_[iSubTree])
 										.prettyPrint(indentLevel + 2);
 				}
 	
@@ -206,12 +206,12 @@ namespace net.named_data.jndn.util {
 	
 		private class TreeEntry {
 			public TreeEntry(String treeName) {
-				this.subtreeList_ = new ArrayList();
+				this.subtreeList_ = new ArrayList<BoostInfoTree>();
 				treeName_ = treeName;
 			}
 	
 			public String treeName_;
-			public ArrayList subtreeList_; // of BoostInfoTree.
+			public ArrayList<BoostInfoTree> subtreeList_;
 		}
 	
 		/// <summary>
@@ -220,7 +220,7 @@ namespace net.named_data.jndn.util {
 		///
 		/// <param name="value"></param>
 		/// <returns>A list of BoostInfoTree, or null if not found.</returns>
-		private ArrayList find(String treeName) {
+		private ArrayList<BoostInfoTree> find(String treeName) {
 			for (int i = 0; i < subtrees_.Count; ++i) {
 				BoostInfoTree.TreeEntry  entry = subtrees_[i];
 				if (entry.treeName_.equals(treeName))

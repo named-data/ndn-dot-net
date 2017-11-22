@@ -638,7 +638,7 @@ namespace net.named_data.jndn.security.policy {
 		/// <returns>The signing identity or an empty name if cannot infer.</returns>
 		public sealed override Name inferSigningIdentity(Name dataName) {
 			throw new NotSupportedException(
-					"ConfigPolicyManager::inferSigningIdentity is not implemented");
+					"ConfigPolicyManager.inferSigningIdentity is not implemented");
 		}
 	
 		/// <summary>
@@ -862,10 +862,11 @@ namespace net.named_data.jndn.security.policy {
 		/// </summary>
 		///
 		private void loadTrustAnchorCertificates() {
-			ArrayList anchors = config_.getRoot().get("validator/trust-anchor");
+			ArrayList<BoostInfoTree> anchors = config_.getRoot().get(
+					"validator/trust-anchor");
 	
 			for (int i = 0; i < anchors.Count; ++i) {
-				BoostInfoTree anchor = (BoostInfoTree) anchors[i];
+				BoostInfoTree anchor = anchors[i];
 	
 				String typeName = anchor.getFirstValue("type");
 				bool isPath = false;
@@ -880,9 +881,9 @@ namespace net.named_data.jndn.security.policy {
 					String dirName = anchor.getFirstValue("dir");
 	
 					double refreshPeriod = 0;
-					ArrayList refreshTrees = anchor.get("refresh");
+					ArrayList<BoostInfoTree> refreshTrees = anchor.get("refresh");
 					if (refreshTrees.Count >= 1) {
-						String refreshPeriodStr = ((BoostInfoTree) refreshTrees[0]).getValue();
+						String refreshPeriodStr = refreshTrees[0].getValue();
 	
 						Pattern regex1 = ILOG.J2CsMapping.Text.Pattern.Compile("(\\d+)([hms])");
 						Matcher refreshMatch = regex1.Matcher(refreshPeriodStr);
@@ -927,10 +928,10 @@ namespace net.named_data.jndn.security.policy {
 		/// <returns>True if matches.</returns>
 		private bool checkSignatureMatch(Name signatureName, Name objectName,
 				BoostInfoTree rule, String[] failureReason) {
-			BoostInfoTree checker = (BoostInfoTree) rule.get("checker")[0];
+			BoostInfoTree checker = rule.get("checker")[0];
 			String checkerType = checker.getFirstValue("type");
 			if (checkerType.equals("fixed-signer")) {
-				BoostInfoTree signerInfo = (BoostInfoTree) checker.get("signer")[0];
+				BoostInfoTree signerInfo = checker.get("signer")[0];
 				String signerType = signerInfo.getFirstValue("type");
 	
 				Name certificateName;
@@ -1013,8 +1014,7 @@ namespace net.named_data.jndn.security.policy {
 					return false;
 				}
 			} else if (checkerType.equals("customized")) {
-				BoostInfoTree keyLocatorInfo = (BoostInfoTree) checker.get(
-									"key-locator")[0];
+				BoostInfoTree keyLocatorInfo = checker.get("key-locator")[0];
 				// Not checking type - only name is supported.
 	
 				// Is this a simple relation?
@@ -1050,9 +1050,10 @@ namespace net.named_data.jndn.security.policy {
 				}
 	
 				// Is this a hyper-relation?
-				ArrayList hyperRelationList = keyLocatorInfo.get("hyper-relation");
+				ArrayList<BoostInfoTree> hyperRelationList = keyLocatorInfo
+						.get("hyper-relation");
 				if (hyperRelationList.Count >= 1) {
-					BoostInfoTree hyperRelation = (BoostInfoTree) hyperRelationList[0];
+					BoostInfoTree hyperRelation = hyperRelationList[0];
 	
 					String keyRegex = hyperRelation.getFirstValue("k-regex");
 					String keyExpansion = hyperRelation.getFirstValue("k-expand");
@@ -1226,19 +1227,20 @@ namespace net.named_data.jndn.security.policy {
 		/// <param name="matchType">The rule type to match, "data" or "interest".</param>
 		/// <returns>The BoostInfoTree for the matching rule, or null if not found.</returns>
 		private BoostInfoTree findMatchingRule(Name objName, String matchType) {
-			ArrayList rules = config_.getRoot().get("validator/rule");
+			ArrayList<BoostInfoTree> rules = config_.getRoot()
+					.get("validator/rule");
 			for (int iRule = 0; iRule < rules.Count; ++iRule) {
-				BoostInfoTree r = (BoostInfoTree) rules[iRule];
+				BoostInfoTree r = rules[iRule];
 	
 				if (r.getFirstValue("for").equals(matchType)) {
 					bool passed = true;
-					ArrayList filters = r.get("filter");
+					ArrayList<BoostInfoTree> filters = r.get("filter");
 					if ((filters.Count==0))
 						// no filters means we pass!
 						return r;
 					else {
 						for (int iFilter = 0; iFilter < filters.Count; ++iFilter) {
-							BoostInfoTree f = (BoostInfoTree) filters[iFilter];
+							BoostInfoTree f = filters[iFilter];
 	
 							// Don't check the type - it can only be name for now.
 							// We need to see if this is a regex or a relation.
