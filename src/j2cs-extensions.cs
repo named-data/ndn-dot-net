@@ -284,6 +284,8 @@ namespace net.named_data.jndn.util {
       foreach (T item in list)
         Add(item);
     }
+
+    public ArrayList<T> Clone() { return new ArrayList<T>(this); }
   }
 
   public class Assert {
