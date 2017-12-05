@@ -337,6 +337,11 @@ namespace net.named_data.jndn.tests.integration_tests {
 			cert.wireDecode(new Blob(certData, false));
 			SigningInfo signingInfo = new SigningInfo();
 			signingInfo.setSigningIdentity(identityName_);
+			// Make sure the validity period is current for two years.
+			double now = net.named_data.jndn.util.Common.getNowMilliseconds();
+			signingInfo.setValidityPeriod(new ValidityPeriod(now, now + 2 * 365
+					* 24 * 3600 * 1000.0d));
+	
 			keyChain_.sign(cert, signingInfo);
 			Blob signedCertBlob = cert.wireEncode();
 			String encodedCert = net.named_data.jndn.util.Common.base64Encode(signedCertBlob
