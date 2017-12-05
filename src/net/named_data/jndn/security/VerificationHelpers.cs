@@ -692,7 +692,7 @@ namespace net.named_data.jndn.security {
 		///
 		/// <param name="buffer">The input buffer to verify.</param>
 		/// <param name="digest">The digest bytes.</param>
-		/// <param name="digestAlgorithm">The digest algorithm, such as DIGEST_ALGORITHM_SHA256.</param>
+		/// <param name="digestAlgorithm">The digest algorithm, such as DigestAlgorithm.SHA256.</param>
 		/// <returns>True if verification succeeds, false if verification fails.</returns>
 		/// <exception cref="System.ArgumentException">for an invalid digestAlgorithm.</exception>
 		public static bool verifyDigest(ByteBuffer buffer, byte[] digest,
@@ -702,7 +702,7 @@ namespace net.named_data.jndn.security {
 				return ILOG.J2CsMapping.Collections.Arrays.Equals(bufferDigest,digest);
 			} else
 				throw new ArgumentException(
-						"verifySignature: Invalid digest algorithm");
+						"verifyDigest: Invalid digest algorithm");
 		}
 	
 		/// <summary>
@@ -711,7 +711,7 @@ namespace net.named_data.jndn.security {
 		///
 		/// <param name="buffer">The input buffer to verify.</param>
 		/// <param name="digest">The digest bytes.</param>
-		/// <param name="digestAlgorithm">The digest algorithm, such as DIGEST_ALGORITHM_SHA256.</param>
+		/// <param name="digestAlgorithm">The digest algorithm, such as DigestAlgorithm.SHA256.</param>
 		/// <returns>True if verification succeeds, false if verification fails.</returns>
 		/// <exception cref="System.ArgumentException">for an invalid digestAlgorithm.</exception>
 		public static bool verifyDigest(ByteBuffer buffer, Blob digest,
@@ -725,7 +725,7 @@ namespace net.named_data.jndn.security {
 		///
 		/// <param name="buffer">The input buffer to verify.</param>
 		/// <param name="digest">The digest bytes.</param>
-		/// <param name="digestAlgorithm">The digest algorithm, such as DIGEST_ALGORITHM_SHA256.</param>
+		/// <param name="digestAlgorithm">The digest algorithm, such as DigestAlgorithm.SHA256.</param>
 		/// <returns>True if verification succeeds, false if verification fails.</returns>
 		/// <exception cref="System.ArgumentException">for an invalid digestAlgorithm.</exception>
 		public static bool verifyDigest(Blob buffer, Blob digest,
@@ -741,7 +741,7 @@ namespace net.named_data.jndn.security {
 		/// </summary>
 		///
 		/// <param name="data">The Data packet to verify.</param>
-		/// <param name="digestAlgorithm">The digest algorithm, such as DIGEST_ALGORITHM_SHA256.</param>
+		/// <param name="digestAlgorithm">The digest algorithm, such as DigestAlgorithm.SHA256.</param>
 		/// <param name="wireFormat">A WireFormat object used to encode the Data packet.</param>
 		/// <returns>True if verification succeeds, false if verification fails.</returns>
 		/// <exception cref="System.ArgumentException">for an invalid digestAlgorithm.</exception>
@@ -760,7 +760,7 @@ namespace net.named_data.jndn.security {
 		/// </summary>
 		///
 		/// <param name="data">The Data packet to verify.</param>
-		/// <param name="digestAlgorithm">The digest algorithm, such as DIGEST_ALGORITHM_SHA256.</param>
+		/// <param name="digestAlgorithm">The digest algorithm, such as DigestAlgorithm.SHA256.</param>
 		/// <returns>True if verification succeeds, false if verification fails.</returns>
 		/// <exception cref="System.ArgumentException">for an invalid digestAlgorithm.</exception>
 		public static bool verifyDataDigest(Data data,
@@ -777,7 +777,7 @@ namespace net.named_data.jndn.security {
 		/// </summary>
 		///
 		/// <param name="interest">The Interest packet to verify.</param>
-		/// <param name="digestAlgorithm">The digest algorithm, such as DIGEST_ALGORITHM_SHA256.</param>
+		/// <param name="digestAlgorithm">The digest algorithm, such as DigestAlgorithm.SHA256.</param>
 		/// <param name="wireFormat">A WireFormat object used to decode the Interest packet.</param>
 		/// <returns>True if verification succeeds, false if verification fails or
 		/// cannot decode the Interest.</returns>
@@ -802,7 +802,7 @@ namespace net.named_data.jndn.security {
 		/// </summary>
 		///
 		/// <param name="interest">The Interest packet to verify.</param>
-		/// <param name="digestAlgorithm">The digest algorithm, such as DIGEST_ALGORITHM_SHA256.</param>
+		/// <param name="digestAlgorithm">The digest algorithm, such as DigestAlgorithm.SHA256.</param>
 		/// <returns>True if verification succeeds, false if verification fails or
 		/// cannot decode the Interest.</returns>
 		/// <exception cref="System.ArgumentException">for an invalid digestAlgorithm.</exception>

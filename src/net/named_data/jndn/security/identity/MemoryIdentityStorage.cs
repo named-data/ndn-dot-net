@@ -113,12 +113,12 @@ namespace net.named_data.jndn.security.identity {
 		public override Blob getKey(Name keyName) {
 			if (keyName.size() == 0)
 				throw new SecurityException(
-						"MemoryIdentityStorage::getKey: Empty keyName");
+						"MemoryIdentityStorage.getKey: Empty keyName");
 	
 			MemoryIdentityStorage.KeyRecord  keyRecord = (MemoryIdentityStorage.KeyRecord ) ILOG.J2CsMapping.Collections.Collections.Get(keyStore_,keyName.toUri());
 			if (keyRecord == null)
 				throw new SecurityException(
-						"MemoryIdentityStorage::getKey: The key does not exist");
+						"MemoryIdentityStorage.getKey: The key does not exist");
 	
 			return keyRecord.getKeyDer();
 		}
@@ -188,14 +188,14 @@ namespace net.named_data.jndn.security.identity {
 							.toUri());
 			if (certificateDer == null)
 				throw new SecurityException(
-						"MemoryIdentityStorage::getKey: The certificate does not exist");
+						"MemoryIdentityStorage.getKey: The certificate does not exist");
 	
 			IdentityCertificate certificate = new IdentityCertificate();
 			try {
 				certificate.wireDecode(certificateDer);
 			} catch (EncodingException ex) {
 				throw new SecurityException(
-						"MemoryIdentityStorage::getKey: The certificate cannot be decoded");
+						"MemoryIdentityStorage.getKey: The certificate cannot be decoded");
 			}
 			return certificate;
 		}

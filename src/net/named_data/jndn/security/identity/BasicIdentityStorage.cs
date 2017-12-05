@@ -271,7 +271,7 @@ namespace net.named_data.jndn.security.identity {
 		public sealed override Blob getKey(Name keyName) {
 			if (keyName.size() == 0)
 				throw new SecurityException(
-						"BasicIdentityStorage::getKey: Empty keyName");
+						"BasicIdentityStorage.getKey: Empty keyName");
 	
 			String keyId = keyName.get(-1).toEscapedString();
 			Name identityName = keyName.getPrefix(-1);
@@ -289,7 +289,7 @@ namespace net.named_data.jndn.security.identity {
 						return new Blob(result.getBytes("public_key"), false);
 					else
 						throw new SecurityException(
-								"BasicIdentityStorage::getKey: The key does not exist");
+								"BasicIdentityStorage.getKey: The key does not exist");
 				} finally {
 					statement.close();
 				}
@@ -437,7 +437,7 @@ namespace net.named_data.jndn.security.identity {
 						}
 					} else
 						throw new SecurityException(
-								"BasicIdentityStorage::getKey: The key certificate not exist");
+								"BasicIdentityStorage.getKey: The key certificate not exist");
 				} finally {
 					statement.close();
 				}
@@ -465,7 +465,7 @@ namespace net.named_data.jndn.security.identity {
 						return (string)result["tpm_locator"];
 					else
 						throw new SecurityException(
-								"BasicIdentityStorage::getTpmLocator: TPM info does not exist");
+								"BasicIdentityStorage.getTpmLocator: TPM info does not exist");
 				} finally {
 					statement.close();
 				}

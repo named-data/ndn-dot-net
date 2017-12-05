@@ -144,7 +144,7 @@ namespace net.named_data.jndn.security.v2 {
 		}
 	
 		/// <summary>
-		/// Get public key DER encoding.
+		/// Get the public key DER encoding.
 		/// </summary>
 		///
 		/// <returns>The DER encoding Blob.</returns>

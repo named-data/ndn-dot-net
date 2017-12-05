@@ -189,7 +189,7 @@ namespace net.named_data.jndn.security {
 				return ((Sha256WithEcdsaSignature) signature).getValidityPeriod();
 			else
 				throw new Exception(
-						"ValidityPeriod::getFromSignature: Signature type does not have a ValidityPeriod");
+						"ValidityPeriod.getFromSignature: Signature type does not have a ValidityPeriod");
 		}
 	
 		/// <summary>

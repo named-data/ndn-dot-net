@@ -218,7 +218,7 @@ namespace net.named_data.jndn.security.identity {
 				}
 			} else
 				throw new SecurityException(
-						"FilePrivateKeyStorage::sign: Unrecognized private key OID: "
+						"FilePrivateKeyStorage.sign: Unrecognized private key OID: "
 								+ oidString);
 		}
 	

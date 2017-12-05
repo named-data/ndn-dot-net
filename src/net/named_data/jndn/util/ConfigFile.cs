@@ -96,7 +96,7 @@ namespace net.named_data.jndn.util {
 		private void parse() {
 			if (path_.equals(""))
 				throw new Exception(
-						"ConfigFile::parse: Failed to locate the configuration file for parsing");
+						"ConfigFile.parse: Failed to locate the configuration file for parsing");
 	
 			TextReader input;
 			try {
