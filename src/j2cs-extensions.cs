@@ -437,6 +437,11 @@ namespace net.named_data.jndn.util {
   }
 
   public class HashedSet<T> : System.Collections.Generic.HashSet<T> {
+    public HashedSet() {}
+
+    public HashedSet(System.Collections.Generic.IEnumerable<T> other)
+    : base(other) {}
+
     public bool equals(System.Collections.Generic.IEnumerable<T> other) 
     { 
       return SetEquals(other); 
