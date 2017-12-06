@@ -95,7 +95,55 @@ namespace net.named_data.jndn.tests.integration_tests {
 			}
 		}
 	
-		// TODO: addSubCertificate
+		/// <summary>
+		/// Issue a certificate for subIdentityName signed by issuer. If the identity
+		/// does not exist, it is created. A new key is generated as the default key
+		/// for the identity. A default certificate for the key is signed by the
+		/// issuer using its default certificate.
+		/// </summary>
+		///
+		/// <param name="subIdentityName">The name to issue the certificate for.</param>
+		/// <param name="issuer">The identity of the signer.</param>
+		/// <param name="params"></param>
+		/// <returns>The sub identity.</returns>
+		internal PibIdentity addSubCertificate(Name subIdentityName, PibIdentity issuer,
+				KeyParams paras) {
+			PibIdentity subIdentity = addIdentity(subIdentityName, paras);
+	
+			CertificateV2 request = subIdentity.getDefaultKey()
+					.getDefaultCertificate();
+	
+			request.setName(request.getKeyName().append("parent").appendVersion(1));
+	
+			SigningInfo certificateParams = new SigningInfo(issuer);
+			// Validity period of 20 years.
+			double now = net.named_data.jndn.util.Common.getNowMilliseconds();
+			certificateParams.setValidityPeriod(new ValidityPeriod(now, now + 20
+					* 365 * 24 * 3600 * 1000.0d));
+	
+			// Skip the AdditionalDescription.
+	
+			keyChain_.sign(request, certificateParams);
+			keyChain_.setDefaultCertificate(subIdentity.getDefaultKey(), request);
+	
+			return subIdentity;
+		}
+	
+		/// <summary>
+		/// Issue a certificate for subIdentityName signed by issuer. If the identity
+		/// does not exist, it is created. A new key is generated as the default key
+		/// for the identity. A default certificate for the key is signed by the
+		/// issuer using its default certificate.
+		/// Use KeyChain.getDefaultKeyParams().
+		/// </summary>
+		///
+		/// <param name="subIdentityName">The name to issue the certificate for.</param>
+		/// <param name="issuer">The identity of the signer.</param>
+		/// <returns>The sub identity.</returns>
+		internal PibIdentity addSubCertificate(Name subIdentityName, PibIdentity issuer) {
+			return addSubCertificate(subIdentityName, issuer,
+					net.named_data.jndn.security.KeyChain.getDefaultKeyParams());
+		}
 	
 		/// <summary>
 		/// Add a self-signed certificate made from the key and issuer ID.
