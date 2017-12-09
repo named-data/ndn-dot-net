@@ -1,5 +1,5 @@
-Interim changes since NDN-DOT-NET v0.1 (2017-12-06)
----------------------------------------------------
+NDN-DOT-NET v0.2 (2017-12-08)
+-----------------------------
 
 Bug fixes
 * https://redmine.named-data.net/issues/4023 Ported the latest NDN regex code
