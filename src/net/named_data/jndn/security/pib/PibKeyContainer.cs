@@ -5,7 +5,7 @@
 // ${CustomMessageForDisclaimer}                                                                             
 // --------------------------------------------------------------------------------------------------
  /// <summary>
-/// Copyright (C) 2017 Regents of the University of California.
+/// Copyright (C) 2017-2018 Regents of the University of California.
 /// </summary>
 ///
 namespace net.named_data.jndn.security.pib {

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2015-2017 Regents of the University of California.
+ * Copyright (C) 2015-2018 Regents of the University of California.
  *
  * @author: Jeff Thompson <jefft0@remap.ucla.edu>
  * @author: Andrew Brown <andrew.brown@intel.com>
@@ -41,7 +41,7 @@ import net.named_data.jndn.util.Common;
 /**
  * AsyncTcpTransport extends Transport for async communication over TCP by
  * dispatching reads from an AsynchronousSocketChannel to a
- * ScheduledExecutorService.
+ * ScheduledExecutorService. On Android, this requires Android API level 26.
  *
  * If enabled in the connection information, this transport implements reconnection
  * logic if the:
