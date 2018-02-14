@@ -120,7 +120,7 @@ namespace net.named_data.jndn.security.tpm {
 	
 		/// <summary>
 		/// Import an encoded private key with name keyName in PKCS #8 format, possibly
-		/// passwprd-encrypted.
+		/// password-encrypted.
 		/// </summary>
 		///
 		/// <param name="keyName">The name of the key to use in the TPM.</param>

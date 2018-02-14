@@ -163,7 +163,7 @@ namespace net.named_data.jndn.security.v2 {
 		}
 	
 		/// <summary>
-		/// Get the CertificateFetcher given to the constructor.
+		/// Get the CertificateFetcher given to (or created in) the constructor.
 		/// </summary>
 		///
 		/// <returns>The CertificateFetcher.</returns>
@@ -180,8 +180,11 @@ namespace net.named_data.jndn.security.v2 {
 			maxDepth_ = maxDepth;
 		}
 	
-		
-		/// <returns>The maximum depth of the certificate chain</returns>
+		/// <summary>
+		/// Get the maximum depth of the certificate chain.
+		/// </summary>
+		///
+		/// <returns>The maximum depth.</returns>
 		public int getMaxDepth() {
 			return maxDepth_;
 		}
@@ -275,8 +278,8 @@ namespace net.named_data.jndn.security.v2 {
 	
 			CertificateV2 certificate_0 = findTrustedCertificate(certificateRequest.interest_);
 			if (certificate_0 != null) {
-				logger_.log(ILOG.J2CsMapping.Util.Logging.Level.FINE, "Found trusted certificate "
-						+ certificate_0.getName().toUri());
+				logger_.log(ILOG.J2CsMapping.Util.Logging.Level.FINE, "Found trusted certificate {0}",
+						certificate_0.getName().toUri());
 	
 				certificate_0 = state.verifyCertificateChain_(certificate_0);
 				if (certificate_0 != null)

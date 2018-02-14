@@ -21,7 +21,7 @@ namespace net.named_data.jndn.security.v2 {
 	using net.named_data.jndn.util;
 	
 	/// <summary>
-	/// Validation state is an abstract base class for DataValidationState and
+	/// ValidationState is an abstract base class for DataValidationState and
 	/// InterestValidationState.
 	/// One instance of the validation state is kept for the validation of the whole
 	/// certificate chain.

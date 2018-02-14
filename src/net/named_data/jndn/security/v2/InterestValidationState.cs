@@ -26,7 +26,7 @@ namespace net.named_data.jndn.security.v2 {
 	public class InterestValidationState : ValidationState {
 		/// <summary>
 		/// Create an InterestValidationState for the Data packet.
-		/// The caller must ensure that state instance is valid until validation
+		/// The caller must ensure that the state instance is valid until the validation
 		/// finishes (i.e., until validateCertificateChain() and
 		/// validateOriginalPacket() have been called).
 		/// </summary>
@@ -37,7 +37,8 @@ namespace net.named_data.jndn.security.v2 {
 		public InterestValidationState(Interest interest,
 				InterestValidationSuccessCallback successCallback,
 				InterestValidationFailureCallback failureCallback) {
-			interest_ = interest;
+			// Make a copy.
+			interest_ = new Interest(interest);
 			successCallback_ = successCallback;
 			failureCallback_ = failureCallback;
 	

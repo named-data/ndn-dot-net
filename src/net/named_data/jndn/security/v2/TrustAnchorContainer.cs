@@ -173,7 +173,7 @@ namespace net.named_data.jndn.security.v2 {
 		/// <param name="groupId">The group ID.</param>
 		/// <returns>The trust anchor group.</returns>
 		/// <exception cref="TrustAnchorContainer.Error">if the groupId does not exist.</exception>
-		internal TrustAnchorGroup getGroup(String groupId) {
+		public TrustAnchorGroup getGroup(String groupId) {
 			TrustAnchorGroup group = ILOG.J2CsMapping.Collections.Collections.Get(groups_,groupId);
 			if (group == null)
 				throw new TrustAnchorContainer.Error("Trust anchor group "

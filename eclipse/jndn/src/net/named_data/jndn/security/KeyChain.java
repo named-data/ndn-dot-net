@@ -250,6 +250,14 @@ public class KeyChain {
     return tpm_;
   }
 
+  /**
+   * Get the flag set by the constructor if this is a security v1 or v2 KeyChain.
+   * @return True if this is a security v1 KeyChain, false if this is a security
+   * v2 KeyChain.
+   */
+  public final boolean
+  getIsSecurityV1() { return isSecurityV1_; }
+
   // Identity management
 
   /**
@@ -790,7 +798,7 @@ public class KeyChain {
       tpm_.importPrivateKey_(keyName, safeBag.getPrivateKeyBag().buf(), password);
     } catch (Exception ex) {
       throw new KeyChain.Error("Failed to import private key `" +
-        keyName.toUri() + "`");
+        keyName.toUri() + "`: " + ex);
     }
 
     // Check the consistency of the private key and certificate.

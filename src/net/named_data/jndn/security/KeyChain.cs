@@ -257,6 +257,16 @@ namespace net.named_data.jndn.security {
 			return tpm_;
 		}
 	
+		/// <summary>
+		/// Get the flag set by the constructor if this is a security v1 or v2 KeyChain.
+		/// </summary>
+		///
+		/// <returns>True if this is a security v1 KeyChain, false if this is a security
+		/// v2 KeyChain.</returns>
+		public bool getIsSecurityV1() {
+			return isSecurityV1_;
+		}
+	
 		// Identity management
 	
 		/// <summary>
@@ -734,7 +744,7 @@ namespace net.named_data.jndn.security {
 						password);
 			} catch (Exception ex_0) {
 				throw new KeyChain.Error("Failed to import private key `"
-						+ keyName.toUri() + "`");
+						+ keyName.toUri() + "`: " + ex_0);
 			}
 	
 			// Check the consistency of the private key and certificate.
