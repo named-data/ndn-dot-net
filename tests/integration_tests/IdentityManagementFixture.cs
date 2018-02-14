@@ -153,7 +153,7 @@ namespace net.named_data.jndn.tests.integration_tests {
 		/// <param name="issuerId">The issuer ID name component for the certificate name.</param>
 		/// <returns>The new certificate.</returns>
 		internal CertificateV2 addCertificate(PibKey key, String issuerId) {
-			Name certificateName = key.getName();
+			Name certificateName = new Name(key.getName());
 			certificateName.append(issuerId).appendVersion(3);
 			CertificateV2 certificate = new CertificateV2();
 			certificate.setName(certificateName);
