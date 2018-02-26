@@ -182,7 +182,7 @@ namespace net.named_data.jndn.tests.integration_tests {
 		/// </summary>
 		///
 		/// <param name="data">The Data to validate.</param>
-		/// <param name="message_0">The message to show if the test fails.</param>
+		/// <param name="message_0">The message to show if the test succeeds.</param>
 		internal void validateExpectFailure(Data data, String message_0) {
 			fixture_.validator_.validate(data, new TestValidator.Anonymous_C5 (message_0), new TestValidator.Anonymous_C4 ());
 		}
@@ -296,7 +296,7 @@ namespace net.named_data.jndn.tests.integration_tests {
 					"/Security/V2/ValidatorFixture/Sub1/Sub2/Data"));
 			fixture_.keyChain_.sign(data, new SigningInfo(fixture_.subIdentity_));
 	
-			validateExpectFailure(data, "Signed by a malformed certificate");
+			validateExpectFailure(data, "Signed by an expired certificate");
 			Assert.AssertEquals(1, fixture_.face_.sentInterests_.Count);
 		}
 	

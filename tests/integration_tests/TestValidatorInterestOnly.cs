@@ -128,7 +128,7 @@ namespace net.named_data.jndn.tests.integration_tests {
 		/// </summary>
 		///
 		/// <param name="data">The Data to validate.</param>
-		/// <param name="message_0">The message to show if the test fails.</param>
+		/// <param name="message_0">The message to show if the test succeeds.</param>
 		internal void validateExpectFailure(Data data, String message_0) {
 			fixture_.validator_.validate(data, new TestValidatorInterestOnly.Anonymous_C5 (message_0), new TestValidatorInterestOnly.Anonymous_C4 ());
 		}
@@ -151,7 +151,7 @@ namespace net.named_data.jndn.tests.integration_tests {
 		/// </summary>
 		///
 		/// <param name="interest">The Interest to validate.</param>
-		/// <param name="message_0">The message to show if the test fails.</param>
+		/// <param name="message_0">The message to show if the test succeeds.</param>
 		internal void validateExpectFailure(Interest interest, String message_0) {
 			fixture_.validator_.validate(interest,
 					new TestValidatorInterestOnly.Anonymous_C1 (message_0), new TestValidatorInterestOnly.Anonymous_C0 ());
