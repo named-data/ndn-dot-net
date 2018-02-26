@@ -29,7 +29,7 @@ namespace net.named_data.jndn.security.v2.validator_config {
 	/// relation is-prefix-of
 	/// }"
 	/// creates ConfigRelationNameFilter("/example",
-	/// ConfigNameRelation::Relation::IS_PREFIX_OF) .
+	/// ConfigNameRelation.Relation.IS_PREFIX_OF) .
 	/// </summary>
 	///
 	public class ConfigRelationNameFilter : ConfigFilter {
@@ -38,10 +38,11 @@ namespace net.named_data.jndn.security.v2.validator_config {
 		/// </summary>
 		///
 		/// <param name="name">The relation name, which is copied.</param>
-		/// <param name="relation">The relation type as a ConfigNameRelation::Relation enum.</param>
+		/// <param name="relation">The relation type as a ConfigNameRelation.Relation enum.</param>
 		public ConfigRelationNameFilter(Name name,
 				ConfigNameRelation.Relation relation) {
-			name_ = name;
+			// Copy the Name.
+			name_ = new Name(name);
 			relation_ = relation;
 		}
 	
