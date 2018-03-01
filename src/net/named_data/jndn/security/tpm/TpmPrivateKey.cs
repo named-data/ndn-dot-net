@@ -83,17 +83,17 @@ namespace net.named_data.jndn.security.tpm {
 						keyType = net.named_data.jndn.security.KeyType.RSA;
 					else
 						// Assume it is an EC key. Try decoding it below.
-						keyType = net.named_data.jndn.security.KeyType.ECDSA;
+						keyType = net.named_data.jndn.security.KeyType.EC;
 				} catch (DerDecodingException ex) {
 					// Assume it is an EC key. Try decoding it below.
-					keyType = net.named_data.jndn.security.KeyType.ECDSA;
+					keyType = net.named_data.jndn.security.KeyType.EC;
 				}
 			}
 	
 			// Java can't decode a PKCS #1 private key, so make a PKCS #8 private key
 			// and decode that.
 			Blob pkcs8;
-			if (keyType == net.named_data.jndn.security.KeyType.ECDSA) {
+			if (keyType == net.named_data.jndn.security.KeyType.EC) {
 				throw new TpmPrivateKey.Error ("TODO: loadPkcs1 for EC is not implemented");
 			} else if (keyType == net.named_data.jndn.security.KeyType.RSA)
 				pkcs8 = encodePkcs8PrivateKey(encoding,
@@ -140,7 +140,7 @@ namespace net.named_data.jndn.security.tpm {
 				}
 	
 				if (oidString.equals(EC_ENCRYPTION_OID))
-					keyType = net.named_data.jndn.security.KeyType.ECDSA;
+					keyType = net.named_data.jndn.security.KeyType.EC;
 				else if (oidString.equals(RSA_ENCRYPTION_OID))
 					keyType = net.named_data.jndn.security.KeyType.RSA;
 				else
@@ -151,11 +151,11 @@ namespace net.named_data.jndn.security.tpm {
 			// Use a Blob to get the byte array.
 			PKCS8EncodedKeySpec spec = new PKCS8EncodedKeySpec(new Blob(encoding,
 					false).getImmutableArray());
-			if (keyType == net.named_data.jndn.security.KeyType.ECDSA) {
+			if (keyType == net.named_data.jndn.security.KeyType.EC) {
 				try {
 					KeyFactory kf = System.KeyFactory.getInstance("EC");
 					privateKey_ = kf.generatePrivate(spec);
-					keyType_ = net.named_data.jndn.security.KeyType.ECDSA;
+					keyType_ = net.named_data.jndn.security.KeyType.EC;
 				} catch (InvalidKeySpecException ex_0) {
 					// Don't expect this to happen.
 					throw new TpmPrivateKey.Error ("loadPkcs8: EC is not supported: " + ex_0);
@@ -202,7 +202,7 @@ namespace net.named_data.jndn.security.tpm {
 		/// <returns>The public key encoding Blob.</returns>
 		/// <exception cref="TpmPrivateKey.Error">if no private key is loaded, or errorconverting to a public key.</exception>
 		public Blob derivePublicKey() {
-			if (keyType_ == net.named_data.jndn.security.KeyType.ECDSA) {
+			if (keyType_ == net.named_data.jndn.security.KeyType.EC) {
 				throw new TpmPrivateKey.Error ("TODO: derivePublicKey for EC is not implemented");
 			} else if (keyType_ == net.named_data.jndn.security.KeyType.RSA) {
 				// Decode the PKCS #1 RSAPrivateKey. (We don't use RSAPrivateCrtKey because
@@ -291,7 +291,7 @@ namespace net.named_data.jndn.security.tpm {
 				throw new TpmPrivateKey.Error ("TpmPrivateKey.sign: Unsupported digest algorithm");
 	
 			System.SecuritySignature signature = null;
-			if (keyType_ == net.named_data.jndn.security.KeyType.ECDSA) {
+			if (keyType_ == net.named_data.jndn.security.KeyType.EC) {
 				try {
 					signature = System.SecuritySignature
 							.getInstance("SHA256withECDSA");
@@ -373,9 +373,9 @@ namespace net.named_data.jndn.security.tpm {
 			if (keyParams.getKeyType() == net.named_data.jndn.security.KeyType.RSA) {
 				keyAlgorithm = "RSA";
 				keySize = ((RsaKeyParams) keyParams).getKeySize();
-			} else if (keyParams.getKeyType() == net.named_data.jndn.security.KeyType.ECDSA) {
+			} else if (keyParams.getKeyType() == net.named_data.jndn.security.KeyType.EC) {
 				keyAlgorithm = "EC";
-				keySize = ((EcdsaKeyParams) keyParams).getKeySize();
+				keySize = ((EcKeyParams) keyParams).getKeySize();
 			} else
 				throw new ArgumentException(
 						"Cannot generate a key pair of type "

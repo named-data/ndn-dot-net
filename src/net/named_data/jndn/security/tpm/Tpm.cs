@@ -193,7 +193,7 @@ namespace net.named_data.jndn.security.tpm {
 		/// <exception cref="TpmBackEnd.Error">if the key already exists or cannot be created.</exception>
 		public Name createKey_(Name identityName, KeyParams paras) {
 			if (paras.getKeyType() == net.named_data.jndn.security.KeyType.RSA
-					|| paras.getKeyType() == net.named_data.jndn.security.KeyType.ECDSA) {
+					|| paras.getKeyType() == net.named_data.jndn.security.KeyType.EC) {
 				TpmKeyHandle keyHandle = backEnd_.createKey(identityName, paras);
 				Name keyName = keyHandle.getKeyName();
 				ILOG.J2CsMapping.Collections.Collections.Put(keys_,keyName,keyHandle);

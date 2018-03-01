@@ -94,9 +94,9 @@ namespace net.named_data.jndn.security.identity {
 			if (paras.getKeyType() == net.named_data.jndn.security.KeyType.RSA) {
 				keyAlgorithm = "RSA";
 				keySize = ((RsaKeyParams) paras).getKeySize();
-			} else if (paras.getKeyType() == net.named_data.jndn.security.KeyType.ECDSA) {
+			} else if (paras.getKeyType() == net.named_data.jndn.security.KeyType.EC) {
 				keyAlgorithm = "EC";
-				keySize = ((EcdsaKeyParams) paras).getKeySize();
+				keySize = ((EcKeyParams) paras).getKeySize();
 			} else
 				throw new SecurityException("Cannot generate a key pair of type "
 						+ paras.getKeyType());
@@ -200,7 +200,7 @@ namespace net.named_data.jndn.security.identity {
 									+ e_0.Message);
 				}
 			} else if (oidString.equals(EC_ENCRYPTION_OID)) {
-				keyType[0] = net.named_data.jndn.security.KeyType.ECDSA;
+				keyType[0] = net.named_data.jndn.security.KeyType.EC;
 	
 				try {
 					KeyFactory kf_1 = System.KeyFactory.getInstance("EC");
@@ -275,7 +275,7 @@ namespace net.named_data.jndn.security.identity {
 					throw new SecurityException(
 							"FilePrivateKeyStorage: The SHA256withRSA algorithm is not supported");
 				}
-			} else if (keyType[0] == net.named_data.jndn.security.KeyType.ECDSA) {
+			} else if (keyType[0] == net.named_data.jndn.security.KeyType.EC) {
 				try {
 					signature = System.SecuritySignature
 							.getInstance("SHA256withECDSA");

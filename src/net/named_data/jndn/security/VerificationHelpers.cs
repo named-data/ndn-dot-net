@@ -57,7 +57,7 @@ namespace net.named_data.jndn.security {
 					} catch (Exception ex) {
 						return false;
 					}
-				} else if (publicKey.getKeyType() == net.named_data.jndn.security.KeyType.ECDSA) {
+				} else if (publicKey.getKeyType() == net.named_data.jndn.security.KeyType.EC) {
 					try {
 						KeyFactory keyFactory_0 = System.KeyFactory.getInstance("EC");
 						System.SecurityPublicKey securityPublicKey_1 = keyFactory_0

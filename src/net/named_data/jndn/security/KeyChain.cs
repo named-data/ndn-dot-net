@@ -2097,7 +2097,7 @@ namespace net.named_data.jndn.security {
 			if (key.getKeyType() == net.named_data.jndn.security.KeyType.RSA
 					&& paras.getDigestAlgorithm() == net.named_data.jndn.security.DigestAlgorithm.SHA256)
 				signatureInfo = new Sha256WithRsaSignature();
-			else if (key.getKeyType() == net.named_data.jndn.security.KeyType.ECDSA
+			else if (key.getKeyType() == net.named_data.jndn.security.KeyType.EC
 					&& paras.getDigestAlgorithm() == net.named_data.jndn.security.DigestAlgorithm.SHA256)
 				signatureInfo = new Sha256WithEcdsaSignature();
 			else

@@ -134,7 +134,7 @@ namespace net.named_data.jndn.tests.unit_tests {
 	
 		internal class EcKeyTestData : TestTpmPrivateKey.KeyTestData  {
 			public EcKeyTestData() {
-				keyParams = new EcdsaKeyParams();
+				keyParams = new EcKeyParams();
 	
 				privateKeyPkcs1 = "MIIBaAIBAQQgRxwcbzK9RV6AHYFsDcykI86o3M/a1KlJn0z8PcLMBZOggfowgfcC\n"
 						+ "AQEwLAYHKoZIzj0BAQIhAP////8AAAABAAAAAAAAAAAAAAAA////////////////\n"

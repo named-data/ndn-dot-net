@@ -73,7 +73,7 @@ namespace net.named_data.jndn.security.certificate {
 									+ exception_0.Message);
 				}
 			} else if (oidString.equals(EC_ENCRYPTION_OID)) {
-				keyType_ = net.named_data.jndn.security.KeyType.ECDSA;
+				keyType_ = net.named_data.jndn.security.KeyType.EC;
 	
 				KeyFactory keyFactory_1 = null;
 				try {

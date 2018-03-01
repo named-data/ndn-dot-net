@@ -180,7 +180,7 @@ namespace net.named_data.jndn.security {
 			// Set the signature info.
 			if (publicKey.getKeyType() == net.named_data.jndn.security.KeyType.RSA)
 				certificate.setSignature(new Sha256WithRsaSignature());
-			else if (publicKey.getKeyType() == net.named_data.jndn.security.KeyType.ECDSA)
+			else if (publicKey.getKeyType() == net.named_data.jndn.security.KeyType.EC)
 				certificate.setSignature(new Sha256WithEcdsaSignature());
 			else
 				throw new AssertionError("Unsupported key type");

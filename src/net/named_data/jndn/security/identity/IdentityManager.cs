@@ -262,7 +262,7 @@ namespace net.named_data.jndn.security.identity {
 		/// <returns>The generated key name.</returns>
 		public Name generateEcdsaKeyPair(Name identityName, bool isKsk,
 				int keySize) {
-			Name keyName = generateKeyPair(identityName, isKsk, new EcdsaKeyParams(
+			Name keyName = generateKeyPair(identityName, isKsk, new EcKeyParams(
 					keySize));
 	
 			return keyName;
@@ -390,7 +390,7 @@ namespace net.named_data.jndn.security.identity {
 		/// <returns>The generated key name.</returns>
 		public Name generateEcdsaKeyPairAsDefault(Name identityName,
 				bool isKsk, int keySize) {
-			Name keyName = generateKeyPair(identityName, isKsk, new EcdsaKeyParams(
+			Name keyName = generateKeyPair(identityName, isKsk, new EcKeyParams(
 					keySize));
 	
 			identityStorage_.setDefaultKeyNameForIdentity(keyName);
@@ -1057,7 +1057,7 @@ namespace net.named_data.jndn.security.identity {
 				signature.getKeyLocator().setKeyName(certificateName.getPrefix(-1));
 	
 				return signature;
-			} else if (keyType == net.named_data.jndn.security.KeyType.ECDSA) {
+			} else if (keyType == net.named_data.jndn.security.KeyType.EC) {
 				Sha256WithEcdsaSignature signature_0 = new Sha256WithEcdsaSignature();
 				digestAlgorithm[0] = net.named_data.jndn.security.DigestAlgorithm.SHA256;
 	

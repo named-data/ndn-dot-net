@@ -99,9 +99,9 @@ namespace net.named_data.jndn.security.identity {
 			if (paras.getKeyType() == net.named_data.jndn.security.KeyType.RSA) {
 				keyAlgorithm = "RSA";
 				keySize = ((RsaKeyParams) paras).getKeySize();
-			} else if (paras.getKeyType() == net.named_data.jndn.security.KeyType.ECDSA) {
+			} else if (paras.getKeyType() == net.named_data.jndn.security.KeyType.EC) {
 				keyAlgorithm = "EC";
-				keySize = ((EcdsaKeyParams) paras).getKeySize();
+				keySize = ((EcKeyParams) paras).getKeySize();
 			} else
 				throw new SecurityException("Cannot generate a key pair of type "
 						+ paras.getKeyType());
@@ -185,7 +185,7 @@ namespace net.named_data.jndn.security.identity {
 					throw new SecurityException(
 							"SHA256withRSA algorithm is not supported");
 				}
-			} else if (privateKey.getKeyType() == net.named_data.jndn.security.KeyType.ECDSA) {
+			} else if (privateKey.getKeyType() == net.named_data.jndn.security.KeyType.EC) {
 				try {
 					signature = System.SecuritySignature
 							.getInstance("SHA256withECDSA");
@@ -300,7 +300,7 @@ namespace net.named_data.jndn.security.identity {
 								"KeyFactory: PKCS8EncodedKeySpec is not supported for RSA: "
 										+ exception_0.Message);
 					}
-				} else if (keyType == net.named_data.jndn.security.KeyType.ECDSA) {
+				} else if (keyType == net.named_data.jndn.security.KeyType.EC) {
 					KeyFactory keyFactory_1 = null;
 					try {
 						keyFactory_1 = System.KeyFactory.getInstance("EC");
