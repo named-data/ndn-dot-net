@@ -95,7 +95,7 @@ namespace net.named_data.jndn.util {
       // The C# enum values are automatically assigned 0, 1, 2, etc. We must be explicit.
       if (keyType == KeyType.RSA)
         return 0;
-      else if (keyType ==  KeyType.ECDSA)
+      else if (keyType ==  KeyType.EC)
         return 1;
       else if (keyType ==  KeyType.AES)
         return 128;

@@ -19,5 +19,6 @@ namespace net.named_data.jndn.security {
 	// The KeyType integer is used by the Sqlite key storage, so don't change them.
 	// Make these the same as ndn-cxx in case the storage file is shared.
 	public enum KeyType {
-		RSA, ECDSA, AES}
+		RSA, EC,
+		/* Omit the deprecated ECDSA until it is removed. */ AES}
 }
