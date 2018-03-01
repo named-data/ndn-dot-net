@@ -17,39 +17,20 @@ namespace net.named_data.jndn.security {
 	using System.Runtime.CompilerServices;
 	using net.named_data.jndn;
 	
-	public class EcdsaKeyParams : KeyParams {
-		public EcdsaKeyParams(Name.Component keyId, int size) : base(getType(), keyId) {
-			size_ = size;
+	public class EcdsaKeyParams : EcKeyParams {
+		public EcdsaKeyParams(Name.Component keyId, int size) : base(keyId, size) {
 		}
 	
-		public EcdsaKeyParams(Name.Component keyId) : base(getType(), keyId) {
-			size_ = getDefaultSize();
+		public EcdsaKeyParams(Name.Component keyId) : base(keyId) {
 		}
 	
-		public EcdsaKeyParams(int size, KeyIdType keyIdType) : base(getType(), keyIdType) {
-			size_ = size;
+		public EcdsaKeyParams(int size, KeyIdType keyIdType) : base(size, keyIdType) {
 		}
 	
-		public EcdsaKeyParams(int size) : base(getType(), net.named_data.jndn.security.KeyIdType.RANDOM) {
-			size_ = size;
+		public EcdsaKeyParams(int size) : base(size) {
 		}
 	
-		public EcdsaKeyParams() : base(getType(), net.named_data.jndn.security.KeyIdType.RANDOM) {
-			size_ = getDefaultSize();
+		public EcdsaKeyParams() {
 		}
-	
-		public int getKeySize() {
-			return size_;
-		}
-	
-		public static int getDefaultSize() {
-			return 256;
-		}
-	
-		public static KeyType getType() {
-			return net.named_data.jndn.security.KeyType.ECDSA;
-		}
-	
-		private readonly int size_;
 	}
 }
