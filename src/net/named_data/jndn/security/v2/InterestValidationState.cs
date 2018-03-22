@@ -17,6 +17,7 @@ namespace net.named_data.jndn.security.v2 {
 	using System.IO;
 	using System.Runtime.CompilerServices;
 	using net.named_data.jndn;
+	using net.named_data.jndn.util;
 	
 	/// <summary>
 	/// The InterestValidationState class extends ValidationState to hold the
@@ -37,12 +38,13 @@ namespace net.named_data.jndn.security.v2 {
 		public InterestValidationState(Interest interest,
 				InterestValidationSuccessCallback successCallback,
 				InterestValidationFailureCallback failureCallback) {
+			this.successCallbacks_ = new ArrayList<InterestValidationSuccessCallback>();
 			// Make a copy.
 			interest_ = new Interest(interest);
-			successCallback_ = successCallback;
+			ILOG.J2CsMapping.Collections.Collections.Add(successCallbacks_,successCallback);
 			failureCallback_ = failureCallback;
 	
-			if (successCallback_ == null)
+			if (successCallback == null)
 				throw new ArgumentException("The successCallback is null");
 			if (failureCallback_ == null)
 				throw new ArgumentException("The failureCallback is null");
@@ -68,15 +70,23 @@ namespace net.named_data.jndn.security.v2 {
 			return interest_;
 		}
 	
+		public void addSuccessCallback(
+				InterestValidationSuccessCallback successCallback) {
+			ILOG.J2CsMapping.Collections.Collections.Add(successCallbacks_,successCallback);
+		}
+	
 		public override void verifyOriginalPacket_(CertificateV2 trustedCertificate) {
 			if (net.named_data.jndn.security.VerificationHelpers.verifyInterestSignature(interest_,
 					trustedCertificate)) {
 				logger_.log(ILOG.J2CsMapping.Util.Logging.Level.FINE, "OK signature for interest `{0}`",
 						interest_.getName().toUri());
-				try {
-					successCallback_.successCallback(interest_);
-				} catch (Exception exception) {
-					logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in successCallback", exception);
+				for (int i = 0; i < successCallbacks_.Count; ++i) {
+					try {
+						successCallbacks_[i].successCallback(interest_);
+					} catch (Exception exception) {
+						logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in successCallback",
+								exception);
+					}
 				}
 				setOutcome(true);
 			} else
@@ -89,18 +99,22 @@ namespace net.named_data.jndn.security.v2 {
 			logger_.log(ILOG.J2CsMapping.Util.Logging.Level.FINE,
 					"Signature verification bypassed for interest `{0}`", interest_
 							.getName().toUri());
-			try {
-				successCallback_.successCallback(interest_);
-			} catch (Exception exception) {
-				logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in successCallback", exception);
+			for (int i = 0; i < successCallbacks_.Count; ++i) {
+				try {
+					successCallbacks_[i].successCallback(interest_);
+				} catch (Exception exception) {
+					logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, "Error in successCallback", exception);
+				}
 			}
 			setOutcome(true);
 		}
 	
 		private readonly Interest interest_;
-		private readonly InterestValidationSuccessCallback successCallback_;
+		private readonly ArrayList<InterestValidationSuccessCallback> successCallbacks_;
 		private readonly InterestValidationFailureCallback failureCallback_;
 		private static readonly Logger logger_ = ILOG.J2CsMapping.Util.Logging.Logger
 				.getLogger(typeof(InterestValidationState).FullName);
+		// This is to force an import of net.named_data.jndn.util.
+		private static Common dummyCommon_ = new Common();
 	}
 }
