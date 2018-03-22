@@ -514,7 +514,7 @@ namespace net.named_data.jndn.security {
 		/// <summary>
 		/// Wire encode the Data object, sign it according to the supplied signing
 		/// parameters, and set its signature.
-		/// Use the default WireFormat.getDefaultWireFormat()
+		/// Use the default WireFormat.getDefaultWireFormat().
 		/// </summary>
 		///
 		/// <param name="data">and updates the wireEncoding.</param>
@@ -549,7 +549,7 @@ namespace net.named_data.jndn.security {
 		/// identity, and set its signature.
 		/// If this is a security v1 KeyChain then use the IdentityManager to get the
 		/// default identity. Otherwise use the PIB.
-		/// Use the default WireFormat.getDefaultWireFormat()
+		/// Use the default WireFormat.getDefaultWireFormat().
 		/// </summary>
 		///
 		/// <param name="data">wireEncoding.</param>
@@ -594,7 +594,7 @@ namespace net.named_data.jndn.security {
 		/// Sign the Interest according to the supplied signing parameters. Append a
 		/// SignatureInfo to the Interest name, sign the encoded name components and
 		/// append a final name component with the signature bits.
-		/// Use the default WireFormat.getDefaultWireFormat()
+		/// Use the default WireFormat.getDefaultWireFormat().
 		/// </summary>
 		///
 		/// <param name="interest"></param>
@@ -629,7 +629,7 @@ namespace net.named_data.jndn.security {
 		/// Sign the Interest with the default key of the default identity. Append a
 		/// SignatureInfo to the Interest name, sign the encoded name components and
 		/// append a final name component with the signature bits.
-		/// Use the default WireFormat.getDefaultWireFormat()
+		/// Use the default WireFormat.getDefaultWireFormat().
 		/// If this is a security v1 KeyChain then use the IdentityManager to get the
 		/// default identity. Otherwise use the PIB.
 		/// </summary>
@@ -673,8 +673,9 @@ namespace net.named_data.jndn.security {
 		/// </summary>
 		///
 		/// <param name="key">The PibKey with the key name and public key.</param>
+		/// <param name="wireFormat">A WireFormat object used to encode the certificate.</param>
 		/// <returns>The new certificate.</returns>
-		public CertificateV2 selfSign(PibKey key) {
+		public CertificateV2 selfSign(PibKey key, WireFormat wireFormat) {
 			CertificateV2 certificate = new CertificateV2();
 	
 			// Set the name.
@@ -697,7 +698,7 @@ namespace net.named_data.jndn.security {
 			signingInfo.setValidityPeriod(new ValidityPeriod(now, now + 20 * 365
 					* 24 * 3600 * 1000.0d));
 	
-			sign(certificate, signingInfo);
+			sign(certificate, signingInfo, wireFormat);
 	
 			try {
 				key.addCertificate_(certificate);
@@ -706,6 +707,21 @@ namespace net.named_data.jndn.security {
 				throw new KeyChain.Error ("Error encoding certificate: " + ex);
 			}
 			return certificate;
+		}
+	
+		/// <summary>
+		/// Generate a self-signed certificate for the public key and add it to the
+		/// PIB. This creates the certificate name from the key name by appending
+		/// "self" and a version based on the current time. If no default certificate
+		/// for the key has been set, then set the certificate as the default for the
+		/// key.
+		/// Use the default WireFormat.getDefaultWireFormat() to encode the certificate.
+		/// </summary>
+		///
+		/// <param name="key">The PibKey with the key name and public key.</param>
+		/// <returns>The new certificate.</returns>
+		public CertificateV2 selfSign(PibKey key) {
+			return selfSign(key, net.named_data.jndn.encoding.WireFormat.getDefaultWireFormat());
 		}
 	
 		// Import and export
@@ -1324,7 +1340,7 @@ namespace net.named_data.jndn.security {
 	
 		/// <summary>
 		/// Wire encode the Data object, sign it and set its signature.
-		/// Use the default WireFormat.getDefaultWireFormat()
+		/// Use the default WireFormat.getDefaultWireFormat().
 		/// </summary>
 		///
 		/// <param name="data"></param>
