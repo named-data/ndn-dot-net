@@ -92,6 +92,14 @@ namespace net.named_data.jndn.tests.unit_tests {
 				0x07, 0x03, 0x08, 0x01, 0x41, // Name=/A
 				1 });
 	
+		private static readonly ByteBuffer codedInterestNoSelectors = toBuffer(new int[] {
+				0x05,
+				0x12, // Interest
+				0x07, 0x0A, 0x08, 0x03, 0x6E, 0x64, 0x6E, 0x08, 0x03, 0x61, 0x62,
+				0x63, // Name
+				0x0A, 0x04, 0x61, 0x62, 0x61, 0x62 // Nonce
+		});
+	
 		static internal String dump(Object s1) {
 			return "" + s1;
 		}
@@ -266,6 +274,13 @@ namespace net.named_data.jndn.tests.unit_tests {
 	
 			Assert.AssertTrue("Redecoded fresh interest does not match original",
 					interestDumpsEqual(freshDump, reDecodedFreshDump));
+		}
+	
+		public void testNoSelectorsMustBeFresh() {
+			Interest interest = new Interest();
+			interest.wireDecode(new Blob(codedInterestNoSelectors, false));
+			Assert.AssertEquals("MustBeFresh should be false if no selectors", false,
+					interest.getMustBeFresh());
 		}
 	
 		public void testCopyConstructor() {
