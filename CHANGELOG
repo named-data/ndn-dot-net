@@ -1,9 +1,11 @@
-Interim changes since NDN-DOT-NET v0.2 (2018-02-28)
+Interim changes since NDN-DOT-NET v0.2 (2018-03-22)
 ---------------------------------------------------
 
 Changes
 * https://redmine.named-data.net/issues/4064 Rename KeyType.ECDSA and EcdsaKeyParams
   to KeyType.EC and EcKeyParams. Deprecated EcdsaKeyParams.
+* Added security CommandInterestSigner.
+* Added security ValidationPolicyCommandInterest.
 
 Deprecated
 * Removed KeyType.ECDSA. Use KeyType.EC.
