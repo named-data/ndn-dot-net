@@ -43,6 +43,7 @@ namespace net.named_data.jndn.util {
 			this.staleTimeCache_ = new ArrayList<StaleTimeContent>();
 			this.emptyComponent_ = new Name.Component();
 			this.pendingInterestTable_ = new ArrayList<PendingInterest>();
+			this.minimumCacheLifetime_ = 0;
 			face_ = face;
 			cleanupIntervalMilliseconds_ = cleanupIntervalMilliseconds;
 			construct();
@@ -62,6 +63,7 @@ namespace net.named_data.jndn.util {
 			this.staleTimeCache_ = new ArrayList<StaleTimeContent>();
 			this.emptyComponent_ = new Name.Component();
 			this.pendingInterestTable_ = new ArrayList<PendingInterest>();
+			this.minimumCacheLifetime_ = 0;
 			face_ = face;
 			cleanupIntervalMilliseconds_ = 1000.0d;
 			construct();
@@ -329,9 +331,10 @@ namespace net.named_data.jndn.util {
 		/// <summary>
 		/// Add the Data packet to the cache so that it is available to use to
 		/// answer interests. If data.getMetaInfo().getFreshnessPeriod() is not
-		/// negative, set the staleness time to now plus
-		/// data.getMetaInfo().getFreshnessPeriod(), which is checked during cleanup to
-		/// remove stale content. This also checks if cleanupIntervalMilliseconds
+		/// negative, set the staleness time to now plus the maximum of
+		/// data.getMetaInfo().getFreshnessPeriod() and minimumCacheLifetime, which is
+		/// checked during cleanup to remove stale content.
+		/// This also checks if cleanupIntervalMilliseconds
 		/// milliseconds have passed and removes stale content from the cache. After
 		/// removing stale content, remove timed-out pending interests from
 		/// storePendingInterest(), then if the added Data packet satisfies any
@@ -341,22 +344,24 @@ namespace net.named_data.jndn.util {
 		///
 		/// <param name="data"></param>
 		public void add(Data data) {
-			doCleanup();
+			double nowMilliseconds = net.named_data.jndn.util.Common.getNowMilliseconds();
+			doCleanup(nowMilliseconds);
 	
 			if (data.getMetaInfo().getFreshnessPeriod() >= 0.0d) {
 				// The content will go stale, so use staleTimeCache_.
-				MemoryContentCache.StaleTimeContent  content = new MemoryContentCache.StaleTimeContent (data);
-				// Insert into staleTimeCache, sorted on content.staleTimeMilliseconds.
+				MemoryContentCache.StaleTimeContent  content = new MemoryContentCache.StaleTimeContent (data,
+						nowMilliseconds, minimumCacheLifetime_);
+				// Insert into staleTimeCache, sorted on content.cacheRemovalTimeMilliseconds_.
 				// Search from the back since we expect it to go there.
 				int i = staleTimeCache_.Count - 1;
 				while (i >= 0) {
-					if (staleTimeCache_[i].getStaleTimeMilliseconds() <= content
-							.getStaleTimeMilliseconds())
+					if (staleTimeCache_[i].getCacheRemovalTimeMilliseconds() <= content
+							.getCacheRemovalTimeMilliseconds())
 						break;
 					--i;
 				}
 				// Element i is the greatest less than or equal to
-				// content.staleTimeMilliseconds, so insert after it.
+				// content.cacheRemovalTimeMilliseconds_, so insert after it.
 				staleTimeCache_.Insert(i + 1, content);
 			} else
 				// The data does not go stale, so use noStaleTimeCache_.
@@ -365,7 +370,6 @@ namespace net.named_data.jndn.util {
 			// Remove timed-out interests and check if the data packet matches any
 			// pending interest.
 			// Go backwards through the list so we can erase entries.
-			double nowMilliseconds = net.named_data.jndn.util.Common.getNowMilliseconds();
 			for (int i_0 = pendingInterestTable_.Count - 1; i_0 >= 0; --i_0) {
 				MemoryContentCache.PendingInterest  pendingInterest = pendingInterestTable_[i_0];
 				if (pendingInterest.isTimedOut(nowMilliseconds)) {
@@ -415,9 +419,32 @@ namespace net.named_data.jndn.util {
 			return storePendingInterestCallback_;
 		}
 	
+		/// <summary>
+		/// Get the minimum lifetime before removing stale content from the cache.
+		/// </summary>
+		///
+		/// <returns>The minimum cache lifetime in milliseconds.</returns>
+		public double getMinimumCacheLifetime() {
+			return minimumCacheLifetime_;
+		}
+	
+		/// <summary>
+		/// Set the minimum lifetime before removing stale content from the cache which
+		/// can keep content in the cache longer than the lifetime defined in the meta
+		/// info. This can be useful for matching interests where MustBeFresh is false.
+		/// The default minimum cache lifetime is zero, meaning that content is removed
+		/// when its lifetime expires.
+		/// </summary>
+		///
+		/// <param name="minimumCacheLifetime">The minimum cache lifetime in milliseconds.</param>
+		public void setMinimumCacheLifetime(double minimumCacheLifetime) {
+			minimumCacheLifetime_ = minimumCacheLifetime;
+		}
+	
 		public void onInterest(Name prefix, Interest interest, Face face,
 				long interestFilterId, InterestFilter filter) {
-			doCleanup();
+			double nowMilliseconds = net.named_data.jndn.util.Common.getNowMilliseconds();
+			doCleanup(nowMilliseconds);
 	
 			Name.Component selectedComponent = null;
 			Blob selectedEncoding = null;
@@ -425,13 +452,17 @@ namespace net.named_data.jndn.util {
 			int totalSize = staleTimeCache_.Count + noStaleTimeCache_.Count;
 			for (int i = 0; i < totalSize; ++i) {
 				MemoryContentCache.Content  content;
-				if (i < staleTimeCache_.Count)
-					content = staleTimeCache_[i];
-				else
+				bool isFresh = true;
+				if (i < staleTimeCache_.Count) {
+					MemoryContentCache.StaleTimeContent  staleTimeContent = staleTimeCache_[i];
+					content = staleTimeContent;
+					isFresh = staleTimeContent.isFresh(nowMilliseconds);
+				} else
 					// We have iterated over the first array. Get from the second.
 					content = noStaleTimeCache_[i - staleTimeCache_.Count];
 	
-				if (interest.matchesName(content.getName())) {
+				if (interest.matchesName(content.getName())
+						&& !(interest.getMustBeFresh() && !isFresh)) {
 					if (interest.getChildSelector() < 0) {
 						// No child selector, so send the first match that we have found.
 						try {
@@ -541,41 +572,65 @@ namespace net.named_data.jndn.util {
 		}
 	
 		/// <summary>
-		/// StaleTimeContent extends Content to include the staleTimeMilliseconds
+		/// StaleTimeContent extends Content to include the cacheRemovalTimeMilliseconds_
 		/// for when this entry should be cleaned up from the cache.
 		/// </summary>
 		///
 		private class StaleTimeContent : MemoryContentCache.Content  {
 			/// <summary>
 			/// Create a new StaleTimeContent to hold data's name and wire encoding
-			/// as well as the staleTimeMilliseconds which is now plus
-			/// data.getMetaInfo().getFreshnessPeriod().
+			/// as well as the cacheRemovalTimeMilliseconds_ which is now plus the maximum of
+			/// data.getMetaInfo().getFreshnessPeriod() and the minimumCacheLifetime.
 			/// </summary>
 			///
 			/// <param name="data">The Data packet whose name and wire encoding are copied.</param>
-			public StaleTimeContent(Data data) : base(data) {
-				// Set up staleTimeMilliseconds_.
-				staleTimeMilliseconds_ = net.named_data.jndn.util.Common.getNowMilliseconds()
+			/// <param name="nowMilliseconds"></param>
+			/// <param name="minimumCacheLifetime">The minimum cache lifetime in milliseconds.</param>
+			public StaleTimeContent(Data data, double nowMilliseconds,
+					double minimumCacheLifetime) : base(data) {
+				cacheRemovalTimeMilliseconds_ = nowMilliseconds
+						+ Math.Max(data.getMetaInfo().getFreshnessPeriod(),minimumCacheLifetime);
+				freshnessExpiryTimeMilliseconds_ = nowMilliseconds
 						+ data.getMetaInfo().getFreshnessPeriod();
 			}
 	
 			/// <summary>
-			/// Check if this content is stale.
+			/// Check if this content is stale and should be removed from the cache,
+			/// according to the content freshness period and the minimumCacheLifetime.
 			/// </summary>
 			///
 			/// <param name="nowMilliseconds"></param>
-			/// <returns>True if this content is stale, otherwise false.</returns>
-			public bool isStale(double nowMilliseconds) {
-				return staleTimeMilliseconds_ <= nowMilliseconds;
+			/// <returns>True if this content should be removed, otherwise false.</returns>
+			public bool isPastRemovalTime(double nowMilliseconds) {
+				return cacheRemovalTimeMilliseconds_ <= nowMilliseconds;
 			}
 	
-			public double getStaleTimeMilliseconds() {
-				return staleTimeMilliseconds_;
+			/// <summary>
+			/// Check if the content is still fresh according to its freshness period
+			/// (independent of when to remove from the cache).
+			/// </summary>
+			///
+			/// <param name="nowMilliseconds"></param>
+			/// <returns>True if the content is still fresh, otherwise false.</returns>
+			public bool isFresh(double nowMilliseconds) {
+				return freshnessExpiryTimeMilliseconds_ > nowMilliseconds;
 			}
 	
-			private readonly double staleTimeMilliseconds_;
-			/**< The time when the content
-			becomse stale in milliseconds according to Common.getNowMilliseconds() */
+			public double getCacheRemovalTimeMilliseconds() {
+				return cacheRemovalTimeMilliseconds_;
+			}
+	
+			private readonly double cacheRemovalTimeMilliseconds_;
+			/// <summary>
+			/// < The time when the content
+			/// becomes stale and should be removed from the cache in milliseconds
+			/// according to Common.getNowMilliseconds(). 
+			/// </summary>
+			///
+			private readonly double freshnessExpiryTimeMilliseconds_;
+			/**< The time when
+			the freshness period of the content expires (independent of when to
+			remove from the cache) in milliseconds according to Common.getNowMilliseconds(). */
 		}
 	
 		/// <summary>
@@ -648,16 +703,17 @@ namespace net.named_data.jndn.util {
 		/// searching the entire staleTimeCache_.
 		/// </summary>
 		///
-		private void doCleanup() {
-			double now = net.named_data.jndn.util.Common.getNowMilliseconds();
-			if (now >= nextCleanupTime_) {
-				// staleTimeCache_ is sorted on staleTimeMilliseconds_, so we only need to
+		/// <param name="nowMilliseconds"></param>
+		private void doCleanup(double nowMilliseconds) {
+			if (nowMilliseconds >= nextCleanupTime_) {
+				// staleTimeCache_ is sorted on cacheRemovalTimeMilliseconds_, so we only need to
 				// erase the stale entries at the front, then quit.
 				while (staleTimeCache_.Count > 0
-						&& staleTimeCache_[0].isStale(now))
+						&& staleTimeCache_[0]
+								.isPastRemovalTime(nowMilliseconds))
 					ILOG.J2CsMapping.Collections.Collections.RemoveAt(staleTimeCache_,0);
 	
-				nextCleanupTime_ = now + cleanupIntervalMilliseconds_;
+				nextCleanupTime_ = nowMilliseconds + cleanupIntervalMilliseconds_;
 			}
 		}
 	
@@ -679,6 +735,7 @@ namespace net.named_data.jndn.util {
 		private readonly Name.Component emptyComponent_;
 		private readonly ArrayList<PendingInterest> pendingInterestTable_;
 		private OnInterestCallback storePendingInterestCallback_;
+		private double minimumCacheLifetime_;
 		private static readonly Logger logger_ = ILOG.J2CsMapping.Util.Logging.Logger
 				.getLogger(typeof(MemoryContentCache).FullName);
 	}

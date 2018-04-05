@@ -210,8 +210,8 @@ namespace net.named_data.jndn.security.v2 {
 		}
 	
 		/// <summary>
-		/// Set the offset for when makeCommandInterest() gets the current time, which
-		/// should only be used for testing.
+		/// Set the offset when insertNewRecord() and cleanUp() get the current time,
+		/// which should only be used for testing.
 		/// </summary>
 		///
 		/// <param name="nowOffsetMilliseconds">The offset in milliseconds.</param>
@@ -222,7 +222,8 @@ namespace net.named_data.jndn.security.v2 {
 		private class LastTimestampRecord {
 			public LastTimestampRecord(Name keyName_0, double timestamp_1,
 					double lastRefreshed) {
-				keyName_ = keyName_0;
+				// Copy the Name.
+				keyName_ = new Name(keyName_0);
 				timestamp_ = timestamp_1;
 				lastRefreshed_ = lastRefreshed;
 			}
