@@ -99,7 +99,7 @@ namespace net.named_data.jndn.transport
     /// <param name="server"></param>
     /// <param name="port"></param>
     /// <returns></returns>
-    private Socket
+    protected Socket
     connectSocket(string server, int port)
     {
       Socket s = null;
@@ -225,8 +225,10 @@ namespace net.named_data.jndn.transport
     {
       if (socket_ != null)
       {
-        if (socket_.Connected)
+        if (socket_.Connected) {
+          socket_.Shutdown(SocketShutdown.Both);
           socket_.Close();
+        }
         socket_ = null;
       }
     }
