@@ -151,7 +151,7 @@ namespace net.named_data.jndn.transport
     }
 
     /// <summary>
-    /// Set data to the host.
+    /// Send data to the host.
     /// </summary>
     /// <param name="data">The buffer of data to send.  This reads from position() to 
     /// limit(), but does not change the position.</param>
