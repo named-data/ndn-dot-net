@@ -30,7 +30,7 @@ namespace net.named_data.jndn.transport
   /// <summary>
   /// SocketTransport extends Transport and is an abstract base class for 
   /// TcpTransport and UdpTransport to connect using a .NET 
-  /// System.Net.Sockets.Socket over TCP.
+  /// System.Net.Sockets.Socket.
   /// </summary>
   public abstract class SocketTransport : Transport
   {
