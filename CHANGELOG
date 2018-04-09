@@ -1,4 +1,4 @@
-Interim changes since NDN-DOT-NET v0.2 (2018-04-05)
+Interim changes since NDN-DOT-NET v0.2 (2018-04-09)
 ---------------------------------------------------
 
 Bug fixes
@@ -12,6 +12,8 @@ Changes
 * Added security ValidationPolicyCommandInterest.
 * In MemoryContentCache, added setMinimumCacheLifetime which can extend the
   cache lifetime of content to match an Interest where MustBeFresh is false.
+* Added AyncTcpTransport, AyncUdpTransport, ThreadPoolFace.
+* In examples, added test-get-async-thread-pool. 
 
 Deprecated
 * Removed KeyType.ECDSA. Use KeyType.EC.
