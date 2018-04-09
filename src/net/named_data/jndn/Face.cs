@@ -892,7 +892,7 @@ namespace net.named_data.jndn {
 		///
 		/// <param name="delayMilliseconds">The delay in milliseconds.</param>
 		/// <param name="callback">This calls callback.run() after the delay.</param>
-		public void callLater(double delayMilliseconds, IRunnable callback) {
+		public virtual void callLater(double delayMilliseconds, IRunnable callback) {
 			node_.callLater(delayMilliseconds, callback);
 		}
 	
