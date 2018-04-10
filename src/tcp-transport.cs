@@ -103,8 +103,18 @@ namespace net.named_data.jndn.transport
     public static bool 
     getIsLocal(string host) 
     {
-      // TODO: Implement the lookup as in TcpTransport.
-      return false;
+      var hostEntry = Dns.GetHostEntry(host);
+      if (hostEntry.AddressList.Length == 0)
+        // We don't expect this to happen.
+        return false;
+
+      foreach (var address in hostEntry.AddressList) {
+        if (!IPAddress.IsLoopback(address))
+          // At least one address is not local.
+          return false;
+      }
+
+      return true;
     }
 
     private bool isLocal_;
