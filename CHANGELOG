@@ -1,9 +1,11 @@
-Interim changes since NDN-DOT-NET v0.2 (2018-04-09)
+Interim changes since NDN-DOT-NET v0.2 (2018-04-10)
 ---------------------------------------------------
 
 Bug fixes
 * https://redmine.named-data.net/issues/4428 MustBeFresh should be false if the
   decoded Interest has no selectors.
+* https://redmine.named-data.net/issues/4575 In TcpTransport, implement isLoca() 
+  so that registerPrefix uses /localhost correctly.
 
 Changes
 * https://redmine.named-data.net/issues/4064 Rename KeyType.ECDSA and EcdsaKeyParams
