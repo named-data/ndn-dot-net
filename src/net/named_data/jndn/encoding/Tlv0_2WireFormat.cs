@@ -490,6 +490,11 @@ namespace net.named_data.jndn.encoding {
 					incomingFaceId.setFaceId(decoder
 							.readNonNegativeInteger(fieldLength));
 					lpPacket.addHeaderField(incomingFaceId);
+				} else if (fieldType == net.named_data.jndn.encoding.tlv.Tlv.LpPacket_CongestionMark) {
+					CongestionMark congestionMark = new CongestionMark();
+					congestionMark.setCongestionMark(decoder
+							.readNonNegativeInteger(fieldLength));
+					lpPacket.addHeaderField(congestionMark);
 				} else {
 					// Unrecognized field type. The conditions for ignoring are here:
 					// http://redmine.named-data.net/projects/nfd/wiki/NDNLPv2
