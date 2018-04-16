@@ -222,6 +222,17 @@ namespace net.named_data.jndn {
 		}
 	
 		/// <summary>
+		/// Get the congestion mark according to the incoming packet header.
+		/// </summary>
+		///
+		/// <returns>The congestion mark. If not specified, return 0.</returns>
+		public long getCongestionMark() {
+			CongestionMark field = (lpPacket_ == null) ? null : net.named_data.jndn.lp.CongestionMark
+					.getFirstHeader(lpPacket_);
+			return (field == null) ? (long) (0) : (long) (field.getCongestionMark());
+		}
+	
+		/// <summary>
 		/// Get the Data packet's full name, which includes the final
 		/// ImplicitSha256Digest component based on the wire encoding for a particular
 		/// wire format.
