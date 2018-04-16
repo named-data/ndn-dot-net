@@ -15,6 +15,7 @@
 # Change IllegalBlockSizeException to the C# CryptographicException.'
 # Include the namespace for generic IList where needed.
 # In Name, added array operator for get(i).
+# Face.callLater needs to be virtual.
 # Remove unused generated enum Extension classes.
 # Remove the generated TcpTransport.cs since we use src/tcp-transport.cs .
 # Remove the generated Common.cs since we use src/util-common.cs .
@@ -50,6 +51,7 @@ sed -i '' 's/new Int64//g' named_data/jndn/security/tpm/TpmPrivateKey.cs
 sed -i '' 's/IllegalBlockSizeException/System.Security.Cryptography.CryptographicException/g' named_data/jndn/encrypt/algo/Encryptor.cs
 sed -i '' 's/IList/System.Collections.Generic.IList/g' named_data/jndn/util/regex/NdnRegexMatcherBase.cs
 sed -i '' 's/public void set/public Name.Component this[int i] { get { return get(i); } }  public void set/g' named_data/jndn/Name.cs
+sed -i '' 's/public void callLater/public virtual void callLater/g' named_data/jndn/Face.cs
 rm named_data/jndn/*Extension.cs named_data/jndn/encrypt/*Extension.cs named_data/jndn/encrypt/algo/*Extension.cs
 rm named_data/jndn/security/*Extension.cs named_data/jndn/util/*Extension.cs
 rm named_data/jndn/transport/TcpTransport.cs
