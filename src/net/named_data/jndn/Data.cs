@@ -362,7 +362,7 @@ namespace net.named_data.jndn {
 		/// <param name="lpPacket">The LpPacket. This does not make a copy.</param>
 		/// <returns>This Data so that you can chain calls to update values.</returns>
 		/// @note This is an experimental feature. This API may change in the future.
-		internal Data setLpPacket(LpPacket lpPacket) {
+		public Data setLpPacket(LpPacket lpPacket) {
 			lpPacket_ = lpPacket;
 			// Don't update changeCount_ since this doesn't affect the wire encoding.
 			return this;
