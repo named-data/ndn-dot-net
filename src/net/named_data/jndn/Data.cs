@@ -222,6 +222,17 @@ namespace net.named_data.jndn {
 		}
 	
 		/// <summary>
+		/// Get the congestion mark according to the incoming packet header.
+		/// </summary>
+		///
+		/// <returns>The congestion mark. If not specified, return 0.</returns>
+		public long getCongestionMark() {
+			CongestionMark field = (lpPacket_ == null) ? null : net.named_data.jndn.lp.CongestionMark
+					.getFirstHeader(lpPacket_);
+			return (field == null) ? (long) (0) : (long) (field.getCongestionMark());
+		}
+	
+		/// <summary>
 		/// Get the Data packet's full name, which includes the final
 		/// ImplicitSha256Digest component based on the wire encoding for a particular
 		/// wire format.
@@ -351,7 +362,7 @@ namespace net.named_data.jndn {
 		/// <param name="lpPacket">The LpPacket. This does not make a copy.</param>
 		/// <returns>This Data so that you can chain calls to update values.</returns>
 		/// @note This is an experimental feature. This API may change in the future.
-		internal Data setLpPacket(LpPacket lpPacket) {
+		public Data setLpPacket(LpPacket lpPacket) {
 			lpPacket_ = lpPacket;
 			// Don't update changeCount_ since this doesn't affect the wire encoding.
 			return this;

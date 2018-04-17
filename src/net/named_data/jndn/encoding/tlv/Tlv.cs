@@ -97,6 +97,7 @@ namespace net.named_data.jndn.encoding.tlv {
 		public const int LpPacket_IncomingFaceId = 817;
 		public const int LpPacket_CachePolicy = 820;
 		public const int LpPacket_CachePolicyType = 821;
+		public const int LpPacket_CongestionMark = 832;
 		public const int LpPacket_IGNORE_MIN = 800;
 		public const int LpPacket_IGNORE_MAX = 959;
 	
