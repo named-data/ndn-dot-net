@@ -125,8 +125,9 @@ namespace net.named_data.jndn.encoding.tlv {
 		/// </summary>
 		///
 		/// <param name="endOffset"></param>
+		/// <param name="skipCritical">without error.</param>
 		/// <exception cref="EncodingException">if the TLV length does not equal the total lengthof the nested TLVs.</exception>
-		public void finishNestedTlvs(int endOffset) {
+		public void finishNestedTlvs(int endOffset, bool skipCritical) {
 			// We expect the position to be endOffset, so check this first.
 			if (input_.position() == endOffset)
 				return;
@@ -134,7 +135,12 @@ namespace net.named_data.jndn.encoding.tlv {
 			// Skip remaining TLVs.
 			while (input_.position() < endOffset) {
 				// Skip the type VAR-NUMBER.
-				readVarNumber();
+				int type = readVarNumber();
+				bool critical = (type <= 31 || (type & 1) == 1);
+				if (critical && !skipCritical)
+					throw new EncodingException("Unrecognized critical type code "
+							+ type);
+	
 				// Read the length and update the position.
 				int length = readVarNumber();
 				int newPosition = input_.position() + length;
@@ -149,6 +155,20 @@ namespace net.named_data.jndn.encoding.tlv {
 			if (input_.position() != endOffset)
 				throw new EncodingException(
 						"TLV length does not equal the total length of the nested TLVs");
+		}
+	
+		/// <summary>
+		/// Call this after reading all nested TLVs to skip any remaining unrecognized
+		/// TLVs and to check if the input buffer position after the final nested TLV
+		/// matches the endOffset returned by readNestedTlvsStart. Update the input
+		/// buffer position as needed if skipping TLVs. If the unrecognized type code
+		/// to skip is critical, throw an exception.
+		/// </summary>
+		///
+		/// <param name="endOffset"></param>
+		/// <exception cref="EncodingException">if the TLV length does not equal the total lengthof the nested TLVs.</exception>
+		public void finishNestedTlvs(int endOffset) {
+			finishNestedTlvs(endOffset, false);
 		}
 	
 		/// <summary>

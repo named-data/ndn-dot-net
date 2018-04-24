@@ -49,6 +49,9 @@ namespace net.named_data.jndn.encoding.tlv {
 		public const int KeyLocatorDigest = 29;
 		public const int ForwardingHint = 30;
 		public const int SelectedDelegation = 32;
+		public const int CanBePrefix = 33;
+		public const int HopLimit = 34;
+		public const int Parameters = 35;
 		public const int FaceInstance = 128;
 		public const int ForwardingEntry = 129;
 		public const int StatusResponse = 130;

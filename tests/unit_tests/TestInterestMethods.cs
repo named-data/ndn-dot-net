@@ -108,7 +108,7 @@ namespace net.named_data.jndn.tests.unit_tests {
 			return s1 + " " + s2;
 		}
 	
-		private static ArrayList initialDump = new ArrayList(
+		private static readonly ArrayList initialDump = new ArrayList(
 				ILOG.J2CsMapping.Collections.Arrays.AsList(new Object[] {
 									"name: /ndn/abc",
 									"minSuffixComponents: 4",
@@ -117,6 +117,44 @@ namespace net.named_data.jndn.tests.unit_tests {
 									"exclude: abc,*", "childSelector: 1", "mustBeFresh: true",
 									"nonce: 61626162", "lifetimeMilliseconds: 30000",
 									"forwardingHint:", "  Preference: 1, Name: /A" }));
+	
+		private static readonly ByteBuffer simpleCodedInterestV03 = toBuffer(new int[] {
+				0x05, 0x07, // Interest
+				0x07, 0x03, 0x08, 0x01, 0x49, // Name = /I
+				0x12, 0x00, // MustBeFresh
+		});
+	
+		private static readonly ArrayList simpleCodedInterestV03Dump = new ArrayList(
+				ILOG.J2CsMapping.Collections.Arrays.AsList(new Object[] { "name: /I",
+									"minSuffixComponents: <none>", "maxSuffixComponents: 1",
+									"keyLocator: <none>", "exclude: <none>",
+									"childSelector: <none>", "mustBeFresh: true",
+									"nonce: <none>", "lifetimeMilliseconds: <none>",
+									"forwardingHint: <none>" }));
+	
+		private static readonly ByteBuffer fullCodedInterestV03 = toBuffer(new int[] {
+				0x05, 0x29, // Interest
+				0x07, 0x03, 0x08, 0x01, 0x49, // Name = /I
+				0x21, 0x00, // CanBePrefix
+				0x12, 0x00, // MustBeFresh
+				0x1E, 0x0B, // ForwardingHint
+				0x1F, 0x09, // Delegation
+				0x1E, 0x02, 0x01, 0x00, // Preference = 256
+				0x07, 0x03, 0x08, 0x01, 0x48, // Name = /H
+				0x0A, 0x04, 0x12, 0x34, 0x56, 0x78, // Nonce
+				0x0C, 0x02, 0x10, 0x00, // InterestLifetime = 4096
+				0x22, 0x01, 0xD6, // HopLimit
+				0x23, 0x04, 0xC0, 0xC1, 0xC2, 0xC3 // Parameters
+		});
+	
+		private static readonly ArrayList fullCodedInterestV03Dump = new ArrayList(
+				ILOG.J2CsMapping.Collections.Arrays.AsList(new Object[] { "name: /I",
+									"minSuffixComponents: <none>",
+									"maxSuffixComponents: <none>", "keyLocator: <none>",
+									"exclude: <none>", "childSelector: <none>",
+									"mustBeFresh: true", "nonce: 12345678",
+									"lifetimeMilliseconds: 4096", "forwardingHint:",
+									"  Preference: 256, Name: /H" }));
 	
 		private static ArrayList dumpInterest(Interest interest) {
 			ArrayList result = new ArrayList();
@@ -485,6 +523,24 @@ namespace net.named_data.jndn.tests.unit_tests {
 			Assert.AssertEquals(true,
 					new InterestFilter("/a", "<b><>+")
 							.doesMatch(new Name("/a/b/c")));
+		}
+	
+		public void testDecodeV03AsV02() {
+			Interest interest1 = new Interest();
+			interest1.wireDecode(new Blob(simpleCodedInterestV03, false));
+	
+			ArrayList dump1 = dumpInterest(interest1);
+			Assert.AssertArrayEquals(
+					"Decoded simpleCodedInterestV03 does not match the dump",
+					ILOG.J2CsMapping.Collections.Collections.ToArray(dump1), ILOG.J2CsMapping.Collections.Collections.ToArray(simpleCodedInterestV03Dump));
+	
+			Interest interest2 = new Interest();
+			interest2.wireDecode(new Blob(fullCodedInterestV03, false));
+	
+			ArrayList dump2 = dumpInterest(interest2);
+			Assert.AssertArrayEquals(
+					"Decoded fullCodedInterestV03 does not match the dump",
+					ILOG.J2CsMapping.Collections.Collections.ToArray(dump2), ILOG.J2CsMapping.Collections.Collections.ToArray(fullCodedInterestV03Dump));
 		}
 	}
 }

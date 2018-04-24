@@ -239,7 +239,7 @@ namespace net.named_data.jndn.security.tpm {
 		/// <param name="keyName">The name of the key to use in the TPM.</param>
 		/// <param name="pkcs8">unencrypted PKCS #8 PrivateKeyInfo.</param>
 		/// <param name="password">If the password is null, import an unencrypted PKCS #8 PrivateKeyInfo.</param>
-		/// @throw TpmBackEnd::Error if the key cannot be imported.
+		/// <exception cref="TpmBackEnd.Error">if the key cannot be imported.</exception>
 		public void importPrivateKey_(Name keyName, ByteBuffer pkcs8,
 				ByteBuffer password) {
 			backEnd_.importKey(keyName, pkcs8, password);

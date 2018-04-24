@@ -160,6 +160,29 @@ namespace net.named_data.jndn.encoding {
 		public override void decodeInterest(Interest interest, ByteBuffer input,
 				int[] signedPortionBeginOffset, int[] signedPortionEndOffset,
 				bool copy) {
+			try {
+				decodeInterestV02(interest, input, signedPortionBeginOffset,
+						signedPortionEndOffset, copy);
+			} catch (Exception exceptionV02) {
+				try {
+					// Failed to decode as format v0.2. Try to decode as v0.3.
+					decodeInterestV03(interest, input, signedPortionBeginOffset,
+							signedPortionEndOffset, copy);
+				} catch (Exception ex) {
+					// Ignore the exception decoding as format v0.3 and throw the exception
+					// from trying to decode as format as format v0.2.
+					throw exceptionV02;
+				}
+			}
+		}
+	
+		/// <summary>
+		/// Do the work of decodeInterest to decode strictly as format v0.2.
+		/// </summary>
+		///
+		private void decodeInterestV02(Interest interest, ByteBuffer input,
+				int[] signedPortionBeginOffset, int[] signedPortionEndOffset,
+				bool copy) {
 			TlvDecoder decoder = new TlvDecoder(input);
 	
 			int endOffset = decoder.readNestedTlvsStart(net.named_data.jndn.encoding.tlv.Tlv.Interest);
@@ -171,6 +194,7 @@ namespace net.named_data.jndn.encoding {
 				// Set selectors to none.
 				interest.setMinSuffixComponents(-1);
 				interest.setMaxSuffixComponents(-1);
+				interest.getKeyLocator().clear();
 				interest.getExclude().clear();
 				interest.setChildSelector(-1);
 				interest.setMustBeFresh(false);
@@ -911,7 +935,8 @@ namespace net.named_data.jndn.encoding {
 		///
 		/// <param name="signature">An object of a subclass of Signature to encode.</param>
 		/// <param name="encoder">The TlvEncoder to receive the encoding.</param>
-		private void encodeSignatureInfo(Signature signature, TlvEncoder encoder) {
+		private static void encodeSignatureInfo(Signature signature,
+				TlvEncoder encoder) {
 			if (signature  is  GenericSignature) {
 				// Handle GenericSignature separately since it has the entire encoding.
 				Blob encoding = ((GenericSignature) signature)
@@ -922,7 +947,8 @@ namespace net.named_data.jndn.encoding {
 					TlvDecoder decoder = new TlvDecoder(encoding.buf());
 					int endOffset = decoder.readNestedTlvsStart(net.named_data.jndn.encoding.tlv.Tlv.SignatureInfo);
 					decoder.readNonNegativeIntegerTlv(net.named_data.jndn.encoding.tlv.Tlv.SignatureType);
-					decoder.finishNestedTlvs(endOffset);
+					// Skip unrecognized TLVs, even if they have a critical type code.
+					decoder.finishNestedTlvs(endOffset, true);
 				} catch (EncodingException ex) {
 					throw new Exception(
 							"The GenericSignature encoding is not a valid NDN-TLV SignatureInfo: "
@@ -1019,6 +1045,8 @@ namespace net.named_data.jndn.encoding {
 				signatureInfo_2.setSignatureInfoEncoding(
 						new Blob(decoder.getSlice(beginOffset, endOffset), copy),
 						signatureType);
+				// Skip the remaining TLVs now, allowing unrecognized critical type codes.
+				decoder.finishNestedTlvs(endOffset, true);
 			}
 	
 			decoder.finishNestedTlvs(endOffset);
@@ -1264,6 +1292,70 @@ namespace net.named_data.jndn.encoding {
 				// Add unsorted to preserve the order in the encoding.
 				delegationSet.addUnsorted(preference, name);
 			}
+		}
+	
+		/// <summary>
+		/// Decode input as an Interest in NDN-TLV format v0.3 and set the fields of
+		/// the Interest object. This private method is called if the main
+		/// decodeInterest fails to decode as v0.2. This ignores HopLimit and
+		/// Parameters, and interprets CanBePrefix using MaxSuffixComponents.
+		/// </summary>
+		///
+		/// <param name="interest">The Interest object whose fields are updated.</param>
+		/// <param name="input"></param>
+		/// <param name="signedPortionBeginOffset">name component and ends just before the final name component (which is assumed to be a signature for a signed interest).</param>
+		/// <param name="signedPortionEndOffset">name component and ends just before the final name component (which is assumed to be a signature for a signed interest).</param>
+		/// <param name="copy">unchanged while the Blob values are used.</param>
+		/// <exception cref="EncodingException">For invalid encoding.</exception>
+		private static void decodeInterestV03(Interest interest, ByteBuffer input,
+				int[] signedPortionBeginOffset, int[] signedPortionEndOffset,
+				bool copy) {
+			TlvDecoder decoder = new TlvDecoder(input);
+	
+			int endOffset = decoder.readNestedTlvsStart(net.named_data.jndn.encoding.tlv.Tlv.Interest);
+			decodeName(interest.getName(), signedPortionBeginOffset,
+					signedPortionEndOffset, decoder, copy);
+	
+			if (decoder.readBooleanTlv(net.named_data.jndn.encoding.tlv.Tlv.CanBePrefix, endOffset))
+				// No limit on MaxSuffixComponents.
+				interest.setMaxSuffixComponents(-1);
+			else
+				// The one suffix components is for the implicit digest.
+				interest.setMaxSuffixComponents(1);
+	
+			interest.setMustBeFresh(decoder.readBooleanTlv(net.named_data.jndn.encoding.tlv.Tlv.MustBeFresh,
+					endOffset));
+	
+			if (decoder.peekType(net.named_data.jndn.encoding.tlv.Tlv.ForwardingHint, endOffset)) {
+				int forwardingHintEndOffset = decoder
+						.readNestedTlvsStart(net.named_data.jndn.encoding.tlv.Tlv.ForwardingHint);
+				decodeDelegationSet(interest.getForwardingHint(),
+						forwardingHintEndOffset, decoder, copy);
+				decoder.finishNestedTlvs(forwardingHintEndOffset);
+			} else
+				interest.getForwardingHint().clear();
+	
+			ByteBuffer nonce = decoder.readOptionalBlobTlv(net.named_data.jndn.encoding.tlv.Tlv.Nonce, endOffset);
+			interest.setInterestLifetimeMilliseconds(decoder
+					.readOptionalNonNegativeIntegerTlv(net.named_data.jndn.encoding.tlv.Tlv.InterestLifetime,
+							endOffset));
+	
+			// Clear the unused fields.
+			interest.setMinSuffixComponents(-1);
+			interest.getKeyLocator().clear();
+			interest.getExclude().clear();
+			interest.setChildSelector(-1);
+			interest.unsetLink();
+			interest.setSelectedDelegationIndex(-1);
+	
+			// Ignore the HopLimit and Parameters.
+			decoder.readOptionalBlobTlv(net.named_data.jndn.encoding.tlv.Tlv.HopLimit, endOffset);
+			decoder.readOptionalBlobTlv(net.named_data.jndn.encoding.tlv.Tlv.Parameters, endOffset);
+	
+			// Set the nonce last because setting other interest fields clears it.
+			interest.setNonce(new Blob(nonce, copy));
+	
+			decoder.finishNestedTlvs(endOffset);
 		}
 	
 		private static readonly Random random_ = new Random();
