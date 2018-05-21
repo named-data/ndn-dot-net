@@ -68,7 +68,8 @@ namespace TestNdnDotNet
     static void Main(string[] args)
     {
       try {
-        var face = new ThreadPoolFace("memoria.ndn.ucla.edu");
+        // Connect to the demo host at memoria.ndn.ucla.edu .
+        var face = new ThreadPoolFace("128.97.98.8");
 
         var counter = new Counter(3);
 
