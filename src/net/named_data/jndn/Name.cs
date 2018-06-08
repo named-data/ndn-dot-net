@@ -36,8 +36,9 @@ namespace net.named_data.jndn {
 			/// </summary>
 			///
 			public Component() {
+				this.otherTypeCode_ = -1;
 				value_ = new Blob(ILOG.J2CsMapping.NIO.ByteBuffer.allocate(0), false);
-				type_ = net.named_data.jndn.Name.Component.ComponentType.GENERIC;
+				type_ = net.named_data.jndn.ComponentType.GENERIC;
 			}
 	
 			/// <summary>
@@ -47,11 +48,57 @@ namespace net.named_data.jndn {
 			///
 			/// <param name="value"></param>
 			public Component(Blob value_ren) {
+				this.otherTypeCode_ = -1;
 				if (value_ren == null)
 					throw new NullReferenceException(
 							"Component: Blob value may not be null");
 				value_ = value_ren;
-				type_ = net.named_data.jndn.Name.Component.ComponentType.GENERIC;
+				type_ = net.named_data.jndn.ComponentType.GENERIC;
+			}
+	
+			/// <summary>
+			/// Create a Name.Component of the given type, using the existing the Blob
+			/// value.
+			/// (To create an ImplicitSha256Digest component, use fromImplicitSha256Digest.)
+			/// </summary>
+			///
+			/// <param name="value"></param>
+			/// <param name="type">Name.Component(value, ComponentType.OTHER_CODE, otherTypeCode).</param>
+			public Component(Blob value_ren, ComponentType type) {
+				this.otherTypeCode_ = -1;
+				if (value_ren == null)
+					throw new NullReferenceException(
+							"Component: Blob value may not be null");
+				if (type == net.named_data.jndn.ComponentType.OTHER_CODE)
+					throw new AssertionError(
+							"To use an other code, call Name.Component(value, ComponentType.OTHER_CODE, otherTypeCode)");
+	
+				value_ = value_ren;
+				type_ = type;
+			}
+	
+			/// <summary>
+			/// Create a Name.Component of the given type, using the existing the Blob
+			/// value.
+			/// (To create an ImplicitSha256Digest component, use fromImplicitSha256Digest.)
+			/// </summary>
+			///
+			/// <param name="value"></param>
+			/// <param name="type">ComponentType.OTHER_CODE and use the otherTypeCode parameter.</param>
+			/// <param name="otherTypeCode">non-negative.</param>
+			public Component(Blob value_ren, ComponentType type, int otherTypeCode) {
+				this.otherTypeCode_ = -1;
+				if (value_ren == null)
+					throw new NullReferenceException(
+							"Component: Blob value may not be null");
+				if (type == net.named_data.jndn.ComponentType.OTHER_CODE && otherTypeCode < 0)
+					throw new AssertionError(
+							"Name.Component other type code must be non-negative");
+	
+				value_ = value_ren;
+				type_ = type;
+				otherTypeCode_ = ((type == net.named_data.jndn.ComponentType.OTHER_CODE) ? otherTypeCode
+						: -1);
 			}
 	
 			/// <summary>
@@ -61,8 +108,10 @@ namespace net.named_data.jndn {
 			///
 			/// <param name="component">The component to copy.</param>
 			public Component(Name.Component  component) {
+				this.otherTypeCode_ = -1;
 				value_ = component.value_;
 				type_ = component.type_;
+				otherTypeCode_ = component.otherTypeCode_;
 			}
 	
 			/// <summary>
@@ -72,8 +121,46 @@ namespace net.named_data.jndn {
 			///
 			/// <param name="value">The value byte array.</param>
 			public Component(byte[] value_ren) {
+				this.otherTypeCode_ = -1;
 				value_ = new Blob(value_ren, true);
-				type_ = net.named_data.jndn.Name.Component.ComponentType.GENERIC;
+				type_ = net.named_data.jndn.ComponentType.GENERIC;
+			}
+	
+			/// <summary>
+			/// Create a Name.Component of the given type, copying the given value.
+			/// (To create an ImplicitSha256Digest component, use fromImplicitSha256Digest.)
+			/// </summary>
+			///
+			/// <param name="value">The value byte array.</param>
+			/// <param name="type">Name.Component(value, ComponentType.OTHER_CODE, otherTypeCode).</param>
+			public Component(byte[] value_ren, ComponentType type) {
+				this.otherTypeCode_ = -1;
+				if (type == net.named_data.jndn.ComponentType.OTHER_CODE)
+					throw new AssertionError(
+							"To use an other code, call Name.Component(value, ComponentType.OTHER_CODE, otherTypeCode)");
+	
+				value_ = new Blob(value_ren, true);
+				type_ = type;
+			}
+	
+			/// <summary>
+			/// Create a Name.Component of the given type, copying the given value.
+			/// (To create an ImplicitSha256Digest component, use fromImplicitSha256Digest.)
+			/// </summary>
+			///
+			/// <param name="value">The value byte array.</param>
+			/// <param name="type">ComponentType.OTHER_CODE and use the otherTypeCode parameter.</param>
+			/// <param name="otherTypeCode">non-negative.</param>
+			public Component(byte[] value_ren, ComponentType type, int otherTypeCode) {
+				this.otherTypeCode_ = -1;
+				if (type == net.named_data.jndn.ComponentType.OTHER_CODE && otherTypeCode < 0)
+					throw new AssertionError(
+							"Name.Component other type code must be non-negative");
+	
+				value_ = new Blob(value_ren, true);
+				type_ = type;
+				otherTypeCode_ = ((type == net.named_data.jndn.ComponentType.OTHER_CODE) ? otherTypeCode
+						: -1);
 			}
 	
 			/// <summary>
@@ -84,8 +171,46 @@ namespace net.named_data.jndn {
 			///
 			/// <param name="value">The string to convert to UTF8.</param>
 			public Component(String value_ren) {
+				this.otherTypeCode_ = -1;
 				value_ = new Blob(value_ren);
-				type_ = net.named_data.jndn.Name.Component.ComponentType.GENERIC;
+				type_ = net.named_data.jndn.ComponentType.GENERIC;
+			}
+	
+			/// <summary>
+			/// Create a Name.Component of the given type, converting the value to UTF8
+			/// bytes.
+			/// </summary>
+			///
+			/// <param name="value">The string to convert to UTF8.</param>
+			/// <param name="type">Name.Component(value, ComponentType.OTHER_CODE, otherTypeCode).</param>
+			public Component(String value_ren, ComponentType type) {
+				this.otherTypeCode_ = -1;
+				if (type == net.named_data.jndn.ComponentType.OTHER_CODE)
+					throw new AssertionError(
+							"To use an other code, call Name.Component(value, ComponentType.OTHER_CODE, otherTypeCode)");
+	
+				value_ = new Blob(value_ren);
+				type_ = type;
+			}
+	
+			/// <summary>
+			/// Create a Name.Component of the given type, converting the value to UTF8
+			/// bytes.
+			/// </summary>
+			///
+			/// <param name="value">The string to convert to UTF8.</param>
+			/// <param name="type">ComponentType.OTHER_CODE and use the otherTypeCode parameter.</param>
+			/// <param name="otherTypeCode">non-negative.</param>
+			public Component(String value_ren, ComponentType type, int otherTypeCode) {
+				this.otherTypeCode_ = -1;
+				if (type == net.named_data.jndn.ComponentType.OTHER_CODE && otherTypeCode < 0)
+					throw new AssertionError(
+							"Name.Component other type code must be non-negative");
+	
+				value_ = new Blob(value_ren);
+				type_ = type;
+				otherTypeCode_ = ((type == net.named_data.jndn.ComponentType.OTHER_CODE) ? otherTypeCode
+						: -1);
 			}
 	
 			/// <summary>
@@ -98,6 +223,28 @@ namespace net.named_data.jndn {
 			}
 	
 			/// <summary>
+			/// Get the name component type.
+			/// </summary>
+			///
+			/// <returns>The name component type enum value. If this is
+			/// ComponentType.OTHER_CODE, then call getOtherTypeCode() to get the
+			/// unrecognized component type code.</returns>
+			public ComponentType getType() {
+				return type_;
+			}
+	
+			/// <summary>
+			/// Get the component type code from the packet which is other than a
+			/// recognized ComponentType enum value. This is only meaningful if getType()
+			/// is ComponentType.OTHER_CODE.
+			/// </summary>
+			///
+			/// <returns>The type code.</returns>
+			public int getOtherTypeCode() {
+				return otherTypeCode_;
+			}
+	
+			/// <summary>
 			/// Write this component value to result, escaping characters according to
 			/// the NDN URI Scheme. This also adds "..." to a value with zero or more ".".
 			/// This adds a type code prefix as needed, such as "sha256digest=".
@@ -105,11 +252,19 @@ namespace net.named_data.jndn {
 			///
 			/// <param name="result">The StringBuffer to write to.</param>
 			public void toEscapedString(StringBuilder result) {
-				if (type_ == net.named_data.jndn.Name.Component.ComponentType.IMPLICIT_SHA256_DIGEST) {
+				if (type_ == net.named_data.jndn.ComponentType.IMPLICIT_SHA256_DIGEST) {
 					result.append("sha256digest=");
 					net.named_data.jndn.util.Blob.toHex(value_.buf(), result);
-				} else
-					net.named_data.jndn.Name.toEscapedString(value_.buf(), result);
+					return;
+				}
+	
+				if (type_ != net.named_data.jndn.ComponentType.GENERIC) {
+					result.append((type_ == net.named_data.jndn.ComponentType.OTHER_CODE) ? otherTypeCode_
+							: type_.getNumericType());
+					result.append('=');
+				}
+	
+				net.named_data.jndn.Name.toEscapedString(value_.buf(), result);
 			}
 	
 			/// <summary>
@@ -190,7 +345,7 @@ namespace net.named_data.jndn {
 			///
 			/// <returns>True if this is an generic component.</returns>
 			public bool isGeneric() {
-				return type_ == net.named_data.jndn.Name.Component.ComponentType.GENERIC;
+				return type_ == net.named_data.jndn.ComponentType.GENERIC;
 			}
 	
 			/// <summary>
@@ -199,7 +354,7 @@ namespace net.named_data.jndn {
 			///
 			/// <returns>True if this is an ImplicitSha256Digest component.</returns>
 			public bool isImplicitSha256Digest() {
-				return type_ == net.named_data.jndn.Name.Component.ComponentType.IMPLICIT_SHA256_DIGEST;
+				return type_ == net.named_data.jndn.ComponentType.IMPLICIT_SHA256_DIGEST;
 			}
 	
 			/// <summary>
@@ -316,12 +471,46 @@ namespace net.named_data.jndn {
 			/// <param name="number">The number to be encoded.</param>
 			/// <returns>The component value.</returns>
 			public static Name.Component  fromNumber(long number) {
+				return fromNumber(number, net.named_data.jndn.ComponentType.GENERIC, -1);
+			}
+	
+			/// <summary>
+			/// Create a component of the given type whose value is the
+			/// nonNegativeInteger encoding of the number.
+			/// </summary>
+			///
+			/// <param name="number">The number to be encoded.</param>
+			/// <param name="type">fromNumber(number, ComponentType.OTHER_CODE, otherTypeCode).</param>
+			/// <returns>The component value.</returns>
+			public static Name.Component  fromNumber(long number, ComponentType type) {
+				if (type == net.named_data.jndn.ComponentType.OTHER_CODE)
+					throw new AssertionError(
+							"To use an other code, call fromNumber(value, ComponentType.OTHER_CODE, otherTypeCode)");
+	
+				return fromNumber(number, type, -1);
+			}
+	
+			/// <summary>
+			/// Create a component of the given type whose value is the
+			/// nonNegativeInteger encoding of the number.
+			/// </summary>
+			///
+			/// <param name="number">The number to be encoded.</param>
+			/// <param name="type">ComponentType.OTHER_CODE and use the otherTypeCode parameter.</param>
+			/// <param name="otherTypeCode">non-negative.</param>
+			/// <returns>The component value.</returns>
+			public static Name.Component  fromNumber(long number, ComponentType type,
+					int otherTypeCode) {
 				if (number < 0)
 					number = 0;
+				if (type == net.named_data.jndn.ComponentType.OTHER_CODE && otherTypeCode < 0)
+					throw new AssertionError(
+							"Name.Component other type code must be non-negative");
 	
 				TlvEncoder encoder = new TlvEncoder(8);
 				encoder.writeNonNegativeInteger(number);
-				return new Name.Component (new Blob(encoder.getOutput(), false));
+				return new Name.Component (new Blob(encoder.getOutput(), false), type,
+						otherTypeCode);
 			}
 	
 			/// <summary>
@@ -419,7 +608,7 @@ namespace net.named_data.jndn {
 							"Name.Component.fromImplicitSha256Digest: The digest length must be 32 bytes");
 	
 				Name.Component  result = new Name.Component (digest);
-				result.type_ = net.named_data.jndn.Name.Component.ComponentType.IMPLICIT_SHA256_DIGEST;
+				result.type_ = net.named_data.jndn.ComponentType.IMPLICIT_SHA256_DIGEST;
 				return result;
 			}
 	
@@ -465,7 +654,7 @@ namespace net.named_data.jndn {
 					// We didn't need the extra byte.
 					result.limit(value_.size());
 	
-				return new Name.Component (new Blob(result, false));
+				return new Name.Component (new Blob(result, false), type_, otherTypeCode_);
 			}
 	
 			/// <summary>
@@ -475,7 +664,12 @@ namespace net.named_data.jndn {
 			/// <param name="other">The other Component to compare with.</param>
 			/// <returns>True if the components are equal, otherwise false.</returns>
 			public bool equals(Name.Component  other) {
-				return value_.equals(other.value_) && type_ == other.type_;
+				if (type_ == net.named_data.jndn.ComponentType.OTHER_CODE)
+					return value_.equals(other.value_)
+							&& other.type_ == net.named_data.jndn.ComponentType.OTHER_CODE
+							&& otherTypeCode_ == other.otherTypeCode_;
+				else
+					return value_.equals(other.value_) && type_ == other.type_;
 			}
 	
 			public override bool Equals(Object other) {
@@ -486,7 +680,9 @@ namespace net.named_data.jndn {
 			}
 	
 			public override int GetHashCode() {
-				return 37 * type_.getNumericType() + value_.GetHashCode();
+				return 37
+						* ((type_ == net.named_data.jndn.ComponentType.OTHER_CODE) ? otherTypeCode_
+								: type_.getNumericType()) + value_.GetHashCode();
 			}
 	
 			/// <summary>
@@ -498,9 +694,14 @@ namespace net.named_data.jndn {
 			/// canonical ordering, or 1 if this comes after other in the canonical
 			/// ordering.</returns>
 			public int compare(Name.Component  other) {
-				if (type_.getNumericType() < other.type_.getNumericType())
+				int myTypeCode = ((type_ == net.named_data.jndn.ComponentType.OTHER_CODE) ? otherTypeCode_
+						: type_.getNumericType());
+				int otherTypeCode = ((other.type_ == net.named_data.jndn.ComponentType.OTHER_CODE) ? other.otherTypeCode_
+						: other.type_.getNumericType());
+	
+				if (myTypeCode < otherTypeCode)
 					return -1;
-				if (type_.getNumericType() > other.type_.getNumericType())
+				if (myTypeCode > otherTypeCode)
 					return 1;
 	
 				if (value_.size() < other.value_.size())
@@ -543,17 +744,8 @@ namespace net.named_data.jndn {
 				}
 			}
 	
-			/// <summary>
-			/// A ComponentType specifies the recognized types of a name component.
-			/// </summary>
-			///
-			public enum ComponentType {
-				IMPLICIT_SHA256_DIGEST, GENERIC		}
-	
-			// Note: We keep the type_ internal because it is only used to distinguish
-			// from ImplicitSha256Digest. If we support general typed components then
-			// we can provide public access.
-			private net.named_data.jndn.Name.Component.ComponentType  type_;
+			private ComponentType type_;
+			private int otherTypeCode_;
 			private readonly Blob value_;
 		}
 	
@@ -692,9 +884,35 @@ namespace net.named_data.jndn {
 					} catch (EncodingException ex) {
 						throw new Exception(ex.Message);
 					}
-				} else
+				} else {
+					ComponentType type = net.named_data.jndn.ComponentType.GENERIC;
+					int otherTypeCode = -1;
+	
+					// Check for a component type.
+					int iTypeCodeEnd = ILOG.J2CsMapping.Util.StringUtil.IndexOf(uri,"=",iComponentStart);
+					if (iTypeCodeEnd >= 0 && iTypeCodeEnd < iComponentEnd) {
+						String typeString = uri.Substring(iComponentStart,(iTypeCodeEnd)-(iComponentStart));
+						try {
+							otherTypeCode = Int32.Parse(typeString);
+						} catch (FormatException ex_0) {
+							throw new Exception(
+									"Can't parse decimal Name Component type: "
+											+ typeString + " in URI " + uri);
+						}
+	
+						if (otherTypeCode == net.named_data.jndn.ComponentType.GENERIC.getNumericType()
+								|| otherTypeCode == net.named_data.jndn.ComponentType.IMPLICIT_SHA256_DIGEST
+										.getNumericType())
+							throw new Exception("Unexpected Name Component type: "
+									+ typeString + " in URI " + uri);
+	
+						type = net.named_data.jndn.ComponentType.OTHER_CODE;
+						iComponentStart = iTypeCodeEnd + 1;
+					}
+	
 					component = new Name.Component (fromEscapedString(uri,
-							iComponentStart, iComponentEnd));
+							iComponentStart, iComponentEnd), type, otherTypeCode);
+				}
 	
 				// Ignore illegal components.  This also gets rid of a trailing '/'.
 				if (!component.getValue().isNull())
@@ -725,6 +943,35 @@ namespace net.named_data.jndn {
 		}
 	
 		/// <summary>
+		/// Append a new component of the given type, copying from value.
+		/// (To append an ImplicitSha256Digest component, use appendImplicitSha256Digest.)
+		/// </summary>
+		///
+		/// <param name="value">The component value.</param>
+		/// <param name="type">Name.Component(value, ComponentType.OTHER_CODE, otherTypeCode).</param>
+		/// <returns>This name so that you can chain calls to append.</returns>
+		public Name append(byte[] value_ren, ComponentType type) {
+			if (type == net.named_data.jndn.ComponentType.OTHER_CODE)
+				throw new AssertionError(
+						"To use an other code, call append(value, ComponentType.OTHER_CODE, otherTypeCode)");
+	
+			return append(new Name.Component (value_ren, type));
+		}
+	
+		/// <summary>
+		/// Append a new component of the given type, copying from value.
+		/// (To append an ImplicitSha256Digest component, use appendImplicitSha256Digest.)
+		/// </summary>
+		///
+		/// <param name="value">The component value.</param>
+		/// <param name="type">ComponentType.OTHER_CODE and use the otherTypeCode parameter.</param>
+		/// <param name="otherTypeCode">non-negative.</param>
+		/// <returns>This name so that you can chain calls to append.</returns>
+		public Name append(byte[] value_ren, ComponentType type, int otherTypeCode) {
+			return append(new Name.Component (value_ren, type, otherTypeCode));
+		}
+	
+		/// <summary>
 		/// Append a new GENERIC component, using the existing Blob value.
 		/// (To append an ImplicitSha256Digest component, use appendImplicitSha256Digest.)
 		/// </summary>
@@ -733,6 +980,35 @@ namespace net.named_data.jndn {
 		/// <returns>This name so that you can chain calls to append.</returns>
 		public Name append(Blob value_ren) {
 			return append(new Name.Component (value_ren));
+		}
+	
+		/// <summary>
+		/// Append a new component of the given type, using the existing Blob value.
+		/// (To append an ImplicitSha256Digest component, use appendImplicitSha256Digest.)
+		/// </summary>
+		///
+		/// <param name="value">The component value.</param>
+		/// <param name="type">append(value, ComponentType.OTHER_CODE, otherTypeCode).</param>
+		/// <returns>This name so that you can chain calls to append.</returns>
+		public Name append(Blob value_ren, ComponentType type) {
+			if (type == net.named_data.jndn.ComponentType.OTHER_CODE)
+				throw new AssertionError(
+						"To use an other code, call append(value, ComponentType.OTHER_CODE, otherTypeCode)");
+	
+			return append(new Name.Component (value_ren, type));
+		}
+	
+		/// <summary>
+		/// Append a new component of the given type, using the existing Blob value.
+		/// (To append an ImplicitSha256Digest component, use appendImplicitSha256Digest.)
+		/// </summary>
+		///
+		/// <param name="value">The component value.</param>
+		/// <param name="type">ComponentType.OTHER_CODE and use the otherTypeCode parameter.</param>
+		/// <param name="otherTypeCode">non-negative.</param>
+		/// <returns>This name so that you can chain calls to append.</returns>
+		public Name append(Blob value_ren, ComponentType type, int otherTypeCode) {
+			return append(new Name.Component (value_ren, type, otherTypeCode));
 		}
 	
 		/// <summary>
@@ -759,7 +1035,7 @@ namespace net.named_data.jndn {
 		}
 	
 		/// <summary>
-		/// Convert the value to UTF8 bytes and append a Name.Component.
+		/// Convert the value to UTF8 bytes and append a GENERIC Name.Component.
 		/// Note, this does not escape %XX values.  If you need to escape, use
 		/// Name.fromEscapedString.  Also, if the string has "/", this does not split
 		/// into separate components.  If you need that then use
@@ -770,6 +1046,43 @@ namespace net.named_data.jndn {
 		/// <returns>This name so that you can chain calls to append.</returns>
 		public Name append(String value_ren) {
 			return append(new Name.Component (value_ren));
+		}
+	
+		/// <summary>
+		/// Convert the value to UTF8 bytes and append a Name.Component of the given
+		/// type.
+		/// Note, this does not escape %XX values.  If you need to escape, use
+		/// Name.fromEscapedString.  Also, if the string has "/", this does not split
+		/// into separate components.  If you need that then use
+		/// append(new Name(value)).
+		/// </summary>
+		///
+		/// <param name="value">The string to convert to UTF8.</param>
+		/// <param name="type">append(value, ComponentType.OTHER_CODE, otherTypeCode).</param>
+		/// <returns>This name so that you can chain calls to append.</returns>
+		public Name append(String value_ren, ComponentType type) {
+			if (type == net.named_data.jndn.ComponentType.OTHER_CODE)
+				throw new AssertionError(
+						"To use an other code, call append(value, ComponentType.OTHER_CODE, otherTypeCode)");
+	
+			return append(new Name.Component (value_ren, type));
+		}
+	
+		/// <summary>
+		/// Convert the value to UTF8 bytes and append a Name.Component of the given
+		/// type.
+		/// Note, this does not escape %XX values.  If you need to escape, use
+		/// Name.fromEscapedString.  Also, if the string has "/", this does not split
+		/// into separate components.  If you need that then use
+		/// append(new Name(value)).
+		/// </summary>
+		///
+		/// <param name="value">The string to convert to UTF8.</param>
+		/// <param name="type">ComponentType.OTHER_CODE and use the otherTypeCode parameter.</param>
+		/// <param name="otherTypeCode">non-negative.</param>
+		/// <returns>This name so that you can chain calls to append.</returns>
+		public Name append(String value_ren, ComponentType type, int otherTypeCode) {
+			return append(new Name.Component (value_ren, type, otherTypeCode));
 		}
 	
 		/// <summary>

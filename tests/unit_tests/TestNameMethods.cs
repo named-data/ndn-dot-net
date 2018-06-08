@@ -355,13 +355,6 @@ namespace net.named_data.jndn.tests.unit_tests {
 					"/hello/sha256digest="
 							+ "28BAD4B5275BD392DBB670C75CF0B66F13F7942B21E80F55C0E86B374753A548");
 			Assert.AssertEquals(name.get(0), name2.get(1));
-	
-			// This is not valid sha256digest component. It should be treated as generic.
-			name2 = new Name(
-					"/hello/SHA256DIGEST="
-							+ "28BAD4B5275BD392DBB670C75CF0B66F13F7942B21E80F55C0E86B374753A548");
-			Assert.AssertFalse(name.get(0).equals(name2.get(1)));
-			Assert.AssertTrue(name2.get(1).isGeneric());
 		}
 	
 		public void testHashCode() {
@@ -384,6 +377,24 @@ namespace net.named_data.jndn.tests.unit_tests {
 			Assert.AssertEquals(
 					"Hash codes for same Name value after changes are not equal",
 					bar1.GetHashCode(), bar2.GetHashCode());
+		}
+	
+		public void testTypedNameComponent() {
+			int otherTypeCode = 99;
+			String uri = "/ndn/" + otherTypeCode + "=value";
+			Name name = new Name();
+			name.append("ndn").append("value", net.named_data.jndn.ComponentType.OTHER_CODE,
+					otherTypeCode);
+			Assert.AssertEquals(uri, name.toUri());
+	
+			Name nameFromUri = new Name(uri);
+			Assert.AssertEquals("value", nameFromUri.get(1).getValue().toString());
+			Assert.AssertEquals(otherTypeCode, nameFromUri.get(1).getOtherTypeCode());
+	
+			Name decodedName = new Name();
+			decodedName.wireDecode(name.wireEncode());
+			Assert.AssertEquals("value", decodedName.get(1).getValue().toString());
+			Assert.AssertEquals(otherTypeCode, decodedName.get(1).getOtherTypeCode());
 		}
 	}
 }

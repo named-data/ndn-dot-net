@@ -1,9 +1,10 @@
-Interim changes since NDN-DOT-NET v0.3 (2018-04-17)
+Interim changes since NDN-DOT-NET v0.3 (2018-06-08)
 ---------------------------------------------------
 
 Changes
 * https://redmine.named-data.net/issues/4591 Accept Interests encoded with
   packet format v0.3.
+* https://redmine.named-data.net/issues/4397 In Name, API for typed name components.
 
 NDN-DOT-NET v0.3 (2018-04-17)
 -----------------------------

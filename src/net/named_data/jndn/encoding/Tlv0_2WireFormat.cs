@@ -658,8 +658,13 @@ namespace net.named_data.jndn.encoding {
 		/// <param name="encoder">The TlvEncoder to receive the encoding.</param>
 		private static void encodeNameComponent(Name.Component component,
 				TlvEncoder encoder) {
-			int type = (component.isImplicitSha256Digest()) ? net.named_data.jndn.encoding.tlv.Tlv.ImplicitSha256DigestComponent
-					: net.named_data.jndn.encoding.tlv.Tlv.NameComponent;
+			int type;
+			if (component.getType() == net.named_data.jndn.ComponentType.OTHER_CODE)
+				type = component.getOtherTypeCode();
+			else
+				// The enum values are the same as the TLV type codes.
+				type = component.getType().getNumericType();
+	
 			encoder.writeBlobTlv(type, component.getValue().buf());
 		}
 	
@@ -682,8 +687,11 @@ namespace net.named_data.jndn.encoding {
 			Blob value_ren = new Blob(decoder.readBlobTlv(type), copy);
 			if (type == net.named_data.jndn.encoding.tlv.Tlv.ImplicitSha256DigestComponent)
 				return net.named_data.jndn.Name.Component.fromImplicitSha256Digest(value_ren);
-			else
+			else if (type == net.named_data.jndn.encoding.tlv.Tlv.NameComponent)
 				return new Name.Component(value_ren);
+			else
+				// Unrecognized type code.
+				return new Name.Component(value_ren, net.named_data.jndn.ComponentType.OTHER_CODE, type);
 		}
 	
 		/// <summary>
