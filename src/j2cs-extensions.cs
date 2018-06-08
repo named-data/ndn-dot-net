@@ -77,13 +77,15 @@ namespace net.named_data.jndn.util {
     }
 
     public static int 
-    getNumericType(this Name.Component.ComponentType componentType) 
+    getNumericType(this ComponentType componentType) 
     {
       // The C# enum values are automatically assigned 0, 1, 2, etc. We must be explicit.
-      if (componentType == Name.Component.ComponentType.IMPLICIT_SHA256_DIGEST)
+      if (componentType == ComponentType.IMPLICIT_SHA256_DIGEST)
         return 1;
-      else if (componentType ==  Name.Component.ComponentType.GENERIC)
+      else if (componentType ==  ComponentType.GENERIC)
         return 8;
+      else if (componentType ==  ComponentType.OTHER_CODE)
+        return 0x7fff;
       else
         throw new NotImplementedException
         ("getNumericType: Unrecognized Name.Component.ComponentType: " + componentType);
