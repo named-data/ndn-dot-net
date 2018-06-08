@@ -1763,6 +1763,56 @@ namespace net.named_data.jndn.security {
 		}
 	
 		/// <summary>
+		/// Append a SignatureInfo to the Interest name, compute an HmacWithSha256
+		/// signature for the name components and append a final name component with
+		/// the signature bits.
+		/// </summary>
+		///
+		/// @note This method is an experimental feature. The API may change.
+		/// <param name="interest"></param>
+		/// <param name="key">The key for the HmacWithSha256.</param>
+		/// <param name="keyName">The name of the key for the KeyLocator in the SignatureInfo.</param>
+		/// <param name="wireFormat">A WireFormat object used to encode the input.</param>
+		public static void signWithHmacWithSha256(Interest interest, Blob key,
+				Name keyName, WireFormat wireFormat) {
+			HmacWithSha256Signature signature = new HmacWithSha256Signature();
+			signature.getKeyLocator().setType(net.named_data.jndn.KeyLocatorType.KEYNAME);
+			signature.getKeyLocator().setKeyName(keyName);
+	
+			// Append the encoded SignatureInfo.
+			interest.getName().append(wireFormat.encodeSignatureInfo(signature));
+			// Append an empty signature so that the "signedPortion" is correct.
+			interest.getName().append(new Name.Component());
+	
+			// Encode once to get the signed portion.
+			SignedBlob encoding = interest.wireEncode(wireFormat);
+			byte[] signatureBytes = net.named_data.jndn.util.Common.computeHmacWithSha256(
+					key.getImmutableArray(), encoding.signedBuf());
+			signature.setSignature(new Blob(signatureBytes, false));
+	
+			// Remove the empty signature and append the real one.
+			interest.setName(interest.getName().getPrefix(-1)
+					.append(wireFormat.encodeSignatureValue(signature)));
+		}
+	
+		/// <summary>
+		/// Append a SignatureInfo to the Interest name, compute an HmacWithSha256
+		/// signature for the name components and append a final name component with
+		/// the signature bits.
+		/// Use the default WireFormat.getDefaultWireFormat().
+		/// </summary>
+		///
+		/// @note This method is an experimental feature. The API may change.
+		/// <param name="interest"></param>
+		/// <param name="key">The key for the HmacWithSha256.</param>
+		/// <param name="keyName">The name of the key for the KeyLocator in the SignatureInfo.</param>
+		public static void signWithHmacWithSha256(Interest interest, Blob key,
+				Name keyName) {
+			signWithHmacWithSha256(interest, key, keyName,
+					net.named_data.jndn.encoding.WireFormat.getDefaultWireFormat());
+		}
+	
+		/// <summary>
 		/// Compute a new HmacWithSha256 for the data packet and verify it against the
 		/// signature value.
 		/// </summary>
@@ -1795,6 +1845,54 @@ namespace net.named_data.jndn.security {
 		/// <returns>True if the signature verifies, otherwise false.</returns>
 		public static bool verifyDataWithHmacWithSha256(Data data, Blob key) {
 			return verifyDataWithHmacWithSha256(data, key,
+					net.named_data.jndn.encoding.WireFormat.getDefaultWireFormat());
+		}
+	
+		/// <summary>
+		/// Compute a new HmacWithSha256 for all but the final name component and
+		/// verify it against the signature value in the final name component.
+		/// </summary>
+		///
+		/// @note This method is an experimental feature. The API may change.
+		/// <param name="interest">The Interest object to verify.</param>
+		/// <param name="key">The key for the HmacWithSha256.</param>
+		/// <param name="wireFormat">A WireFormat object used to encode the input.</param>
+		/// <returns>True if the signature verifies, otherwise false.</returns>
+		public static bool verifyInterestWithHmacWithSha256(Interest interest,
+				Blob key, WireFormat wireFormat) {
+			Signature signature;
+			try {
+				// Decode the last two name components of the signed interest.
+				signature = wireFormat.decodeSignatureInfoAndValue(interest
+						.getName().get(-2).getValue().buf(), interest.getName()
+						.get(-1).getValue().buf());
+			} catch (EncodingException ex) {
+				// Treat a decoding error as a verification failure.
+				return false;
+			}
+	
+			// wireEncode returns the cached encoding if available.
+			SignedBlob encoding = interest.wireEncode(wireFormat);
+			byte[] newSignatureBytes = net.named_data.jndn.util.Common.computeHmacWithSha256(
+					key.getImmutableArray(), encoding.signedBuf());
+	
+			return ILOG.J2CsMapping.NIO.ByteBuffer.wrap(newSignatureBytes).equals(
+					signature.getSignature().buf());
+		}
+	
+		/// <summary>
+		/// Compute a new HmacWithSha256 for all but the final name component and
+		/// verify it against the signature value in the final name component.
+		/// Use the default WireFormat.getDefaultWireFormat().
+		/// </summary>
+		///
+		/// @note This method is an experimental feature. The API may change.
+		/// <param name="interest">The Interest object to verify.</param>
+		/// <param name="key">The key for the HmacWithSha256.</param>
+		/// <returns>True if the signature verifies, otherwise false.</returns>
+		public static bool verifyInterestWithHmacWithSha256(Interest interest,
+				Blob key) {
+			return verifyInterestWithHmacWithSha256(interest, key,
 					net.named_data.jndn.encoding.WireFormat.getDefaultWireFormat());
 		}
 	
