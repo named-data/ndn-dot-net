@@ -10,7 +10,6 @@
 ///
 namespace net.named_data.jndn.util {
 	
-	using ILOG.J2CsMapping.NIO;
 	using System;
 	using System.Collections;
 	using System.ComponentModel;
@@ -18,23 +17,20 @@ namespace net.named_data.jndn.util {
 	using System.Runtime.CompilerServices;
 	using net.named_data.jndn;
 	using net.named_data.jndn.encoding;
-	using net.named_data.jndn.encoding.tlv;
 	using net.named_data.jndn.security;
 	
 	/// <summary>
 	/// A CommandInterestGenerator keeps track of a timestamp and generates
 	/// command interests according to the NFD Signed Command Interests protocol:
-	/// http://redmine.named-data.net/projects/nfd/wiki/Command_Interests
+	/// https://redmine.named-data.net/projects/ndn-cxx/wiki/CommandInterest
 	/// </summary>
 	///
-	public class CommandInterestGenerator {
+	public class CommandInterestGenerator : CommandInterestPreparer {
 		/// <summary>
 		/// Create a new CommandInterestGenerator and initialize the timestamp to now.
 		/// </summary>
 		///
 		public CommandInterestGenerator() {
-			this.lastTimestampLock_ = new Object();
-			lastTimestamp_ = Math.Round(net.named_data.jndn.util.Common.getNowMilliseconds(),MidpointRounding.AwayFromZero);
 		}
 	
 		/// <summary>
@@ -51,28 +47,7 @@ namespace net.named_data.jndn.util {
 		/// <param name="wireFormat"></param>
 		public void generate(Interest interest, KeyChain keyChain,
 				Name certificateName, WireFormat wireFormat) {
-			double timestamp;
-			 lock (lastTimestampLock_) {
-						timestamp = Math.Round(net.named_data.jndn.util.Common.getNowMilliseconds(),MidpointRounding.AwayFromZero);
-						while (timestamp <= lastTimestamp_)
-							timestamp += 1.0d;
-						// Update the timestamp now while it is locked. In the small chance that
-						//   signing fails, it just means that we have bumped the timestamp.
-						lastTimestamp_ = timestamp;
-					}
-	
-			// The timestamp is encoded as a TLV nonNegativeInteger.
-			TlvEncoder encoder = new TlvEncoder(8);
-			encoder.writeNonNegativeInteger((long) timestamp);
-			interest.getName().append(new Blob(encoder.getOutput(), false));
-	
-			// The random value is a TLV nonNegativeInteger too, but we know it is 8 bytes,
-			//   so we don't need to call the nonNegativeInteger encoder.
-			ByteBuffer randomBuffer = ILOG.J2CsMapping.NIO.ByteBuffer.allocate(8);
-			// Note: SecureRandom is thread safe.
-			net.named_data.jndn.util.Common.getRandom().nextBytes(randomBuffer.array());
-			interest.getName().append(new Blob(randomBuffer, false));
-	
+			prepareCommandInterestName(interest, wireFormat);
 			keyChain.sign(interest, certificateName, wireFormat);
 	
 			if (interest.getInterestLifetimeMilliseconds() < 0)
@@ -97,8 +72,5 @@ namespace net.named_data.jndn.util {
 			generate(interest, keyChain, certificateName,
 					net.named_data.jndn.encoding.WireFormat.getDefaultWireFormat());
 		}
-	
-		private double lastTimestamp_;
-		private readonly Object lastTimestampLock_;
 	}
 }
