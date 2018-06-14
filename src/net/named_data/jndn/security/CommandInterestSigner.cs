@@ -10,7 +10,6 @@
 ///
 namespace net.named_data.jndn.security {
 	
-	using ILOG.J2CsMapping.NIO;
 	using System;
 	using System.Collections;
 	using System.ComponentModel;
@@ -18,10 +17,8 @@ namespace net.named_data.jndn.security {
 	using System.Runtime.CompilerServices;
 	using net.named_data.jndn;
 	using net.named_data.jndn.encoding;
-	using net.named_data.jndn.encoding.tlv;
 	using net.named_data.jndn.security.pib;
 	using net.named_data.jndn.security.tpm;
-	using net.named_data.jndn.util;
 	
 	/// <summary>
 	/// CommandInterestSigner is a helper class to create command interests. This
@@ -31,17 +28,14 @@ namespace net.named_data.jndn.security {
 	/// https://redmine.named-data.net/projects/ndn-cxx/wiki/CommandInterest
 	/// </summary>
 	///
-	public class CommandInterestSigner {
+	public class CommandInterestSigner : CommandInterestPreparer {
 		/// <summary>
 		/// Create a CommandInterestSigner to use the keyChain to sign.
 		/// </summary>
 		///
 		/// <param name="keyChain">The KeyChain used to sign.</param>
 		public CommandInterestSigner(KeyChain keyChain) {
-			this.lastUsedTimestampLock_ = new Object();
-			this.nowOffsetMilliseconds_ = 0;
 			keyChain_ = keyChain;
-			lastUsedTimestamp_ = Math.Round(net.named_data.jndn.util.Common.getNowMilliseconds(),MidpointRounding.AwayFromZero);
 		}
 	
 		public const int POS_SIGNATURE_VALUE = -1;
@@ -67,30 +61,7 @@ namespace net.named_data.jndn.security {
 			// This copies the Name.
 			Interest commandInterest = new Interest(name);
 	
-			double timestamp;
-			 lock (lastUsedTimestampLock_) {
-						// nowOffsetMilliseconds_ is only used for testing.
-						double now = net.named_data.jndn.util.Common.getNowMilliseconds() + nowOffsetMilliseconds_;
-						timestamp = Math.Round(now,MidpointRounding.AwayFromZero);
-						while (timestamp <= lastUsedTimestamp_)
-							timestamp += 1.0d;
-						// Update the timestamp now while it is locked. In the small chance that
-						//   signing fails, it just means that we have bumped the timestamp.
-						lastUsedTimestamp_ = timestamp;
-					}
-	
-			// The timestamp is encoded as a TLV nonNegativeInteger.
-			TlvEncoder encoder = new TlvEncoder(8);
-			encoder.writeNonNegativeInteger((long) timestamp);
-			commandInterest.getName().append(new Blob(encoder.getOutput(), false));
-	
-			// The random value is a TLV nonNegativeInteger too, but we know it is 8 bytes,
-			//   so we don't need to call the nonNegativeInteger encoder.
-			ByteBuffer randomBuffer = ILOG.J2CsMapping.NIO.ByteBuffer.allocate(8);
-			// Note: SecureRandom is thread safe.
-			net.named_data.jndn.util.Common.getRandom().nextBytes(randomBuffer.array());
-			commandInterest.getName().append(new Blob(randomBuffer, false));
-	
+			prepareCommandInterestName(commandInterest, wireFormat);
 			keyChain_.sign(commandInterest, paras, wireFormat);
 	
 			return commandInterest;
@@ -116,19 +87,6 @@ namespace net.named_data.jndn.security {
 					net.named_data.jndn.encoding.WireFormat.getDefaultWireFormat());
 		}
 	
-		/// <summary>
-		/// Set the offset for when makeCommandInterest() gets the current time, which
-		/// should only be used for testing.
-		/// </summary>
-		///
-		/// <param name="nowOffsetMilliseconds">The offset in milliseconds.</param>
-		public void setNowOffsetMilliseconds_(double nowOffsetMilliseconds) {
-			nowOffsetMilliseconds_ = nowOffsetMilliseconds;
-		}
-	
 		private readonly KeyChain keyChain_;
-		private double lastUsedTimestamp_;
-		private readonly Object lastUsedTimestampLock_;
-		private double nowOffsetMilliseconds_;
 	}
 }
