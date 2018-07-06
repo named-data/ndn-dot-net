@@ -526,15 +526,17 @@ namespace net.named_data.jndn.encoding {
 		///
 		/// <returns>The WireFormat object.</returns>
 		public static WireFormat getDefaultWireFormat() {
-			if (!defaultWireFormatIsInitialized_) {
-				defaultWireFormatIsInitialized_ = true;
-				defaultWireFormat_ = net.named_data.jndn.encoding.TlvWireFormat.get();
+			WireFormat r;
+			if ((r = defaultWireFormat_) == null) {
+				 lock (typeof(WireFormat)) {
+								if ((r = defaultWireFormat_) == null) {
+									r = defaultWireFormat_ = net.named_data.jndn.encoding.TlvWireFormat.get();
+								}
+							}
 			}
-	
-			return defaultWireFormat_;
+			return r;
 		}
 	
-		private static bool defaultWireFormatIsInitialized_ = false;
-		private static WireFormat defaultWireFormat_;
+		private static volatile WireFormat defaultWireFormat_;
 	}
 }
