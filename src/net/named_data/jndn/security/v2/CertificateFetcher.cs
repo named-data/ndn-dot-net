@@ -58,8 +58,8 @@ namespace net.named_data.jndn.security.v2 {
 		}
 	
 		/// <summary>
-		/// Asynchronously fetch certificate a certificate. setCertificateStorage must
-		/// have been called first.
+		/// Asynchronously fetch a certificate. setCertificateStorage must have been
+		/// called first.
 		/// If the requested certificate exists in the storage, then this method will
 		/// immediately call continueValidation with the certificate. If certificate is
 		/// not available, then the implementation-specific doFetch will be called to
