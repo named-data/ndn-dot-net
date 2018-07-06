@@ -1324,12 +1324,9 @@ namespace net.named_data.jndn.encoding {
 			decodeName(interest.getName(), signedPortionBeginOffset,
 					signedPortionEndOffset, decoder, copy);
 	
-			if (decoder.readBooleanTlv(net.named_data.jndn.encoding.tlv.Tlv.CanBePrefix, endOffset))
-				// No limit on MaxSuffixComponents.
-				interest.setMaxSuffixComponents(-1);
-			else
-				// The one suffix components is for the implicit digest.
-				interest.setMaxSuffixComponents(1);
+			// In v0.2 semantics, this calls setMaxSuffixComponents.
+			interest.setCanBePrefix(decoder.readBooleanTlv(net.named_data.jndn.encoding.tlv.Tlv.CanBePrefix,
+					endOffset));
 	
 			interest.setMustBeFresh(decoder.readBooleanTlv(net.named_data.jndn.encoding.tlv.Tlv.MustBeFresh,
 					endOffset));
