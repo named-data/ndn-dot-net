@@ -326,6 +326,17 @@ namespace net.named_data.jndn {
 			return maxSuffixComponents_;
 		}
 	
+		/// <summary>
+		/// Get the CanBePrefix flag. If not specified, the default is true.
+		/// </summary>
+		///
+		/// <returns>The CanBePrefix flag.</returns>
+		public bool getCanBePrefix() {
+			// Use the closest v0.2 semantics. CanBePrefix is the opposite of exact
+			// match where MaxSuffixComponents is 1 (for the implicit digest).
+			return maxSuffixComponents_ != 1;
+		}
+	
 		public KeyLocator getKeyLocator() {
 			return (KeyLocator) keyLocator_.get();
 		}
@@ -497,6 +508,20 @@ namespace net.named_data.jndn {
 		/// <returns>This Interest so that you can chain calls to update values.</returns>
 		public Interest setMaxSuffixComponents(int maxSuffixComponents) {
 			maxSuffixComponents_ = maxSuffixComponents;
+			++changeCount_;
+			return this;
+		}
+	
+		/// <summary>
+		/// Set the CanBePrefix flag.
+		/// </summary>
+		///
+		/// <param name="canBePrefix"></param>
+		/// <returns>This Interest so that you can chain calls to update values.</returns>
+		public Interest setCanBePrefix(bool canBePrefix) {
+			// Use the closest v0.2 semantics. CanBePrefix is the opposite of exact
+			// match where MaxSuffixComponents is 1 (for the implicit digest).
+			maxSuffixComponents_ = ((canBePrefix) ? -1 : 1);
 			++changeCount_;
 			return this;
 		}
