@@ -59,7 +59,7 @@ namespace net.named_data.jndn.encoding.tlv {
 		///
 		/// <param name="firstOctet"></param>
 		/// <returns>The decoded VAR-NUMBER as a Java 32-bit int.</returns>
-		/// <exception cref="EncodingException">if the VAR-NUMBER is 64-bit or read past the end  of the input.</exception>
+		/// <exception cref="EncodingException">if the VAR-NUMBER is 64-bit or read past the endof the input.</exception>
 		public int readExtendedVarNumber(int firstOctet) {
 			try {
 				if (firstOctet == 253)

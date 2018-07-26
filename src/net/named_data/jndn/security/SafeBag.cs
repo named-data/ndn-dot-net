@@ -140,7 +140,7 @@ namespace net.named_data.jndn.security {
 		/// Get the encoded private key.
 		/// </summary>
 		///
-		/// <returns>The encoded private key. If encrypted, this is a PKCS #8 
+		/// <returns>The encoded private key. If encrypted, this is a PKCS #8
 		/// EncryptedPrivateKeyInfo. If not encrypted, this is an unencrypted PKCS #8
 		/// PrivateKeyInfo.</returns>
 		public Blob getPrivateKeyBag() {

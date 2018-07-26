@@ -23,7 +23,7 @@ namespace net.named_data.jndn.security.v2.validator_config {
 	/// ConfigRegexNameFilter extends ConfigFilter to check that the packet name
 	/// matches the specified regular expression.
 	/// The configuration}"}
-	/// creates }.
+	/// creates}.
 	/// </summary>
 	///
 	public class ConfigRegexNameFilter : ConfigFilter {

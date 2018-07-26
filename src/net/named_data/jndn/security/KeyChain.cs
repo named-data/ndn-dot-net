@@ -1690,7 +1690,7 @@ namespace net.named_data.jndn.security {
 	
 		/// <summary>
 		/// Check the signature on the signed interest and call either
-		/// onVerify.onVerifiedInterest or 
+		/// onVerify.onVerifiedInterest or
 		/// onValidationFailed.onInterestValidationFailed. We
 		/// use callback functions because verify may fetch information to check the
 		/// signature.

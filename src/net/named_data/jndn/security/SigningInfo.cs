@@ -270,7 +270,7 @@ namespace net.named_data.jndn.security {
 		/// Get the PibKey of the signer.
 		/// </summary>
 		///
-		/// <returns>The PibKey handler of the signer, or null if getSignerName() should 
+		/// <returns>The PibKey handler of the signer, or null if getSignerName() should
 		/// be used to find the key.</returns>
 		/// <exception cref="System.AssertionError">if the signer type is not SignerType.KEY.</exception>
 		public PibKey getPibKey() {
