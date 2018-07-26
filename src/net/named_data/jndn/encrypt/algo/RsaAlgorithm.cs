@@ -10,7 +10,6 @@
 ///
 namespace net.named_data.jndn.encrypt.algo {
 	
-	using ILOG.J2CsMapping.Util.Logging;
 	using System;
 	using System.Collections;
 	using System.ComponentModel;
@@ -20,6 +19,7 @@ namespace net.named_data.jndn.encrypt.algo {
 	using javax.crypto;
 	using net.named_data.jndn.encrypt;
 	using net.named_data.jndn.security;
+	using net.named_data.jndn.security.certificate;
 	using net.named_data.jndn.security.tpm;
 	using net.named_data.jndn.util;
 	
@@ -113,32 +113,12 @@ namespace net.named_data.jndn.encrypt.algo {
 		/// <returns>The encrypted data.</returns>
 		public static Blob encrypt(Blob keyBits, Blob plainData,
 				EncryptParams paras) {
-			System.SecurityPublicKey publicKey = keyFactory_
-					.generatePublic(new X509EncodedKeySpec(keyBits
-							.getImmutableArray()));
-	
-			String transformation;
-			if (paras.getAlgorithmType() == net.named_data.jndn.encrypt.algo.EncryptAlgorithmType.RsaPkcs)
-				transformation = "RSA/ECB/PKCS1Padding";
-			else if (paras.getAlgorithmType() == net.named_data.jndn.encrypt.algo.EncryptAlgorithmType.RsaOaep)
-				transformation = "RSA/ECB/OAEPWithSHA-1AndMGF1Padding";
-			else
-				throw new Exception("unsupported padding scheme");
-	
-			Cipher cipher = javax.crypto.Cipher.getInstance(transformation);
-			cipher.init(javax.crypto.Cipher.ENCRYPT_MODE, publicKey);
-			return new Blob(cipher.doFinal(plainData.getImmutableArray()), false);
-		}
-	
-		private static KeyFactory keyFactory_;
-	
-		static RsaAlgorithm() {
-				try {
-					keyFactory_ = System.KeyFactory.getInstance("RSA");
-				} catch (Exception ex) {
-					ILOG.J2CsMapping.Util.Logging.Logger.getLogger(typeof(RsaAlgorithm).FullName)
-							.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, null, ex);
-				}
+			try {
+				return new PublicKey(keyBits).encrypt(plainData,
+						paras.getAlgorithmType());
+			} catch (UnrecognizedKeyFormatException ex) {
+				throw new InvalidKeyException(ex.Message);
 			}
+		}
 	}
 }

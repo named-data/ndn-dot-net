@@ -10,13 +10,16 @@
 ///
 namespace net.named_data.jndn.security.certificate {
 	
+	using ILOG.J2CsMapping.Util.Logging;
 	using System;
 	using System.Collections;
 	using System.ComponentModel;
 	using System.IO;
 	using System.Runtime.CompilerServices;
 	using System.spec;
+	using javax.crypto;
 	using net.named_data.jndn.encoding.der;
+	using net.named_data.jndn.encrypt.algo;
 	using net.named_data.jndn.security;
 	using net.named_data.jndn.util;
 	
@@ -142,11 +145,65 @@ namespace net.named_data.jndn.security.certificate {
 			return keyDer_;
 		}
 	
+		/// <summary>
+		/// Encrypt the plainData using the keyBits according the encrypt algorithm type.
+		/// </summary>
+		///
+		/// <param name="plainData">The data to encrypt.</param>
+		/// <param name="algorithmType"></param>
+		/// <returns>The encrypted data.</returns>
+		public Blob encrypt(byte[] plainData, EncryptAlgorithmType algorithmType) {
+			System.SecurityPublicKey publicKey = keyFactory_
+					.generatePublic(new X509EncodedKeySpec(keyDer_
+							.getImmutableArray()));
+	
+			String transformation;
+			if (algorithmType == net.named_data.jndn.encrypt.algo.EncryptAlgorithmType.RsaPkcs) {
+				if (keyType_ != net.named_data.jndn.security.KeyType.RSA)
+					throw new Exception("The key type must be RSA");
+	
+				transformation = "RSA/ECB/PKCS1Padding";
+			} else if (algorithmType == net.named_data.jndn.encrypt.algo.EncryptAlgorithmType.RsaOaep) {
+				if (keyType_ != net.named_data.jndn.security.KeyType.RSA)
+					throw new Exception("The key type must be RSA");
+	
+				transformation = "RSA/ECB/OAEPWithSHA-1AndMGF1Padding";
+			} else
+				throw new Exception("unsupported padding scheme");
+	
+			Cipher cipher = javax.crypto.Cipher.getInstance(transformation);
+			cipher.init(javax.crypto.Cipher.ENCRYPT_MODE, publicKey);
+			return new Blob(cipher.doFinal(plainData), false);
+		}
+	
+		/// <summary>
+		/// Encrypt the plainData using the keyBits according the encrypt algorithm type.
+		/// </summary>
+		///
+		/// <param name="plainData">The data to encrypt.</param>
+		/// <param name="algorithmType"></param>
+		/// <returns>The encrypted data.</returns>
+		public Blob encrypt(Blob plainData, EncryptAlgorithmType algorithmType) {
+			return encrypt(plainData.getImmutableArray(), algorithmType);
+		}
+	
 		private static String RSA_ENCRYPTION_OID = "1.2.840.113549.1.1.1";
 		private static String EC_ENCRYPTION_OID = "1.2.840.10045.2.1";
 	
 		private readonly KeyType keyType_;
 		private readonly Blob keyDer_;
-		/**< PublicKeyInfo in DER */
+		/// <summary>
+		/// < PublicKeyInfo in DER 
+		/// </summary>
+		///
+		private static KeyFactory keyFactory_;
+		static PublicKey() {
+				try {
+					keyFactory_ = System.KeyFactory.getInstance("RSA");
+				} catch (Exception ex) {
+					ILOG.J2CsMapping.Util.Logging.Logger.getLogger(typeof(PublicKey).FullName).log(
+							ILOG.J2CsMapping.Util.Logging.Level.SEVERE, null, ex);
+				}
+			}
 	}
 }
