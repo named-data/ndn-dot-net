@@ -523,7 +523,7 @@ namespace net.named_data.jndn.encoding {
 					// Unrecognized field type. The conditions for ignoring are here:
 					// http://redmine.named-data.net/projects/nfd/wiki/NDNLPv2
 					bool canIgnore = (fieldType >= net.named_data.jndn.encoding.tlv.Tlv.LpPacket_IGNORE_MIN
-							&& fieldType <= net.named_data.jndn.encoding.tlv.Tlv.LpPacket_IGNORE_MAX && (fieldType & 0x01) == 1);
+							&& fieldType <= net.named_data.jndn.encoding.tlv.Tlv.LpPacket_IGNORE_MAX && (fieldType & 0x03) == 0);
 					if (!canIgnore)
 						throw new EncodingException(
 								"Did not get the expected TLV type");
