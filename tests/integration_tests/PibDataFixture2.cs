@@ -22,7 +22,12 @@ namespace net.named_data.jndn.tests.integration_tests {
 	using net.named_data.jndn.security.v2;
 	using net.named_data.jndn.util;
 	
-	public class PibDataFixture {
+	/// <summary>
+	/// PibDataFixture2 is identical to PibDataFixture in the unit_tests folder, but
+	/// we can't access it there, so use a copy here.
+	/// </summary>
+	///
+	public class PibDataFixture2 {
 		// Convert the int array to a ByteBuffer.
 		public static ByteBuffer toBuffer(int[] array) {
 			ByteBuffer result = ILOG.J2CsMapping.NIO.ByteBuffer.allocate(array.Length);
@@ -567,7 +572,7 @@ namespace net.named_data.jndn.tests.integration_tests {
 			return result;
 		}
 	
-		public PibDataFixture() {
+		public PibDataFixture2() {
 			id1Key1Cert1 = encodeCertificate(ID1_KEY1_CERT1);
 			id1Key1Cert2 = encodeCertificate(ID1_KEY1_CERT2);
 			id1Key2Cert1 = encodeCertificate(ID1_KEY2_CERT1);

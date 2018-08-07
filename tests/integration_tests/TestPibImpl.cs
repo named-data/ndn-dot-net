@@ -24,10 +24,10 @@ namespace net.named_data.jndn.tests.integration_tests {
 	
 	public class TestPibImpl {
 		public TestPibImpl() {
-			this.pibImpls = new PibDataFixture[2];
+			this.pibImpls = new PibDataFixture2[2];
 		}
 	
-		internal class PibMemoryFixture : PibDataFixture {
+		internal class PibMemoryFixture : PibDataFixture2 {
 			public PibMemoryFixture() {
 				this.myPib_ = new PibMemory();
 				pib = myPib_;
@@ -36,7 +36,7 @@ namespace net.named_data.jndn.tests.integration_tests {
 			private readonly PibMemory myPib_;
 		} 
 	
-		public class PibSqlite3Fixture : PibDataFixture {
+		public class PibSqlite3Fixture : PibDataFixture2 {
 				private TestPibImpl outer_TestPibImpl;
 		
 				public PibSqlite3Fixture(TestPibImpl impl) {
@@ -59,7 +59,7 @@ namespace net.named_data.jndn.tests.integration_tests {
 		internal TestPibImpl.PibMemoryFixture  pibMemoryFixture;
 		internal TestPibImpl.PibSqlite3Fixture  pibSqlite3Fixture;
 	
-		internal PibDataFixture[] pibImpls;
+		internal PibDataFixture2[] pibImpls;
 	
 		public void setUp() {
 			pibMemoryFixture = new TestPibImpl.PibMemoryFixture ();
@@ -75,7 +75,7 @@ namespace net.named_data.jndn.tests.integration_tests {
 	
 		public void testCertificateDecoding() {
 			// Use pibMemoryFixture to test.
-			PibDataFixture fixture = pibMemoryFixture;
+			PibDataFixture2 fixture = pibMemoryFixture;
 	
 			Assert.AssertTrue(fixture.id1Key1Cert1.getPublicKey().equals(
 					fixture.id1Key1Cert2.getPublicKey()));
@@ -117,7 +117,7 @@ namespace net.named_data.jndn.tests.integration_tests {
 	
 		public void testTpmLocator() {
 			/* foreach */
-			foreach (PibDataFixture fixture  in  pibImpls) {
+			foreach (PibDataFixture2 fixture  in  pibImpls) {
 				PibImpl pib = fixture.pib;
 	
 				// Basic getting and setting
@@ -156,7 +156,7 @@ namespace net.named_data.jndn.tests.integration_tests {
 	
 		public void testIdentityManagement() {
 			/* foreach */
-			foreach (PibDataFixture fixture  in  pibImpls) {
+			foreach (PibDataFixture2 fixture  in  pibImpls) {
 				PibImpl pib = fixture.pib;
 	
 				// No default identity is set. This should throw an Error.
@@ -215,7 +215,7 @@ namespace net.named_data.jndn.tests.integration_tests {
 	
 		public void testClearIdentities() {
 			/* foreach */
-			foreach (PibDataFixture fixture  in  pibImpls) {
+			foreach (PibDataFixture2 fixture  in  pibImpls) {
 				PibImpl pib = fixture.pib;
 	
 				pib.setTpmLocator("tpmLocator");
@@ -237,7 +237,7 @@ namespace net.named_data.jndn.tests.integration_tests {
 	
 		public void testKeyManagement() {
 			/* foreach */
-			foreach (PibDataFixture fixture  in  pibImpls) {
+			foreach (PibDataFixture2 fixture  in  pibImpls) {
 				PibImpl pib = fixture.pib;
 	
 				// There is no default setting. This should throw an Error.
@@ -333,7 +333,7 @@ namespace net.named_data.jndn.tests.integration_tests {
 	
 		public void testCertificateManagement() {
 			/* foreach */
-			foreach (PibDataFixture fixture  in  pibImpls) {
+			foreach (PibDataFixture2 fixture  in  pibImpls) {
 				PibImpl pib = fixture.pib;
 	
 				// There is no default setting. This should throw an Error.
@@ -442,7 +442,7 @@ namespace net.named_data.jndn.tests.integration_tests {
 	
 		public void testDefaultsManagement() {
 			/* foreach */
-			foreach (PibDataFixture fixture  in  pibImpls) {
+			foreach (PibDataFixture2 fixture  in  pibImpls) {
 				PibImpl pib = fixture.pib;
 	
 				pib.addIdentity(fixture.id1);
@@ -496,7 +496,7 @@ namespace net.named_data.jndn.tests.integration_tests {
 	
 		public void testOverwrite() {
 			/* foreach */
-			foreach (PibDataFixture fixture  in  pibImpls) {
+			foreach (PibDataFixture2 fixture  in  pibImpls) {
 				PibImpl pib = fixture.pib;
 	
 				// Check for id1Key1, which should not exist.
