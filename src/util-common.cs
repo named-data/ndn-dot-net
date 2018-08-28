@@ -131,6 +131,26 @@ namespace net.named_data.jndn.util
     }
 
     /// <summary>
+    /// Compute the PBKDF2 with HMAC SHA1 of the password.
+    /// </summary>
+    ///
+    /// <param name="password">The input password, which should have characters
+    /// in the range of 1 to 127.</param>
+    /// <param name="salt">The 8-byte salt.</param>
+    /// <param name="nIterations">The number of iterations of the hashing
+    /// algorithm.</param>
+    /// <param name="resultLength">The number of bytes of the result array.</param>
+    /// <returns>The result byte array.</returns>
+    public static byte[]
+    computePbkdf2WithHmacSha1
+      (byte[] password, byte[] salt, int nIterations, int resultLength)
+    {
+      using (var pbkdf2 = new Rfc2898DeriveBytes(password, salt, nIterations)) {
+        return pbkdf2.GetBytes(resultLength);
+      }
+    }
+
+    /// <summary>
     /// Return a hex string of the contents of buffer.
     /// </summary>
     ///
