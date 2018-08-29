@@ -537,7 +537,7 @@ namespace net.named_data.jndn {
 		/// removeRegisteredPrefix.</returns>
 		/// <exception cref="IOException">For I/O error in sending the registration request.</exception>
 		/// <exception cref="System.Security.SecurityException">If signing a command interest for NFD and cannotfind the private key for the certificateName.</exception>
-		public long registerPrefix(Name prefix, OnInterestCallback onInterest,
+		public virtual long registerPrefix(Name prefix, OnInterestCallback onInterest,
 				OnRegisterFailed onRegisterFailed,
 				OnRegisterSuccess onRegisterSuccess, ForwardingFlags flags,
 				WireFormat wireFormat) {
@@ -799,7 +799,7 @@ namespace net.named_data.jndn {
 		/// <param name="data">The Data packet which satisfies the interest.</param>
 		/// <param name="wireFormat">A WireFormat object used to encode the Data packet.</param>
 		/// <exception cref="System.Exception">If the encoded Data packet size exceeds getMaxNdnPacketSize().</exception>
-		public void putData(Data data, WireFormat wireFormat) {
+		public virtual void putData(Data data, WireFormat wireFormat) {
 			node_.putData(data, wireFormat);
 		}
 	
@@ -849,7 +849,7 @@ namespace net.named_data.jndn {
 		/// to catch and log/disregard all exceptions.
 		/// </summary>
 		///
-		public void processEvents() {
+		public virtual void processEvents() {
 			// Just call Node's processEvents.
 			node_.processEvents();
 		}

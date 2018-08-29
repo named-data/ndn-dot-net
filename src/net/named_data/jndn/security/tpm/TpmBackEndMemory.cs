@@ -73,7 +73,8 @@ namespace net.named_data.jndn.security.tpm {
 			try {
 				key = net.named_data.jndn.security.tpm.TpmPrivateKey.generatePrivateKey(paras);
 			} catch (TpmPrivateKey.Error ex) {
-				throw new TpmBackEnd.Error ("Error in TpmPrivateKey.generatePrivateKey: " + ex);
+				throw new TpmBackEnd.Error(
+						"Error in TpmPrivateKey.generatePrivateKey: " + ex);
 			}
 			TpmKeyHandle keyHandle = new TpmKeyHandleMemory(key);
 	
@@ -103,18 +104,16 @@ namespace net.named_data.jndn.security.tpm {
 		/// <returns>The encoded private key.</returns>
 		/// <exception cref="TpmBackEnd.Error">if the key does not exist or if the key cannot beexported, e.g., insufficient privileges.</exception>
 		protected internal override Blob doExportKey(Name keyName, ByteBuffer password) {
-			if (password != null)
-				throw new TpmBackEnd.Error (
-						"Private key password-encryption is not implemented");
-			else {
-				if (!hasKey(keyName))
-					throw new TpmBackEnd.Error ("exportKey: The key does not exist");
+			if (!hasKey(keyName))
+				throw new TpmBackEnd.Error("exportKey: The key does not exist");
 	
-				try {
+			try {
+				if (password != null)
+					return ILOG.J2CsMapping.Collections.Collections.Get(keys_,keyName).toEncryptedPkcs8(password);
+				else
 					return ILOG.J2CsMapping.Collections.Collections.Get(keys_,keyName).toPkcs8();
-				} catch (TpmPrivateKey.Error ex) {
-					throw new TpmBackEnd.Error ("Error in toPkcs8: " + ex);
-				}
+			} catch (TpmPrivateKey.Error ex) {
+				throw new TpmBackEnd.Error("Error in toPkcs8: " + ex);
 			}
 		}
 	
@@ -130,17 +129,15 @@ namespace net.named_data.jndn.security.tpm {
 		protected internal override void doImportKey(Name keyName, ByteBuffer pkcs8,
 				ByteBuffer password) {
 			try {
+				TpmPrivateKey key = new TpmPrivateKey();
 				if (password != null)
-					throw new TpmBackEnd.Error (
-							"Private key password-encryption is not implemented");
-				else {
-					TpmPrivateKey key = new TpmPrivateKey();
+					key.loadEncryptedPkcs8(pkcs8, password);
+				else
 					key.loadPkcs8(pkcs8);
-					// Copy the Name.
-					ILOG.J2CsMapping.Collections.Collections.Put(keys_,new Name(keyName),key);
-				}
+				// Copy the Name.
+				ILOG.J2CsMapping.Collections.Collections.Put(keys_,new Name(keyName),key);
 			} catch (TpmPrivateKey.Error ex) {
-				throw new TpmBackEnd.Error ("Cannot import private key: " + ex);
+				throw new TpmBackEnd.Error("Cannot import private key: " + ex);
 			}
 		}
 	

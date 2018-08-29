@@ -18,6 +18,7 @@ namespace net.named_data.jndn.security {
 	using System.Runtime.CompilerServices;
 	using net.named_data.jndn;
 	using net.named_data.jndn.encoding;
+	using net.named_data.jndn.encoding.tlv;
 	using net.named_data.jndn.security.certificate;
 	using net.named_data.jndn.security.pib;
 	using net.named_data.jndn.security.tpm;
@@ -127,6 +128,30 @@ namespace net.named_data.jndn.security {
 		}
 	
 		/// <summary>
+		/// Create a SafeBag by decoding the input as an NDN-TLV SafeBag.
+		/// </summary>
+		///
+		/// <param name="input"></param>
+		/// <exception cref="EncodingException">For invalid encoding.</exception>
+		public SafeBag(ByteBuffer input) {
+			this.certificate_ = null;
+			this.privateKeyBag_ = new Blob();
+			wireDecode(input);
+		}
+	
+		/// <summary>
+		/// Create a SafeBag by decoding the input as an NDN-TLV SafeBag.
+		/// </summary>
+		///
+		/// <param name="input"></param>
+		/// <exception cref="EncodingException">For invalid encoding.</exception>
+		public SafeBag(Blob input) {
+			this.certificate_ = null;
+			this.privateKeyBag_ = new Blob();
+			wireDecode(input);
+		}
+	
+		/// <summary>
 		/// Get the certificate data packet.
 		/// </summary>
 		///
@@ -145,6 +170,65 @@ namespace net.named_data.jndn.security {
 		/// PrivateKeyInfo.</returns>
 		public Blob getPrivateKeyBag() {
 			return privateKeyBag_;
+		}
+	
+		/// <summary>
+		/// Decode the input as an NDN-TLV SafeBag and update this object.
+		/// </summary>
+		///
+		/// <param name="input"></param>
+		/// <exception cref="EncodingException">For invalid encoding.</exception>
+		public void wireDecode(ByteBuffer input) {
+			// Decode directly as TLV. We don't support the WireFormat abstraction
+			// because this isn't meant to go directly on the wire.
+			TlvDecoder decoder = new TlvDecoder(input);
+			int endOffset = decoder.readNestedTlvsStart(net.named_data.jndn.encoding.tlv.Tlv.SafeBag_SafeBag);
+	
+			// Get the bytes of the certificate and decode.
+			int certificateBeginOffset = decoder.getOffset();
+			int certificateEndOffset = decoder.readNestedTlvsStart(net.named_data.jndn.encoding.tlv.Tlv.Data);
+			decoder.seek(certificateEndOffset);
+			certificate_ = new Data();
+			certificate_.wireDecode(
+					decoder.getSlice(certificateBeginOffset, certificateEndOffset),
+					net.named_data.jndn.encoding.TlvWireFormat.get());
+	
+			privateKeyBag_ = new Blob(
+					decoder.readBlobTlv(net.named_data.jndn.encoding.tlv.Tlv.SafeBag_EncryptedKeyBag), true);
+	
+			decoder.finishNestedTlvs(endOffset);
+		}
+	
+		/// <summary>
+		/// Decode the input as an NDN-TLV SafeBag and update this object.
+		/// </summary>
+		///
+		/// <param name="input"></param>
+		/// <exception cref="EncodingException">For invalid encoding.</exception>
+		public void wireDecode(Blob input) {
+			wireDecode(input.buf());
+		}
+	
+		/// <summary>
+		/// Encode this as an NDN-TLV SafeBag.
+		/// </summary>
+		///
+		/// <returns>The encoded byte array as a Blob.</returns>
+		public Blob wireEncode() {
+			// Encode directly as TLV. We don't support the WireFormat abstraction
+			// because this isn't meant to go directly on the wire.
+			TlvEncoder encoder = new TlvEncoder(256);
+			int saveLength = encoder.getLength();
+	
+			// Encode backwards.
+			encoder.writeBlobTlv(net.named_data.jndn.encoding.tlv.Tlv.SafeBag_EncryptedKeyBag, privateKeyBag_.buf());
+			// Add the entire Data packet encoding as is.
+			encoder.writeBuffer(certificate_.wireEncode(net.named_data.jndn.encoding.TlvWireFormat.get()).buf());
+	
+			encoder.writeTypeAndLength(net.named_data.jndn.encoding.tlv.Tlv.SafeBag_SafeBag, encoder.getLength()
+					- saveLength);
+	
+			return new Blob(encoder.getOutput(), false);
 		}
 	
 		private static CertificateV2 makeSelfSignedCertificate(Name keyName,

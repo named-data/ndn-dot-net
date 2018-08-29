@@ -197,7 +197,7 @@ namespace net.named_data.jndn.encoding {
 		}
 	
 		/// <summary>
-		/// Decode input as a data packet and set the fields in the data object. Copy 
+		/// Decode input as a data packet and set the fields in the data object. Copy
 		/// from the input when making new Blob values. Your derived class should
 		/// override.
 		/// </summary>
@@ -408,7 +408,7 @@ namespace net.named_data.jndn.encoding {
 		}
 	
 		/// <summary>
-		/// Decode input as an LpPacket and set the fields of the lpPacket object. Copy 
+		/// Decode input as an LpPacket and set the fields of the lpPacket object. Copy
 		/// from the input when making new Blob values. Your derived class should
 		/// override.
 		/// </summary>
@@ -466,7 +466,7 @@ namespace net.named_data.jndn.encoding {
 		}
 	
 		/// <summary>
-		/// Encode the EncryptedContent and return the encoding. Your derived class
+		/// Encode the EncryptedContent v1 and return the encoding. Your derived class
 		/// should override.
 		/// </summary>
 		///
@@ -479,7 +479,7 @@ namespace net.named_data.jndn.encoding {
 		}
 	
 		/// <summary>
-		/// Decode input as an EncryptedContent and set the fields of the
+		/// Decode input as an EncryptedContent v1 and set the fields of the
 		/// encryptedContent object. Your derived class should override.
 		/// </summary>
 		///
@@ -495,7 +495,7 @@ namespace net.named_data.jndn.encoding {
 		}
 	
 		/// <summary>
-		/// Decode input as an EncryptedContent and set the fields of the
+		/// Decode input as an EncryptedContent v1 and set the fields of the
 		/// encryptedContent object. Copy from the input when making new Blob values.
 		/// Your derived class should override.
 		/// </summary>
@@ -507,6 +507,56 @@ namespace net.named_data.jndn.encoding {
 		public void decodeEncryptedContent(EncryptedContent encryptedContent,
 				ByteBuffer input) {
 			decodeEncryptedContent(encryptedContent, input, true);
+		}
+	
+		/// <summary>
+		/// Encode the EncryptedContent v2 (used in Name-based Access Control v2) and
+		/// return the encoding.
+		/// See https://github.com/named-data/name-based-access-control/blob/new/docs/spec.rst .
+		/// Your derived class should override.
+		/// </summary>
+		///
+		/// <param name="encryptedContent">The EncryptedContent object to encode.</param>
+		/// <returns>A Blob containing the encoding.</returns>
+		/// <exception cref="System.NotSupportedException">for unimplemented if the derivedclass does not override.</exception>
+		public virtual Blob encodeEncryptedContentV2(EncryptedContent encryptedContent) {
+			throw new NotSupportedException(
+					"encodeEncryptedContentV2 is not implemented");
+		}
+	
+		/// <summary>
+		/// Decode input as an EncryptedContent v2 (used in Name-based Access Control
+		/// v2) and set the fields of the encryptedContent object.
+		/// See https://github.com/named-data/name-based-access-control/blob/new/docs/spec.rst .
+		/// Your derived class should override.
+		/// </summary>
+		///
+		/// <param name="encryptedContent"></param>
+		/// <param name="input"></param>
+		/// <param name="copy">unchanged while the Blob values are used.</param>
+		/// <exception cref="EncodingException">For invalid encoding.</exception>
+		/// <exception cref="System.NotSupportedException">for unimplemented if the derivedclass does not override.</exception>
+		public virtual void decodeEncryptedContentV2(EncryptedContent encryptedContent,
+				ByteBuffer input, bool copy) {
+			throw new NotSupportedException(
+					"decodeEncryptedContentV2 is not implemented");
+		}
+	
+		/// <summary>
+		/// Decode input as an EncryptedContent v2 (used in Name-based Access Control
+		/// v2) and set the fields of the encryptedContent object.
+		/// See https://github.com/named-data/name-based-access-control/blob/new/docs/spec.rst .
+		/// Copy from the input when making new Blob values. Your derived class should
+		/// override.
+		/// </summary>
+		///
+		/// <param name="encryptedContent"></param>
+		/// <param name="input"></param>
+		/// <exception cref="EncodingException">For invalid encoding.</exception>
+		/// <exception cref="System.NotSupportedException">for unimplemented if the derivedclass does not override.</exception>
+		public void decodeEncryptedContentV2(
+				EncryptedContent encryptedContent, ByteBuffer input) {
+			decodeEncryptedContentV2(encryptedContent, input, true);
 		}
 	
 		/// <summary>

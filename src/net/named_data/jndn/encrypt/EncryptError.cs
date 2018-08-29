@@ -24,7 +24,18 @@ namespace net.named_data.jndn.encrypt {
 	///
 	public class EncryptError {
 		public enum ErrorCode {
-			Timeout, Validation, UnsupportedEncryptionScheme, InvalidEncryptedFormat, NoDecryptKey, EncryptionFailure, DataRetrievalFailure, SecurityException, IOException	}
+			KekRetrievalFailure, KekRetrievalTimeout, KekInvalidName,
+	
+			KdkRetrievalFailure, KdkRetrievalTimeout, KdkInvalidName, KdkDecryptionFailure,
+	
+			CkRetrievalFailure, CkRetrievalTimeout, CkInvalidName,
+	
+			MissingRequiredKeyLocator, TpmKeyNotFound, EncryptionFailure, DecryptionFailure, MissingRequiredInitialVector,
+	
+			General,
+	
+			// @deprecated: These codes are from the NAC library v1.
+			Timeout, Validation, UnsupportedEncryptionScheme, InvalidEncryptedFormat, NoDecryptKey, DataRetrievalFailure, SecurityException, IOException	}
 	
 		/// <summary>
 		/// A method calls onError.onError(errorCode, message) for an error.

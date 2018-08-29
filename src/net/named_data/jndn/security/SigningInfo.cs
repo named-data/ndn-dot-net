@@ -153,6 +153,22 @@ namespace net.named_data.jndn.security {
 		}
 	
 		/// <summary>
+		/// Create a SigningInfo as a copy of the given signingInfo. (This takes a
+		/// pointer to the given signingInfo PibIdentity and PibKey without copying.)
+		/// </summary>
+		///
+		/// <param name="signingInfo">The SigningInfo to copy.</param>
+		public SigningInfo(SigningInfo signingInfo) {
+			this.validityPeriod_ = new ValidityPeriod();
+			type_ = signingInfo.type_;
+			name_ = new Name(signingInfo.name_);
+			identity_ = signingInfo.identity_;
+			key_ = signingInfo.key_;
+			digestAlgorithm_ = signingInfo.digestAlgorithm_;
+			validityPeriod_ = new ValidityPeriod(signingInfo.validityPeriod_);
+		}
+	
+		/// <summary>
 		/// Set this to type SignerType.ID and an identity with name identityName.
 		/// This does not change the digest algorithm.
 		/// </summary>

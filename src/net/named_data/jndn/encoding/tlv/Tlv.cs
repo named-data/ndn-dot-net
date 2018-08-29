@@ -111,6 +111,10 @@ namespace net.named_data.jndn.encoding.tlv {
 		public const int Encrypt_EncryptionAlgorithm = 131;
 		public const int Encrypt_EncryptedPayload = 132;
 		public const int Encrypt_InitialVector = 133;
+		public const int Encrypt_EncryptedPayloadKey = 134;
+	
+		public const int SafeBag_SafeBag = 128;
+		public const int SafeBag_EncryptedKeyBag = 129;
 	
 		// For RepetitiveInterval.
 		public const int Encrypt_StartDate = 134;

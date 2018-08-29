@@ -18,6 +18,7 @@ namespace net.named_data.jndn.security.tpm {
 	using System.Runtime.CompilerServices;
 	using System.spec;
 	using javax.crypto;
+	using javax.crypto.spec;
 	using net.named_data.jndn.encoding;
 	using net.named_data.jndn.encoding.der;
 	using net.named_data.jndn.encrypt.algo;
@@ -94,12 +95,14 @@ namespace net.named_data.jndn.security.tpm {
 			// and decode that.
 			Blob pkcs8;
 			if (keyType == net.named_data.jndn.security.KeyType.EC) {
-				throw new TpmPrivateKey.Error ("TODO: loadPkcs1 for EC is not implemented");
+				throw new TpmPrivateKey.Error(
+						"TODO: loadPkcs1 for EC is not implemented");
 			} else if (keyType == net.named_data.jndn.security.KeyType.RSA)
 				pkcs8 = encodePkcs8PrivateKey(encoding,
 						new OID(RSA_ENCRYPTION_OID), new DerNode.DerNull());
 			else
-				throw new TpmPrivateKey.Error ("loadPkcs1: Unrecognized keyType: " + keyType);
+				throw new TpmPrivateKey.Error("loadPkcs1: Unrecognized keyType: "
+						+ keyType);
 	
 			loadPkcs8(pkcs8.buf(), keyType);
 		}
@@ -136,7 +139,8 @@ namespace net.named_data.jndn.security.tpm {
 					oidString = ""
 							+ ((DerNode.DerOid) algorithmIdChildren[0]).toVal();
 				} catch (DerDecodingException ex) {
-					throw new TpmPrivateKey.Error ("Cannot decode the PKCS #8 private key: " + ex);
+					throw new TpmPrivateKey.Error(
+							"Cannot decode the PKCS #8 private key: " + ex);
 				}
 	
 				if (oidString.equals(EC_ENCRYPTION_OID))
@@ -144,8 +148,8 @@ namespace net.named_data.jndn.security.tpm {
 				else if (oidString.equals(RSA_ENCRYPTION_OID))
 					keyType = net.named_data.jndn.security.KeyType.RSA;
 				else
-					throw new TpmPrivateKey.Error ("loadPkcs8: Unrecognized private key OID: "
-							+ oidString);
+					throw new TpmPrivateKey.Error(
+							"loadPkcs8: Unrecognized private key OID: " + oidString);
 			}
 	
 			// Use a Blob to get the byte array.
@@ -158,10 +162,11 @@ namespace net.named_data.jndn.security.tpm {
 					keyType_ = net.named_data.jndn.security.KeyType.EC;
 				} catch (InvalidKeySpecException ex_0) {
 					// Don't expect this to happen.
-					throw new TpmPrivateKey.Error ("loadPkcs8: EC is not supported: " + ex_0);
+					throw new TpmPrivateKey.Error(
+							"loadPkcs8: EC is not supported: " + ex_0);
 				} catch (Exception ex_1) {
 					// Don't expect this to happen.
-					throw new TpmPrivateKey.Error (
+					throw new TpmPrivateKey.Error(
 							"loadPkcs8: PKCS8EncodedKeySpec is not supported for EC: "
 									+ ex_1);
 				}
@@ -172,15 +177,17 @@ namespace net.named_data.jndn.security.tpm {
 					keyType_ = net.named_data.jndn.security.KeyType.RSA;
 				} catch (InvalidKeySpecException ex_3) {
 					// Don't expect this to happen.
-					throw new TpmPrivateKey.Error ("loadPkcs8: RSA is not supported: " + ex_3);
+					throw new TpmPrivateKey.Error(
+							"loadPkcs8: RSA is not supported: " + ex_3);
 				} catch (Exception ex_4) {
 					// Don't expect this to happen.
-					throw new TpmPrivateKey.Error (
+					throw new TpmPrivateKey.Error(
 							"loadPkcs8: PKCS8EncodedKeySpec is not supported for RSA: "
 									+ ex_4);
 				}
 			} else
-				throw new TpmPrivateKey.Error ("loadPkcs8: Unrecognized keyType: " + keyType);
+				throw new TpmPrivateKey.Error("loadPkcs8: Unrecognized keyType: "
+						+ keyType);
 		}
 	
 		/// <summary>
@@ -196,6 +203,142 @@ namespace net.named_data.jndn.security.tpm {
 		}
 	
 		/// <summary>
+		/// Load the encrypted private key from a buffer with the PKCS #8 encoding of
+		/// the EncryptedPrivateKeyInfo.
+		/// This replaces any existing private key in this object. This partially
+		/// decodes the private key to determine the key type.
+		/// </summary>
+		///
+		/// <param name="encoding">The byte buffer with the private key encoding.</param>
+		/// <param name="password">The password for decrypting the private key.</param>
+		/// <exception cref="TpmPrivateKey.Error">for errors decoding or decrypting the key.</exception>
+		public void loadEncryptedPkcs8(ByteBuffer encoding,
+				ByteBuffer password) {
+			// Decode the PKCS #8 EncryptedPrivateKeyInfo.
+			// See https://tools.ietf.org/html/rfc5208.
+			String oidString;
+			Object parameters;
+			Blob encryptedKey;
+			try {
+				DerNode parsedNode = net.named_data.jndn.encoding.der.DerNode.parse(encoding, 0);
+				IList encryptedPkcs8Children = parsedNode.getChildren();
+				IList algorithmIdChildren = net.named_data.jndn.encoding.der.DerNode.getSequence(
+						encryptedPkcs8Children, 0).getChildren();
+				oidString = ""
+						+ ((DerNode.DerOid) algorithmIdChildren[0]).toVal();
+				parameters = algorithmIdChildren[1];
+	
+				encryptedKey = (Blob) ((DerNode.DerOctetString) encryptedPkcs8Children[1]).toVal();
+			} catch (Exception ex) {
+				throw new TpmPrivateKey.Error(
+						"Cannot decode the PKCS #8 EncryptedPrivateKeyInfo: " + ex);
+			}
+	
+			// Use the password to get the unencrypted pkcs8Encoding.
+			byte[] pkcs8Encoding;
+			if (oidString.equals(PBES2_OID)) {
+				// Decode the PBES2 parameters. See https://www.ietf.org/rfc/rfc2898.txt .
+				String keyDerivationOidString;
+				Object keyDerivationParameters;
+				String encryptionSchemeOidString;
+				Object encryptionSchemeParameters;
+				try {
+					IList parametersChildren = ((DerNode.DerSequence) parameters)
+							.getChildren();
+	
+					IList keyDerivationAlgorithmIdChildren = net.named_data.jndn.encoding.der.DerNode.getSequence(
+							parametersChildren, 0).getChildren();
+					keyDerivationOidString = ""
+							+ ((DerNode.DerOid) keyDerivationAlgorithmIdChildren[0]).toVal();
+					keyDerivationParameters = keyDerivationAlgorithmIdChildren[1];
+	
+					IList encryptionSchemeAlgorithmIdChildren = net.named_data.jndn.encoding.der.DerNode.getSequence(
+							parametersChildren, 1).getChildren();
+					encryptionSchemeOidString = ""
+							+ ((DerNode.DerOid) encryptionSchemeAlgorithmIdChildren[0]).toVal();
+					encryptionSchemeParameters = encryptionSchemeAlgorithmIdChildren[1];
+				} catch (Exception ex_0) {
+					throw new TpmPrivateKey.Error(
+							"Cannot decode the PBES2 parameters: " + ex_0);
+				}
+	
+				// Get the derived key from the password.
+				byte[] derivedKey = null;
+				if (keyDerivationOidString.equals(PBKDF2_OID)) {
+					// Decode the PBKDF2 parameters.
+					Blob salt;
+					int nIterations;
+					try {
+						IList Pbkdf2ParametersChildren = ((DerNode.DerSequence) keyDerivationParameters)
+								.getChildren();
+						salt = (Blob) ((DerNode.DerOctetString) Pbkdf2ParametersChildren[0]).toVal();
+						nIterations = (int) ((DerNode.DerInteger) Pbkdf2ParametersChildren[1]).toVal();
+					} catch (Exception ex_1) {
+						throw new TpmPrivateKey.Error(
+								"Cannot decode the PBES2 parameters: " + ex_1);
+					}
+	
+					// Check the encryption scheme here to get the needed result length.
+					int resultLength;
+					if (encryptionSchemeOidString.equals(DES_EDE3_CBC_OID))
+						resultLength = DES_EDE3_KEY_LENGTH;
+					else
+						throw new TpmPrivateKey.Error(
+								"Unrecognized PBES2 encryption scheme OID: "
+										+ encryptionSchemeOidString);
+	
+					try {
+						derivedKey = net.named_data.jndn.util.Common.computePbkdf2WithHmacSha1(new Blob(
+								password, false).getImmutableArray(), salt
+								.getImmutableArray(), nIterations, resultLength);
+					} catch (Exception ex_2) {
+						throw new TpmPrivateKey.Error(
+								"Error computing the derived key using PBKDF2 with HMAC SHA1: "
+										+ ex_2);
+					}
+				} else
+					throw new TpmPrivateKey.Error(
+							"Unrecognized PBES2 key derivation OID: "
+									+ keyDerivationOidString);
+	
+				// Use the derived key to get the unencrypted pkcs8Encoding.
+				if (encryptionSchemeOidString.equals(DES_EDE3_CBC_OID)) {
+					// Decode the DES-EDE3-CBC parameters.
+					Blob initialVector;
+					try {
+						initialVector = (Blob) ((DerNode.DerOctetString) encryptionSchemeParameters)
+								.toVal();
+					} catch (Exception ex_3) {
+						throw new TpmPrivateKey.Error(
+								"Cannot decode the DES-EDE3-CBC parameters: " + ex_3);
+					}
+	
+					try {
+						Cipher cipher = javax.crypto.Cipher
+								.getInstance("DESede/CBC/PKCS5Padding");
+						cipher.init(javax.crypto.Cipher.DECRYPT_MODE, new SecretKeySpec(
+								derivedKey, "DESede"), new IvParameterSpec(
+								initialVector.getImmutableArray()));
+						pkcs8Encoding = cipher.doFinal(encryptedKey
+								.getImmutableArray());
+					} catch (Exception ex_4) {
+						throw new TpmPrivateKey.Error(
+								"Error decrypting PKCS #8 key with DES-EDE3-CBC: "
+										+ ex_4);
+					}
+				} else
+					throw new TpmPrivateKey.Error(
+							"Unrecognized PBES2 encryption scheme OID: "
+									+ encryptionSchemeOidString);
+			} else
+				throw new TpmPrivateKey.Error(
+						"Unrecognized PKCS #8 EncryptedPrivateKeyInfo OID: "
+								+ oidString);
+	
+			loadPkcs8(ILOG.J2CsMapping.NIO.ByteBuffer.wrap(pkcs8Encoding));
+		}
+	
+		/// <summary>
 		/// Get the encoded public key for this private key.
 		/// </summary>
 		///
@@ -203,7 +346,8 @@ namespace net.named_data.jndn.security.tpm {
 		/// <exception cref="TpmPrivateKey.Error">if no private key is loaded, or errorconverting to a public key.</exception>
 		public Blob derivePublicKey() {
 			if (keyType_ == net.named_data.jndn.security.KeyType.EC) {
-				throw new TpmPrivateKey.Error ("TODO: derivePublicKey for EC is not implemented");
+				throw new TpmPrivateKey.Error(
+						"TODO: derivePublicKey for EC is not implemented");
 			} else if (keyType_ == net.named_data.jndn.security.KeyType.RSA) {
 				// Decode the PKCS #1 RSAPrivateKey. (We don't use RSAPrivateCrtKey because
 				// the Android library doesn't have an easy way to decode into it.)
@@ -212,7 +356,8 @@ namespace net.named_data.jndn.security.tpm {
 					DerNode parsedNode = net.named_data.jndn.encoding.der.DerNode.parse(toPkcs1().buf(), 0);
 					rsaPrivateKeyChildren = parsedNode.getChildren();
 				} catch (DerDecodingException ex) {
-					throw new TpmPrivateKey.Error ("Error parsing RSA PKCS #1 key: " + ex);
+					throw new TpmPrivateKey.Error("Error parsing RSA PKCS #1 key: "
+							+ ex);
 				}
 				Blob modulus = ((DerNode) rsaPrivateKeyChildren[1])
 						.getPayload();
@@ -227,10 +372,12 @@ namespace net.named_data.jndn.security.tpm {
 									publicExponent.getImmutableArray())));
 					return new Blob(publicKey.getEncoded(), false);
 				} catch (Exception ex_0) {
-					throw new TpmPrivateKey.Error ("Error making RSA public key: " + ex_0);
+					throw new TpmPrivateKey.Error("Error making RSA public key: "
+							+ ex_0);
 				}
 			} else
-				throw new TpmPrivateKey.Error ("derivePublicKey: The private key is not loaded");
+				throw new TpmPrivateKey.Error(
+						"derivePublicKey: The private key is not loaded");
 		}
 	
 		/// <summary>
@@ -254,7 +401,7 @@ namespace net.named_data.jndn.security.tpm {
 			else if (algorithmType == net.named_data.jndn.encrypt.algo.EncryptAlgorithmType.RsaOaep)
 				transformation = "RSA/ECB/OAEPWithSHA-1AndMGF1Padding";
 			else
-				throw new TpmPrivateKey.Error ("unsupported padding scheme");
+				throw new TpmPrivateKey.Error("unsupported padding scheme");
 	
 			try {
 				Cipher cipher = javax.crypto.Cipher.getInstance(transformation);
@@ -264,7 +411,7 @@ namespace net.named_data.jndn.security.tpm {
 						.getImmutableArray();
 				return new Blob(cipher.doFinal(cipherByteArray), false);
 			} catch (Exception ex) {
-				throw new TpmPrivateKey.Error ("Error decrypting with private key: "
+				throw new TpmPrivateKey.Error("Error decrypting with private key: "
 						+ ex.Message);
 			}
 		}
@@ -288,7 +435,8 @@ namespace net.named_data.jndn.security.tpm {
 		/// <exception cref="TpmPrivateKey.Error">for unrecognized digestAlgorithm or an errorin signing.</exception>
 		public Blob sign(ByteBuffer data, DigestAlgorithm digestAlgorithm) {
 			if (digestAlgorithm != net.named_data.jndn.security.DigestAlgorithm.SHA256)
-				throw new TpmPrivateKey.Error ("TpmPrivateKey.sign: Unsupported digest algorithm");
+				throw new TpmPrivateKey.Error(
+						"TpmPrivateKey.sign: Unsupported digest algorithm");
 	
 			System.SecuritySignature signature = null;
 			if (keyType_ == net.named_data.jndn.security.KeyType.EC) {
@@ -297,7 +445,8 @@ namespace net.named_data.jndn.security.tpm {
 							.getInstance("SHA256withECDSA");
 				} catch (Exception e) {
 					// Don't expect this to happen.
-					throw new TpmPrivateKey.Error ("SHA256withECDSA algorithm is not supported");
+					throw new TpmPrivateKey.Error(
+							"SHA256withECDSA algorithm is not supported");
 				}
 			} else if (keyType_ == net.named_data.jndn.security.KeyType.RSA) {
 				try {
@@ -305,7 +454,8 @@ namespace net.named_data.jndn.security.tpm {
 							.getInstance("SHA256withRSA");
 				} catch (Exception e_0) {
 					// Don't expect this to happen.
-					throw new TpmPrivateKey.Error ("SHA256withRSA algorithm is not supported");
+					throw new TpmPrivateKey.Error(
+							"SHA256withRSA algorithm is not supported");
 				}
 			} else
 				return new Blob();
@@ -313,13 +463,15 @@ namespace net.named_data.jndn.security.tpm {
 			try {
 				signature.initSign(privateKey_);
 			} catch (InvalidKeyException exception) {
-				throw new TpmPrivateKey.Error ("InvalidKeyException: " + exception.Message);
+				throw new TpmPrivateKey.Error("InvalidKeyException: "
+						+ exception.Message);
 			}
 			try {
 				signature.update(data);
 				return new Blob(signature.sign(), false);
 			} catch (SignatureException exception_1) {
-				throw new TpmPrivateKey.Error ("SignatureException: " + exception_1.Message);
+				throw new TpmPrivateKey.Error("SignatureException: "
+						+ exception_1.Message);
 			}
 		}
 	
@@ -331,7 +483,8 @@ namespace net.named_data.jndn.security.tpm {
 		/// <exception cref="TpmPrivateKey.Error">if no private key is loaded, or error encoding.</exception>
 		public Blob toPkcs1() {
 			if (keyType_ == null)
-				throw new TpmPrivateKey.Error ("toPkcs1: The private key is not loaded");
+				throw new TpmPrivateKey.Error(
+						"toPkcs1: The private key is not loaded");
 	
 			// Decode the PKCS #8 private key.
 			DerNode parsedNode;
@@ -340,7 +493,8 @@ namespace net.named_data.jndn.security.tpm {
 				IList pkcs8Children = parsedNode.getChildren();
 				return ((DerNode) pkcs8Children[2]).getPayload();
 			} catch (DerDecodingException ex) {
-				throw new TpmPrivateKey.Error ("Error decoding PKCS #8 private key: " + ex);
+				throw new TpmPrivateKey.Error(
+						"Error decoding PKCS #8 private key: " + ex);
 			}
 		}
 	
@@ -356,6 +510,90 @@ namespace net.named_data.jndn.security.tpm {
 						"toPkcs8: The private key is not loaded");
 	
 			return new Blob(privateKey_.getEncoded());
+		}
+	
+		/// <summary>
+		/// Get the encoded encrypted private key in PKCS #8.
+		/// </summary>
+		///
+		/// <param name="password">The password for encrypting the private key.</param>
+		/// <returns>The encoding Blob of the EncryptedPrivateKeyInfo.</returns>
+		/// <exception cref="TpmPrivateKey.Error">if no private key is loaded, or error encoding.</exception>
+		public Blob toEncryptedPkcs8(ByteBuffer password) {
+			if (keyType_ == null)
+				throw new TpmPrivateKey.Error(
+						"toEncryptedPkcs8: The private key is not loaded");
+	
+			// Create the derivedKey from the password.
+			int nIterations = 2048;
+			byte[] salt = new byte[8];
+			net.named_data.jndn.util.Common.getRandom().nextBytes(salt);
+			byte[] derivedKey;
+			try {
+				derivedKey = net.named_data.jndn.util.Common.computePbkdf2WithHmacSha1(new Blob(password,
+						false).getImmutableArray(), salt, nIterations,
+						DES_EDE3_KEY_LENGTH);
+			} catch (Exception ex) {
+				// We don't expect this to happen.
+				throw new TpmPrivateKey.Error(
+						"Error computing the derived key using PBKDF2 with HMAC SHA1: "
+								+ ex);
+			}
+	
+			// Use the derived key to get the encrypted pkcs8Encoding.
+			byte[] encryptedEncoding;
+			byte[] initialVector = new byte[8];
+			net.named_data.jndn.util.Common.getRandom().nextBytes(initialVector);
+			try {
+				Cipher cipher = javax.crypto.Cipher.getInstance("DESede/CBC/PKCS5Padding");
+				cipher.init(javax.crypto.Cipher.ENCRYPT_MODE, new SecretKeySpec(derivedKey,
+						"DESede"), new IvParameterSpec(initialVector));
+				encryptedEncoding = cipher.doFinal(privateKey_.getEncoded());
+			} catch (Exception ex_0) {
+				throw new TpmPrivateKey.Error(
+						"Error encrypting PKCS #8 key with DES-EDE3-CBC: " + ex_0);
+			}
+	
+			try {
+				// Encode the PBES2 parameters. See https://www.ietf.org/rfc/rfc2898.txt .
+				net.named_data.jndn.encoding.der.DerNode.DerSequence  keyDerivationParameters = new net.named_data.jndn.encoding.der.DerNode.DerSequence ();
+				keyDerivationParameters.addChild(new DerNode.DerOctetString(
+						ILOG.J2CsMapping.NIO.ByteBuffer.wrap(salt)));
+				keyDerivationParameters
+						.addChild(new DerNode.DerInteger(nIterations));
+				net.named_data.jndn.encoding.der.DerNode.DerSequence  keyDerivationAlgorithmIdentifier = new net.named_data.jndn.encoding.der.DerNode.DerSequence ();
+				keyDerivationAlgorithmIdentifier.addChild(new DerNode.DerOid(
+						PBKDF2_OID));
+				keyDerivationAlgorithmIdentifier.addChild(keyDerivationParameters);
+	
+				net.named_data.jndn.encoding.der.DerNode.DerSequence  encryptionSchemeAlgorithmIdentifier = new net.named_data.jndn.encoding.der.DerNode.DerSequence ();
+				encryptionSchemeAlgorithmIdentifier.addChild(new DerNode.DerOid(
+						DES_EDE3_CBC_OID));
+				encryptionSchemeAlgorithmIdentifier
+						.addChild(new DerNode.DerOctetString(ILOG.J2CsMapping.NIO.ByteBuffer
+								.wrap(initialVector)));
+	
+				net.named_data.jndn.encoding.der.DerNode.DerSequence  encryptedKeyParameters = new net.named_data.jndn.encoding.der.DerNode.DerSequence ();
+				encryptedKeyParameters.addChild(keyDerivationAlgorithmIdentifier);
+				encryptedKeyParameters
+						.addChild(encryptionSchemeAlgorithmIdentifier);
+				net.named_data.jndn.encoding.der.DerNode.DerSequence  encryptedKeyAlgorithmIdentifier = new net.named_data.jndn.encoding.der.DerNode.DerSequence ();
+				encryptedKeyAlgorithmIdentifier.addChild(new DerNode.DerOid(
+						PBES2_OID));
+				encryptedKeyAlgorithmIdentifier.addChild(encryptedKeyParameters);
+	
+				// Encode the PKCS #8 EncryptedPrivateKeyInfo.
+				// See https://tools.ietf.org/html/rfc5208.
+				net.named_data.jndn.encoding.der.DerNode.DerSequence  encryptedKey = new net.named_data.jndn.encoding.der.DerNode.DerSequence ();
+				encryptedKey.addChild(encryptedKeyAlgorithmIdentifier);
+				encryptedKey.addChild(new DerNode.DerOctetString(ILOG.J2CsMapping.NIO.ByteBuffer
+						.wrap(encryptedEncoding)));
+	
+				return encryptedKey.encode();
+			} catch (DerEncodingException ex_1) {
+				throw new TpmPrivateKey.Error(
+						"Error encoding the encryped PKCS #8 private key: " + ex_1);
+			}
 		}
 	
 		/// <summary>
@@ -385,7 +623,7 @@ namespace net.named_data.jndn.security.tpm {
 			try {
 				generator = System.KeyPairGenerator.getInstance(keyAlgorithm);
 			} catch (Exception e) {
-				throw new TpmPrivateKey.Error (
+				throw new TpmPrivateKey.Error(
 						"TpmPrivateKey: Could not create the key generator: "
 								+ e.Message);
 			}
@@ -423,12 +661,17 @@ namespace net.named_data.jndn.security.tpm {
 	
 				return result.encode();
 			} catch (DerEncodingException ex) {
-				throw new TpmPrivateKey.Error ("Error encoding PKCS #8 private key: " + ex);
+				throw new TpmPrivateKey.Error(
+						"Error encoding PKCS #8 private key: " + ex);
 			}
 		}
 	
-		static private String RSA_ENCRYPTION_OID = "1.2.840.113549.1.1.1";
-		static private String EC_ENCRYPTION_OID = "1.2.840.10045.2.1";
+		private const String RSA_ENCRYPTION_OID = "1.2.840.113549.1.1.1";
+		private const String EC_ENCRYPTION_OID = "1.2.840.10045.2.1";
+		private const String PBES2_OID = "1.2.840.113549.1.5.13";
+		private const String PBKDF2_OID = "1.2.840.113549.1.5.12";
+		private const String DES_EDE3_CBC_OID = "1.2.840.113549.3.7";
+		private const int DES_EDE3_KEY_LENGTH = 24;
 	
 		private KeyType keyType_;
 		private System.PrivateKey privateKey_;

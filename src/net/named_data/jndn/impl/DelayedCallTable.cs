@@ -26,6 +26,7 @@ namespace net.named_data.jndn.impl {
 	public class DelayedCallTable {
 		public DelayedCallTable() {
 			this.table_ = new ArrayList<Entry>();
+			this.nowOffsetMilliseconds_ = 0;
 		}
 	
 		/// <summary>
@@ -60,7 +61,8 @@ namespace net.named_data.jndn.impl {
 		/// </summary>
 		///
 		public void callTimedOut() {
-			double now = net.named_data.jndn.util.Common.getNowMilliseconds();
+			// nowOffsetMilliseconds_ is only used for testing.
+			double now = net.named_data.jndn.util.Common.getNowMilliseconds() + nowOffsetMilliseconds_;
 			// table_ is sorted on _callTime, so we only need to process the timed-out
 			// entries at the front, then quit.
 			while (true) {
@@ -78,6 +80,16 @@ namespace net.named_data.jndn.impl {
 				// The lock on table_ is removed, so call the callback.
 				entry.callCallback();
 			}
+		}
+	
+		/// <summary>
+		/// Set the offset for when prepareCommandInterestName() gets the current time,
+		/// which should only be used for testing.
+		/// </summary>
+		///
+		/// <param name="nowOffsetMilliseconds">The offset in milliseconds.</param>
+		public void setNowOffsetMilliseconds_(double nowOffsetMilliseconds) {
+			nowOffsetMilliseconds_ = nowOffsetMilliseconds;
 		}
 	
 		/// <summary>
@@ -122,6 +134,7 @@ namespace net.named_data.jndn.impl {
 		}
 	
 		private readonly ArrayList<Entry> table_;
+		private double nowOffsetMilliseconds_;
 		// This is to force an import of net.named_data.jndn.util.
 		private static Common dummyCommon_ = new Common();
 	}
