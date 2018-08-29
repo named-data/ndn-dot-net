@@ -1393,6 +1393,8 @@ namespace javax.crypto {
         return new AesEcbPkcs5PaddingCipher();
       else if (type == "AES/CBC/PKCS5PADDING")
         return new AesCbcPkcs5PaddingCipher();
+      else if (type == "DESede/CBC/PKCS5Padding")
+        return new DesEdeCbcPkcs5PaddingCipher();
       else if (type == "RSA/ECB/PKCS1Padding")
         return new RsaCipher(false);
       else if (type == "RSA/ECB/OAEPWithSHA-1AndMGF1Padding")
@@ -1501,6 +1503,29 @@ namespace javax.crypto {
       else if (mode == ENCRYPT_MODE)
         transform_ = aes.CreateEncryptor
           (aes.Key, ((javax.crypto.spec.IvParameterSpec)parameters).IV);
+      else
+        // We don't expect this.
+        throw new Exception("Unrecognized Cipher mode " + mode);
+    }
+  }
+
+  public class DesEdeCbcPkcs5PaddingCipher : CryptoTransformCipher {
+    public override void
+    init(int mode, Key key, AlgorithmParameterSpec parameters)
+    {
+      mode_ = mode;
+
+      var tripleDes = new TripleDESCryptoServiceProvider();
+      if (!(key is javax.crypto.spec.SecretKeySpec))
+        throw new net.named_data.jndn.util.InvalidKeyException
+        ("DesEdeCbcPkcs5PaddingCipher expects a SecretKeySpec");
+      var keyBytes = ((javax.crypto.spec.SecretKeySpec)key).Key;
+      var initialVector = ((javax.crypto.spec.IvParameterSpec)parameters).IV;
+
+      if (mode == DECRYPT_MODE)
+        transform_ = tripleDes.CreateDecryptor(keyBytes, initialVector);
+      else if (mode == ENCRYPT_MODE)
+        transform_ = tripleDes.CreateEncryptor(keyBytes, initialVector);
       else
         // We don't expect this.
         throw new Exception("Unrecognized Cipher mode " + mode);
