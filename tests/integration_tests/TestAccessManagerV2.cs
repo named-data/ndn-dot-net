@@ -96,7 +96,7 @@ namespace net.named_data.jndn.tests.integration_tests {
 			}
 		}
 	
-		public void testEnumerateDataFromIms() {
+		public void testEnumerateDataFromStorage() {
 			Assert.AssertEquals(3, fixture_.manager_.size());
 	
 			int nKek = 0;
