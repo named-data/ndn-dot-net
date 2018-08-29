@@ -11,6 +11,7 @@
 namespace net.named_data.jndn.tests.integration_tests {
 	
 	using ILOG.J2CsMapping.NIO;
+	using ILOG.J2CsMapping.Util.Logging;
 	using System;
 	using System.Collections;
 	using System.ComponentModel;
@@ -117,6 +118,11 @@ namespace net.named_data.jndn.tests.integration_tests {
 			public readonly InMemoryStorageFace face_;
 			public readonly ValidatorNull validator_;
 			public readonly DecryptorV2 decryptor_;
+		}
+	
+		public void setUp() {
+			// Turn off INFO log messages.
+			ILOG.J2CsMapping.Util.Logging.Logger.getLogger("").setLevel(ILOG.J2CsMapping.Util.Logging.Level.SEVERE);
 		}
 	
 		public void testDecryptValid() {
