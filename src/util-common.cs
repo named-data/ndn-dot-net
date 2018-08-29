@@ -145,9 +145,8 @@ namespace net.named_data.jndn.util
     computePbkdf2WithHmacSha1
       (byte[] password, byte[] salt, int nIterations, int resultLength)
     {
-      using (var pbkdf2 = new Rfc2898DeriveBytes(password, salt, nIterations)) {
-        return pbkdf2.GetBytes(resultLength);
-      }
+      var pbkdf2 = new Rfc2898DeriveBytes(password, salt, nIterations);
+      return pbkdf2.GetBytes(resultLength);
     }
 
     /// <summary>
