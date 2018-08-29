@@ -1,10 +1,12 @@
-Interim changes since NDN-DOT-NET v0.3 (2018-07-26)
+Interim changes since NDN-DOT-NET v0.3 (2018-08-29)
 ---------------------------------------------------
 
 Changes
 * https://redmine.named-data.net/issues/4591 Accept Interests encoded with
   packet format v0.3.
 * https://redmine.named-data.net/issues/4397 In Name, API for typed name components.
+* https://redmine.named-data.net/issues/4655 Added name-based access control v2,
+  EncryptorV2, DecryptorV2 and AccessControlV2, with integration tests.
 
 Bug fixes
 * https://github.com/named-data/jndn/pull/22 In decodeLpPacket, fix the check for
