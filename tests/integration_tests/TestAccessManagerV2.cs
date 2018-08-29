@@ -19,13 +19,13 @@ namespace net.named_data.jndn.tests.integration_tests {
 	using System.spec;
 	using javax.crypto;
 	using net.named_data.jndn;
-  using net.named_data.jndn.util;
-  using net.named_data.jndn.encoding;
+	using net.named_data.jndn.encoding;
 	using net.named_data.jndn.encrypt;
 	using net.named_data.jndn.security;
 	using net.named_data.jndn.security.pib;
 	using net.named_data.jndn.security.tpm;
 	using net.named_data.jndn.security.v2;
+	using net.named_data.jndn.util;
 	
 	public class TestAccessManagerV2 {
 		internal class AccessManagerFixture : IdentityManagementFixture {
@@ -114,5 +114,8 @@ namespace net.named_data.jndn.tests.integration_tests {
 			Assert.AssertEquals(1, nKek);
 			Assert.AssertEquals(2, nKdk);
 		}
+	
+		// This is to force an import of net.named_data.jndn.util.
+		private static Common dummyCommon_ = new Common();
 	}
 }
