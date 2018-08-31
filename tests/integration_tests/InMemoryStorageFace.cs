@@ -23,7 +23,7 @@ namespace net.named_data.jndn.tests.integration_tests {
 	using net.named_data.jndn.util;
 	
 	/// <summary>
-	/// InMemoryStorageFace extends Face to hold an InMemoryStoragePersistent and
+	/// InMemoryStorageFace extends Face to hold an InMemoryStorageRetaining and
 	/// use it in expressInterest to instantly reply to an Interest. It also allows
 	/// one simple call to registerPrefix to remember the OnInterestCallback. This
 	/// also keeps a local DelayedCallTable (to use for callLater) so that you can
@@ -36,7 +36,7 @@ namespace net.named_data.jndn.tests.integration_tests {
 		/// </summary>
 		///
 		/// <param name="storage">calls onData, otherwise it immediately calls onTimeout.</param>
-		public InMemoryStorageFace(InMemoryStoragePersistent storage) : base("localhost") {
+		public InMemoryStorageFace(InMemoryStorageRetaining storage) : base("localhost") {
 			this.sentInterests_ = new ArrayList<Interest>();
 			this.sentData_ = new ArrayList<Data>();
 			this.interestFilterTable_ = new InterestFilterTable();
@@ -107,7 +107,7 @@ namespace net.named_data.jndn.tests.integration_tests {
 		private readonly InterestFilterTable interestFilterTable_;
 		// Use delayedCallTable_ here so that we can call setNowOffsetMilliseconds_().
 		public readonly DelayedCallTable delayedCallTable_;
-		private readonly InMemoryStoragePersistent storage_;
+		private readonly InMemoryStorageRetaining storage_;
 		// This is to force an import of net.named_data.jndn.util.
 		private static Common dummyCommon_ = new Common();
 	}

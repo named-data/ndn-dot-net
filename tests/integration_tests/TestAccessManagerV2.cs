@@ -31,7 +31,7 @@ namespace net.named_data.jndn.tests.integration_tests {
 		internal class AccessManagerFixture : IdentityManagementFixture {
 			public AccessManagerFixture() {
 				this.userIdentities_ = new ArrayList<PibIdentity>();
-				face_ = new InMemoryStorageFace(new InMemoryStoragePersistent());
+				face_ = new InMemoryStorageFace(new InMemoryStorageRetaining());
 				accessIdentity_ = addIdentity(new Name("/access/policy/identity"));
 				// This is a hack to get access to the KEK key-id.
 				nacIdentity_ = addIdentity(new Name(
@@ -96,7 +96,7 @@ namespace net.named_data.jndn.tests.integration_tests {
 			}
 		}
 	
-		public void testEnumerateDataFromStorage() {
+		public void testEnumerateDataFromInMemoryStorage() {
 			Assert.AssertEquals(3, fixture_.manager_.size());
 	
 			int nKek = 0;

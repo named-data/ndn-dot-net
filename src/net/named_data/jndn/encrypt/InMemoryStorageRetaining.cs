@@ -19,13 +19,15 @@ namespace net.named_data.jndn.encrypt {
 	using net.named_data.jndn.encoding;
 	
 	/// <summary>
-	/// InMemoryStoragePersistent provides an application cache with persistent
-	/// in-memory storage, of which no replacement policy will be employed. Entries
-	/// will only be deleted by explicit application control.
+	/// InMemoryStorageRetaining provides an application cache with persistent
+	/// in-memory storage, of which no eviction policy will be employed. Entries
+	/// will only be evicted by explicit application control.
+	/// Note: In ndn-cxx, this class is called InMemoryStoragePersistent, but
+	/// "persistent" misleadingly sounds like persistent on-disk storage.
 	/// </summary>
 	///
-	public class InMemoryStoragePersistent {
-		public InMemoryStoragePersistent() {
+	public class InMemoryStorageRetaining {
+		public InMemoryStorageRetaining() {
 			this.cache_ = new Hashtable();
 		}
 	

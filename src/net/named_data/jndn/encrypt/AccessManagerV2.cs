@@ -89,7 +89,7 @@ namespace net.named_data.jndn.encrypt {
 		/// <param name="face"></param>
 		public AccessManagerV2(PibIdentity identity, Name dataset,
 				KeyChain keyChain, Face face) {
-			this.storage_ = new InMemoryStoragePersistent();
+			this.storage_ = new InMemoryStorageRetaining();
 			identity_ = identity;
 			keyChain_ = keyChain;
 			face_ = face;
@@ -212,7 +212,7 @@ namespace net.named_data.jndn.encrypt {
 		private readonly Face face_;
 	
 		// storage_ is for the KEK and KDKs.
-		internal readonly InMemoryStoragePersistent storage_;
+		internal readonly InMemoryStorageRetaining storage_;
 		private readonly long kekRegisteredPrefixId_;
 		private readonly long kdkRegisteredPrefixId_;
 		static internal readonly Logger logger_ = ILOG.J2CsMapping.Util.Logging.Logger

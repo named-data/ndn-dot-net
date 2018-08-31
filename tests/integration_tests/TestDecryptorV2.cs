@@ -83,7 +83,7 @@ namespace net.named_data.jndn.tests.integration_tests {
 	
 		internal class DecryptorFixture : IdentityManagementFixture {
 			public DecryptorFixture(Name identityName) {
-				this.storage_ = new InMemoryStoragePersistent();
+				this.storage_ = new InMemoryStorageRetaining();
 				/* foreach */
 				// Include the code here from the NAC unit-tests class
 				// DecryptorStaticDataEnvironment instead of making it a base class.
@@ -114,7 +114,7 @@ namespace net.named_data.jndn.tests.integration_tests {
 						keyChain_, face_);
 			}
 	
-			public readonly InMemoryStoragePersistent storage_;
+			public readonly InMemoryStorageRetaining storage_;
 			public readonly InMemoryStorageFace face_;
 			public readonly ValidatorNull validator_;
 			public readonly DecryptorV2 decryptor_;

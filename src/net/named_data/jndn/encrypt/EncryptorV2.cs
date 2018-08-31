@@ -98,13 +98,13 @@ namespace net.named_data.jndn.encrypt {
 	
 		public sealed class Anonymous_C2 : OnData {
 				private readonly EncryptorV2 outer_EncryptorV2;
-				private readonly net.named_data.jndn.encrypt.EncryptError.OnError  onError;
 				private readonly IRunnable onReady;
+				private readonly net.named_data.jndn.encrypt.EncryptError.OnError  onError;
 		
 				public Anonymous_C2(EncryptorV2 paramouter_EncryptorV2,
-						net.named_data.jndn.encrypt.EncryptError.OnError  onError_0, IRunnable onReady_1) {
-					this.onError = onError_0;
-					this.onReady = onReady_1;
+						IRunnable onReady_0, net.named_data.jndn.encrypt.EncryptError.OnError  onError_1) {
+					this.onReady = onReady_0;
+					this.onError = onError_1;
 					this.outer_EncryptorV2 = paramouter_EncryptorV2;
 				}
 		
@@ -191,14 +191,14 @@ namespace net.named_data.jndn.encrypt {
 		
 				internal readonly EncryptorV2 outer_EncryptorV2;
 				internal readonly int nTriesLeft;
-				internal readonly net.named_data.jndn.encrypt.EncryptError.OnError  onError;
 				internal readonly IRunnable onReady;
+				internal readonly net.named_data.jndn.encrypt.EncryptError.OnError  onError;
 		
 				public Anonymous_C0(EncryptorV2 paramouter_EncryptorV2, int nTriesLeft_0,
-						net.named_data.jndn.encrypt.EncryptError.OnError  onError_1, IRunnable onReady_2) {
+						IRunnable onReady_1, net.named_data.jndn.encrypt.EncryptError.OnError  onError_2) {
 					this.nTriesLeft = nTriesLeft_0;
-					this.onError = onError_1;
-					this.onReady = onReady_2;
+					this.onReady = onReady_1;
+					this.onError = onError_2;
 					this.outer_EncryptorV2 = paramouter_EncryptorV2;
 				}
 		
@@ -238,7 +238,7 @@ namespace net.named_data.jndn.encrypt {
 				SigningInfo ckDataSigningInfo, net.named_data.jndn.encrypt.EncryptError.OnError  onError_0,
 				Validator validator, KeyChain keyChain, Face face) {
 			this.kekData_ = null;
-					this.storage_ = new InMemoryStoragePersistent();
+					this.storage_ = new InMemoryStorageRetaining();
 					this.kekPendingInterestId_ = 0;
 			// Copy the Name.
 			accessPrefix_ = new Name(accessPrefix);
@@ -378,7 +378,7 @@ namespace net.named_data.jndn.encrypt {
 			try {
 				kekPendingInterestId_ = face_.expressInterest(new Interest(
 						new Name(accessPrefix_).append(NAME_COMPONENT_KEK))
-						.setMustBeFresh(true).setCanBePrefix(true), new EncryptorV2.Anonymous_C2 (this, onError_1, onReady_0), new EncryptorV2.Anonymous_C1 (this, onError_1, nTriesLeft_2, onReady_0), new EncryptorV2.Anonymous_C0 (this, nTriesLeft_2, onError_1, onReady_0));
+						.setMustBeFresh(true).setCanBePrefix(true), new EncryptorV2.Anonymous_C2 (this, onReady_0, onError_1), new EncryptorV2.Anonymous_C1 (this, onError_1, nTriesLeft_2, onReady_0), new EncryptorV2.Anonymous_C0 (this, nTriesLeft_2, onReady_0, onError_1));
 			} catch (Exception ex) {
 				onError_1.onError(net.named_data.jndn.encrypt.EncryptError.ErrorCode.General,
 						"expressInterest error: " + ex);
@@ -444,7 +444,7 @@ namespace net.named_data.jndn.encrypt {
 		internal readonly net.named_data.jndn.encrypt.EncryptError.OnError  onError_;
 	
 		// Storage for encrypted CKs.
-		internal readonly InMemoryStoragePersistent storage_;
+		internal readonly InMemoryStorageRetaining storage_;
 		private readonly long ckRegisteredPrefixId_;
 		internal long kekPendingInterestId_;
 	

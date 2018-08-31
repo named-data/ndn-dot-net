@@ -49,7 +49,7 @@ namespace net.named_data.jndn.tests.integration_tests {
 	
 		internal class EncryptorFixture : IdentityManagementFixture {
 			public EncryptorFixture(bool shouldPublishData, net.named_data.jndn.encrypt.EncryptError.OnError  onError) {
-				this.storage_ = new InMemoryStoragePersistent();
+				this.storage_ = new InMemoryStorageRetaining();
 				// Include the code here from the NAC unit-tests class
 				// EncryptorStaticDataEnvironment instead of making it a base class.
 				if (shouldPublishData)
@@ -73,7 +73,7 @@ namespace net.named_data.jndn.tests.integration_tests {
 				}
 			}
 	
-			public readonly InMemoryStoragePersistent storage_;
+			public readonly InMemoryStorageRetaining storage_;
 			public readonly InMemoryStorageFace face_;
 			public readonly ValidatorNull validator_;
 			public readonly EncryptorV2 encryptor_;
