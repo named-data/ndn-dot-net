@@ -167,15 +167,34 @@ namespace net.named_data.jndn.security {
 		}
 	
 		/// <summary>
-		/// This is a temporary constructor for the transition to security v2. This
-		/// creates a security v2 KeyChain but still uses the v1 PolicyManager.
+		/// Create a security v2 KeyChain with explicitly-created PIB and TPM objects,
+		/// and that still uses the v1 PolicyManager.
 		/// </summary>
 		///
+		/// <param name="pibImpl">An explicitly-created PIB object of a subclass of PibImpl.</param>
+		/// <param name="tpmBackEnd"></param>
+		/// <param name="policyManager">An object of a subclass of a security v1 PolicyManager.</param>
 		public KeyChain(PibImpl pibImpl, TpmBackEnd tpmBackEnd,
 				PolicyManager policyManager) {
 			this.face_ = null;
 			isSecurityV1_ = false;
 			policyManager_ = policyManager;
+	
+			pib_ = new Pib("", "", pibImpl);
+			tpm_ = new Tpm("", "", tpmBackEnd);
+		}
+	
+		/// <summary>
+		/// Create a security v2 KeyChain with explicitly-created PIB and TPM objects.
+		/// This sets the policy manager to a security v1 NoVerifyPolicyManager.
+		/// </summary>
+		///
+		/// <param name="pibImpl">An explicitly-created PIB object of a subclass of PibImpl.</param>
+		/// <param name="tpmBackEnd"></param>
+		public KeyChain(PibImpl pibImpl, TpmBackEnd tpmBackEnd) {
+			this.face_ = null;
+			isSecurityV1_ = false;
+			policyManager_ = new NoVerifyPolicyManager();
 	
 			pib_ = new Pib("", "", pibImpl);
 			tpm_ = new Tpm("", "", tpmBackEnd);
