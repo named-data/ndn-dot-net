@@ -44,6 +44,7 @@ namespace net.named_data.jndn {
 			/// <summary>
 			/// Create a new GENERIC Name.Component, using the existing the Blob value.
 			/// (To create an ImplicitSha256Digest component, use fromImplicitSha256Digest.)
+			/// (To create a ParametersSha256Digest component, use fromParametersSha256Digest.)
 			/// </summary>
 			///
 			/// <param name="value"></param>
@@ -60,6 +61,7 @@ namespace net.named_data.jndn {
 			/// Create a Name.Component of the given type, using the existing the Blob
 			/// value.
 			/// (To create an ImplicitSha256Digest component, use fromImplicitSha256Digest.)
+			/// (To create a ParametersSha256Digest component, use fromParametersSha256Digest.)
 			/// </summary>
 			///
 			/// <param name="value"></param>
@@ -81,6 +83,7 @@ namespace net.named_data.jndn {
 			/// Create a Name.Component of the given type, using the existing the Blob
 			/// value.
 			/// (To create an ImplicitSha256Digest component, use fromImplicitSha256Digest.)
+			/// (To create a ParametersSha256Digest component, use fromParametersSha256Digest.)
 			/// </summary>
 			///
 			/// <param name="value"></param>
@@ -117,6 +120,7 @@ namespace net.named_data.jndn {
 			/// <summary>
 			/// Create a new GENERIC Name.Component, copying the given value.
 			/// (To create an ImplicitSha256Digest component, use fromImplicitSha256Digest.)
+			/// (To create a ParametersSha256Digest component, use fromParametersSha256Digest.)
 			/// </summary>
 			///
 			/// <param name="value">The value byte array.</param>
@@ -129,6 +133,7 @@ namespace net.named_data.jndn {
 			/// <summary>
 			/// Create a Name.Component of the given type, copying the given value.
 			/// (To create an ImplicitSha256Digest component, use fromImplicitSha256Digest.)
+			/// (To create a ParametersSha256Digest component, use fromParametersSha256Digest.)
 			/// </summary>
 			///
 			/// <param name="value">The value byte array.</param>
@@ -146,6 +151,7 @@ namespace net.named_data.jndn {
 			/// <summary>
 			/// Create a Name.Component of the given type, copying the given value.
 			/// (To create an ImplicitSha256Digest component, use fromImplicitSha256Digest.)
+			/// (To create a ParametersSha256Digest component, use fromParametersSha256Digest.)
 			/// </summary>
 			///
 			/// <param name="value">The value byte array.</param>
@@ -257,6 +263,11 @@ namespace net.named_data.jndn {
 					net.named_data.jndn.util.Blob.toHex(value_.buf(), result);
 					return;
 				}
+				if (type_ == net.named_data.jndn.ComponentType.PARAMETERS_SHA256_DIGEST) {
+					result.append("params-sha256=");
+					net.named_data.jndn.util.Blob.toHex(value_.buf(), result);
+					return;
+				}
 	
 				if (type_ != net.named_data.jndn.ComponentType.GENERIC) {
 					result.append((type_ == net.named_data.jndn.ComponentType.OTHER_CODE) ? otherTypeCode_
@@ -355,6 +366,15 @@ namespace net.named_data.jndn {
 			/// <returns>True if this is an ImplicitSha256Digest component.</returns>
 			public bool isImplicitSha256Digest() {
 				return type_ == net.named_data.jndn.ComponentType.IMPLICIT_SHA256_DIGEST;
+			}
+	
+			/// <summary>
+			/// Check if this component is a ParametersSha256Digest component.
+			/// </summary>
+			///
+			/// <returns>True if this is a ParametersSha256Digest component.</returns>
+			public bool isParametersSha256Digest() {
+				return type_ == net.named_data.jndn.ComponentType.PARAMETERS_SHA256_DIGEST;
 			}
 	
 			/// <summary>
@@ -625,6 +645,36 @@ namespace net.named_data.jndn {
 			}
 	
 			/// <summary>
+			/// Create a component of type ParametersSha256DigestComponent, so that
+			/// isParametersSha256Digest() is true.
+			/// </summary>
+			///
+			/// <param name="digest">The SHA-256 digest value.</param>
+			/// <returns>The new Component.</returns>
+			/// <exception cref="EncodingException">If the digest length is not 32 bytes.</exception>
+			public static Name.Component  fromParametersSha256Digest(Blob digest) {
+				if (digest.size() != 32)
+					throw new EncodingException(
+							"Name.Component.fromParametersSha256Digest: The digest length must be 32 bytes");
+	
+				Name.Component  result = new Name.Component (digest);
+				result.type_ = net.named_data.jndn.ComponentType.PARAMETERS_SHA256_DIGEST;
+				return result;
+			}
+	
+			/// <summary>
+			/// Create a component of type ParametersSha256DigestComponent, so that
+			/// isParametersSha256Digest() is true.
+			/// </summary>
+			///
+			/// <param name="digest">The SHA-256 digest value.</param>
+			/// <returns>The new Component.</returns>
+			/// <exception cref="EncodingException">If the digest length is not 32 bytes.</exception>
+			public static Name.Component  fromParametersSha256Digest(byte[] digest) {
+				return fromParametersSha256Digest(new Blob(digest));
+			}
+	
+			/// <summary>
 			/// Get the successor of this component, as described in Name.getSuccessor.
 			/// </summary>
 			///
@@ -869,6 +919,7 @@ namespace net.named_data.jndn {
 	
 			// Unescape the components.
 			String sha256digestPrefix = "sha256digest=";
+			String paramsSha256Prefix = "params-sha256=";
 			while (iComponentStart < uri.Length) {
 				int iComponentEnd = ILOG.J2CsMapping.Util.StringUtil.IndexOf(uri,"/",iComponentStart);
 				if (iComponentEnd < 0)
@@ -884,6 +935,15 @@ namespace net.named_data.jndn {
 					} catch (EncodingException ex) {
 						throw new Exception(ex.Message);
 					}
+				} else if (paramsSha256Prefix.regionMatches(0, uri,
+						iComponentStart, paramsSha256Prefix.Length)) {
+					try {
+						component = net.named_data.jndn.Name.Component.fromParametersSha256Digest(fromHex(
+								uri, iComponentStart + paramsSha256Prefix.Length,
+								iComponentEnd));
+					} catch (EncodingException ex_0) {
+						throw new Exception(ex_0.Message);
+					}
 				} else {
 					ComponentType type = net.named_data.jndn.ComponentType.GENERIC;
 					int otherTypeCode = -1;
@@ -894,19 +954,24 @@ namespace net.named_data.jndn {
 						String typeString = uri.Substring(iComponentStart,(iTypeCodeEnd)-(iComponentStart));
 						try {
 							otherTypeCode = Int32.Parse(typeString);
-						} catch (FormatException ex_0) {
+						} catch (FormatException ex_1) {
 							throw new Exception(
 									"Can't parse decimal Name Component type: "
 											+ typeString + " in URI " + uri);
 						}
 	
-						if (otherTypeCode == net.named_data.jndn.ComponentType.GENERIC.getNumericType()
-								|| otherTypeCode == net.named_data.jndn.ComponentType.IMPLICIT_SHA256_DIGEST
-										.getNumericType())
-							throw new Exception("Unexpected Name Component type: "
-									+ typeString + " in URI " + uri);
+						// Allow for a decimal value of recognized component types.
+						if (otherTypeCode == net.named_data.jndn.ComponentType.GENERIC.getNumericType())
+							type = net.named_data.jndn.ComponentType.GENERIC;
+						else if (otherTypeCode == net.named_data.jndn.ComponentType.IMPLICIT_SHA256_DIGEST
+								.getNumericType())
+							type = net.named_data.jndn.ComponentType.IMPLICIT_SHA256_DIGEST;
+						else if (otherTypeCode == net.named_data.jndn.ComponentType.PARAMETERS_SHA256_DIGEST
+								.getNumericType())
+							type = net.named_data.jndn.ComponentType.PARAMETERS_SHA256_DIGEST;
+						else
+							type = net.named_data.jndn.ComponentType.OTHER_CODE;
 	
-						type = net.named_data.jndn.ComponentType.OTHER_CODE;
 						iComponentStart = iTypeCodeEnd + 1;
 					}
 	
@@ -934,6 +999,7 @@ namespace net.named_data.jndn {
 		/// <summary>
 		/// Append a new GENERIC component, copying from value.
 		/// (To append an ImplicitSha256Digest component, use appendImplicitSha256Digest.)
+		/// (To append a ParametersSha256Digest component, use appendParametersSha256Digest.)
 		/// </summary>
 		///
 		/// <param name="value">The component value.</param>
@@ -945,6 +1011,7 @@ namespace net.named_data.jndn {
 		/// <summary>
 		/// Append a new component of the given type, copying from value.
 		/// (To append an ImplicitSha256Digest component, use appendImplicitSha256Digest.)
+		/// (To append a ParametersSha256Digest component, use appendParametersSha256Digest.)
 		/// </summary>
 		///
 		/// <param name="value">The component value.</param>
@@ -961,6 +1028,7 @@ namespace net.named_data.jndn {
 		/// <summary>
 		/// Append a new component of the given type, copying from value.
 		/// (To append an ImplicitSha256Digest component, use appendImplicitSha256Digest.)
+		/// (To append a ParametersSha256Digest component, use appendParametersSha256Digest.)
 		/// </summary>
 		///
 		/// <param name="value">The component value.</param>
@@ -974,6 +1042,7 @@ namespace net.named_data.jndn {
 		/// <summary>
 		/// Append a new GENERIC component, using the existing Blob value.
 		/// (To append an ImplicitSha256Digest component, use appendImplicitSha256Digest.)
+		/// (To append a ParametersSha256Digest component, use appendParametersSha256Digest.)
 		/// </summary>
 		///
 		/// <param name="value">The component value.</param>
@@ -985,6 +1054,7 @@ namespace net.named_data.jndn {
 		/// <summary>
 		/// Append a new component of the given type, using the existing Blob value.
 		/// (To append an ImplicitSha256Digest component, use appendImplicitSha256Digest.)
+		/// (To append a ParametersSha256Digest component, use appendParametersSha256Digest.)
 		/// </summary>
 		///
 		/// <param name="value">The component value.</param>
@@ -1001,6 +1071,7 @@ namespace net.named_data.jndn {
 		/// <summary>
 		/// Append a new component of the given type, using the existing Blob value.
 		/// (To append an ImplicitSha256Digest component, use appendImplicitSha256Digest.)
+		/// (To append a ParametersSha256Digest component, use appendParametersSha256Digest.)
 		/// </summary>
 		///
 		/// <param name="value">The component value.</param>
@@ -1249,6 +1320,30 @@ namespace net.named_data.jndn {
 		/// <exception cref="EncodingException">If the digest length is not 32 bytes.</exception>
 		public Name appendImplicitSha256Digest(byte[] digest) {
 			return append(net.named_data.jndn.Name.Component.fromImplicitSha256Digest(digest));
+		}
+	
+		/// <summary>
+		/// Append a component of type ParametersSha256DigestComponent, so that
+		/// ParametersSha256DigestComponent() is true.
+		/// </summary>
+		///
+		/// <param name="digest">The SHA-256 digest value.</param>
+		/// <returns>This name so that you can chain calls to append.</returns>
+		/// <exception cref="EncodingException">If the digest length is not 32 bytes.</exception>
+		public Name appendParametersSha256Digest(Blob digest) {
+			return append(net.named_data.jndn.Name.Component.fromParametersSha256Digest(digest));
+		}
+	
+		/// <summary>
+		/// Append a component of type ParametersSha256DigestComponent, so that
+		/// ParametersSha256DigestComponent() is true.
+		/// </summary>
+		///
+		/// <param name="digest">The SHA-256 digest value.</param>
+		/// <returns>This name so that you can chain calls to append.</returns>
+		/// <exception cref="EncodingException">If the digest length is not 32 bytes.</exception>
+		public Name appendParametersSha256Digest(byte[] digest) {
+			return append(net.named_data.jndn.Name.Component.fromParametersSha256Digest(digest));
 		}
 	
 		/// <summary>

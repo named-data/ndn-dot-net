@@ -750,6 +750,8 @@ namespace net.named_data.jndn.encoding {
 			Blob value_ren = new Blob(decoder.readBlobTlv(type), copy);
 			if (type == net.named_data.jndn.encoding.tlv.Tlv.ImplicitSha256DigestComponent)
 				return net.named_data.jndn.Name.Component.fromImplicitSha256Digest(value_ren);
+			else if (type == net.named_data.jndn.encoding.tlv.Tlv.ParametersSha256DigestComponent)
+				return net.named_data.jndn.Name.Component.fromParametersSha256Digest(value_ren);
 			else if (type == net.named_data.jndn.encoding.tlv.Tlv.NameComponent)
 				return new Name.Component(value_ren);
 			else

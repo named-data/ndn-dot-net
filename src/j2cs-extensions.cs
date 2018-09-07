@@ -82,6 +82,8 @@ namespace net.named_data.jndn.util {
       // The C# enum values are automatically assigned 0, 1, 2, etc. We must be explicit.
       if (componentType == ComponentType.IMPLICIT_SHA256_DIGEST)
         return 1;
+      else if (componentType == ComponentType.PARAMETERS_SHA256_DIGEST)
+        return 2;
       else if (componentType ==  ComponentType.GENERIC)
         return 8;
       else if (componentType ==  ComponentType.OTHER_CODE)

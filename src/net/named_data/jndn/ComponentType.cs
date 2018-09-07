@@ -25,5 +25,5 @@ namespace net.named_data.jndn {
 	/// </summary>
 	///
 	public enum ComponentType {
-		IMPLICIT_SHA256_DIGEST, GENERIC, OTHER_CODE}
+		IMPLICIT_SHA256_DIGEST, PARAMETERS_SHA256_DIGEST, GENERIC, OTHER_CODE}
 }
