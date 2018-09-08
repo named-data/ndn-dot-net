@@ -1324,7 +1324,7 @@ namespace net.named_data.jndn {
 	
 		/// <summary>
 		/// Append a component of type ParametersSha256DigestComponent, so that
-		/// ParametersSha256DigestComponent() is true.
+		/// isParametersSha256Digest() is true.
 		/// </summary>
 		///
 		/// <param name="digest">The SHA-256 digest value.</param>
@@ -1336,7 +1336,7 @@ namespace net.named_data.jndn {
 	
 		/// <summary>
 		/// Append a component of type ParametersSha256DigestComponent, so that
-		/// ParametersSha256DigestComponent() is true.
+		/// isParametersSha256Digest() is true.
 		/// </summary>
 		///
 		/// <param name="digest">The SHA-256 digest value.</param>
@@ -1401,7 +1401,7 @@ namespace net.named_data.jndn {
 		/// In plain words, the successor of a name is the same name, but with its last
 		/// component advanced to a next possible value.
 		/// Examples:
-		/// - The successor of / is /%00
+		/// - The successor of / is /sha256digest=0000000000000000000000000000000000000000000000000000000000000000
 		/// - The successor of /%00%01/%01%02 is /%00%01/%01%03
 		/// - The successor of /%00%01/%01%FF is /%00%01/%02%00
 		/// - The successor of /%00%01/%FF%FF is /%00%01/%00%00%00
@@ -1409,12 +1409,10 @@ namespace net.named_data.jndn {
 		///
 		/// <returns>A new name which is the successor of this.</returns>
 		public Name getSuccessor() {
-			if (size() == 0) {
-				// Return "/%00".
-				Name result = new Name();
-				result.append(new byte[1]);
-				return result;
-			} else
+			if (size() == 0)
+				return new Name(
+						"/sha256digest=0000000000000000000000000000000000000000000000000000000000000000");
+			else
 				return getPrefix(-1).append(get(-1).getSuccessor());
 		}
 	

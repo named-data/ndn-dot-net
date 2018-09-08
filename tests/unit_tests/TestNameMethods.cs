@@ -261,7 +261,10 @@ namespace net.named_data.jndn.tests.unit_tests {
 					"ndn:/%00%01/%01%FF").getSuccessor());
 			Assert.AssertEquals(new Name("ndn:/%00%01/%00%00%00"), new Name(
 					"ndn:/%00%01/%FF%FF").getSuccessor());
-			Assert.AssertEquals(new Name("/%00"), new Name().getSuccessor());
+			Assert.AssertEquals(
+					new Name(
+							"/sha256digest=0000000000000000000000000000000000000000000000000000000000000000"),
+					new Name().getSuccessor());
 			Assert.AssertEquals(new Name("/%00%01/%00"),
 					new Name("/%00%01/...").getSuccessor());
 		}

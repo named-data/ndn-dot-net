@@ -269,10 +269,10 @@ namespace net.named_data.jndn.security.tpm {
 					Blob salt;
 					int nIterations;
 					try {
-						IList Pbkdf2ParametersChildren = ((DerNode.DerSequence) keyDerivationParameters)
+						IList pbkdf2ParametersChildren = ((DerNode.DerSequence) keyDerivationParameters)
 								.getChildren();
-						salt = (Blob) ((DerNode.DerOctetString) Pbkdf2ParametersChildren[0]).toVal();
-						nIterations = (int) ((DerNode.DerInteger) Pbkdf2ParametersChildren[1]).toVal();
+						salt = (Blob) ((DerNode.DerOctetString) pbkdf2ParametersChildren[0]).toVal();
+						nIterations = (int) ((DerNode.DerInteger) pbkdf2ParametersChildren[1]).toVal();
 					} catch (Exception ex_1) {
 						throw new TpmPrivateKey.Error(
 								"Cannot decode the PBES2 parameters: " + ex_1);
