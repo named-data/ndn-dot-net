@@ -20,6 +20,7 @@ namespace net.named_data.jndn.tests.integration_tests {
 	using net.named_data.jndn;
 	using net.named_data.jndn.encoding;
 	using net.named_data.jndn.encrypt;
+	using net.named_data.jndn.in_memory_storage;
 	using net.named_data.jndn.security;
 	using net.named_data.jndn.security.pib;
 	using net.named_data.jndn.security.tpm;

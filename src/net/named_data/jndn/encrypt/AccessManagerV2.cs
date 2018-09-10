@@ -21,6 +21,7 @@ namespace net.named_data.jndn.encrypt {
 	using javax.crypto;
 	using net.named_data.jndn;
 	using net.named_data.jndn.encoding;
+	using net.named_data.jndn.in_memory_storage;
 	using net.named_data.jndn.security;
 	using net.named_data.jndn.security.certificate;
 	using net.named_data.jndn.security.pib;

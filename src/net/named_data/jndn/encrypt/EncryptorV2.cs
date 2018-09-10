@@ -20,6 +20,7 @@ namespace net.named_data.jndn.encrypt {
 	using javax.crypto;
 	using javax.crypto.spec;
 	using net.named_data.jndn;
+	using net.named_data.jndn.in_memory_storage;
 	using net.named_data.jndn.security;
 	using net.named_data.jndn.security.certificate;
 	using net.named_data.jndn.security.v2;
@@ -132,15 +133,15 @@ namespace net.named_data.jndn.encrypt {
 				}
 		
 				private readonly EncryptorV2 outer_EncryptorV2;
-				private readonly net.named_data.jndn.encrypt.EncryptError.OnError  onError;
 				private readonly int nTriesLeft;
 				private readonly IRunnable onReady;
+				private readonly net.named_data.jndn.encrypt.EncryptError.OnError  onError;
 		
-				public Anonymous_C1(EncryptorV2 paramouter_EncryptorV2,
-						net.named_data.jndn.encrypt.EncryptError.OnError  onError_0, int nTriesLeft_1, IRunnable onReady_2) {
-					this.onError = onError_0;
-					this.nTriesLeft = nTriesLeft_1;
-					this.onReady = onReady_2;
+				public Anonymous_C1(EncryptorV2 paramouter_EncryptorV2, int nTriesLeft_0,
+						IRunnable onReady_1, net.named_data.jndn.encrypt.EncryptError.OnError  onError_2) {
+					this.nTriesLeft = nTriesLeft_0;
+					this.onReady = onReady_1;
+					this.onError = onError_2;
 					this.outer_EncryptorV2 = paramouter_EncryptorV2;
 				}
 		
@@ -190,15 +191,15 @@ namespace net.named_data.jndn.encrypt {
 				}
 		
 				internal readonly EncryptorV2 outer_EncryptorV2;
-				internal readonly int nTriesLeft;
-				internal readonly IRunnable onReady;
 				internal readonly net.named_data.jndn.encrypt.EncryptError.OnError  onError;
+				internal readonly IRunnable onReady;
+				internal readonly int nTriesLeft;
 		
-				public Anonymous_C0(EncryptorV2 paramouter_EncryptorV2, int nTriesLeft_0,
-						IRunnable onReady_1, net.named_data.jndn.encrypt.EncryptError.OnError  onError_2) {
-					this.nTriesLeft = nTriesLeft_0;
+				public Anonymous_C0(EncryptorV2 paramouter_EncryptorV2,
+						net.named_data.jndn.encrypt.EncryptError.OnError  onError_0, IRunnable onReady_1, int nTriesLeft_2) {
+					this.onError = onError_0;
 					this.onReady = onReady_1;
-					this.onError = onError_2;
+					this.nTriesLeft = nTriesLeft_2;
 					this.outer_EncryptorV2 = paramouter_EncryptorV2;
 				}
 		
@@ -378,7 +379,7 @@ namespace net.named_data.jndn.encrypt {
 			try {
 				kekPendingInterestId_ = face_.expressInterest(new Interest(
 						new Name(accessPrefix_).append(NAME_COMPONENT_KEK))
-						.setMustBeFresh(true).setCanBePrefix(true), new EncryptorV2.Anonymous_C2 (this, onReady_0, onError_1), new EncryptorV2.Anonymous_C1 (this, onError_1, nTriesLeft_2, onReady_0), new EncryptorV2.Anonymous_C0 (this, nTriesLeft_2, onReady_0, onError_1));
+						.setMustBeFresh(true).setCanBePrefix(true), new EncryptorV2.Anonymous_C2 (this, onReady_0, onError_1), new EncryptorV2.Anonymous_C1 (this, nTriesLeft_2, onReady_0, onError_1), new EncryptorV2.Anonymous_C0 (this, onError_1, onReady_0, nTriesLeft_2));
 			} catch (Exception ex) {
 				onError_1.onError(net.named_data.jndn.encrypt.EncryptError.ErrorCode.General,
 						"expressInterest error: " + ex);

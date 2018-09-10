@@ -18,8 +18,8 @@ namespace net.named_data.jndn.tests.integration_tests {
 	using System.Runtime.CompilerServices;
 	using net.named_data.jndn;
 	using net.named_data.jndn.encoding;
-	using net.named_data.jndn.encrypt;
 	using net.named_data.jndn.impl;
+	using net.named_data.jndn.in_memory_storage;
 	using net.named_data.jndn.util;
 	
 	/// <summary>
