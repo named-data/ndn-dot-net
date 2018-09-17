@@ -652,12 +652,14 @@ namespace net.named_data.jndn.util {
 				face_ = face;
 	
 				// Set up timeoutTimeMilliseconds_.
-				if (interest_.getInterestLifetimeMilliseconds() >= 0.0d)
-					timeoutTimeMilliseconds_ = net.named_data.jndn.util.Common.getNowMilliseconds()
-							+ interest_.getInterestLifetimeMilliseconds();
-				else
-					// No timeout.
-					timeoutTimeMilliseconds_ = -1.0d;
+				double interestLifetime = interest_
+						.getInterestLifetimeMilliseconds();
+				if (interestLifetime < 0.0d)
+					// The InterestLifetime is omitted, so use a default.
+					interestLifetime = 4000.0d;
+	
+				timeoutTimeMilliseconds_ = net.named_data.jndn.util.Common.getNowMilliseconds()
+						+ interestLifetime;
 			}
 	
 			/// <summary>
@@ -683,8 +685,7 @@ namespace net.named_data.jndn.util {
 			/// <param name="nowMilliseconds"></param>
 			/// <returns>True if this interest timed out, otherwise false.</returns>
 			public bool isTimedOut(double nowMilliseconds) {
-				return timeoutTimeMilliseconds_ >= 0.0d
-						&& nowMilliseconds >= timeoutTimeMilliseconds_;
+				return nowMilliseconds >= timeoutTimeMilliseconds_;
 			}
 	
 			private readonly Interest interest_;
