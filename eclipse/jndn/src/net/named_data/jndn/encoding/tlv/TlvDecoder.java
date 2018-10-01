@@ -147,7 +147,8 @@ public class TlvDecoder {
    * critical, throw an exception. If true, then skip the unrecognized type code
    * without error.
    * @throws EncodingException if the TLV length does not equal the total length
-   * of the nested TLVs.
+   * of the nested TLVs, or if skipCritical is false and the unrecognized type
+   * code to skip is critical.
    */
   public final void
   finishNestedTlvs(int endOffset, boolean skipCritical) throws EncodingException
@@ -189,7 +190,7 @@ public class TlvDecoder {
    * @param endOffset The offset of the end of the parent TLV, returned
    * by readNestedTlvsStart.
    * @throws EncodingException if the TLV length does not equal the total length
-   * of the nested TLVs.
+   * of the nested TLVs, or the unrecognized type code to skip is critical.
    */
   public final void
   finishNestedTlvs(int endOffset) throws EncodingException
@@ -369,6 +370,35 @@ public class TlvDecoder {
     }
     else
       return false;
+  }
+
+  /**
+   * Decode the type and length from the input starting at the input buffer
+   * position, expecting the type to be expectedType, then skip (and ignore) the
+   * value.
+   * @param expectedType The expected type as a 32-bit Java int.
+   * @throws EncodingException if did not get the expected TLV type.
+   */
+  public final void
+  skipTlv(int expectedType) throws EncodingException
+  {
+    int length = readTypeAndLength(expectedType);
+    // readTypeAndLength already checked if length exceeds the input buffer.
+    input_.position(input_.position() + length);
+  }
+
+  /**
+   * Peek at the next TLV, and if it has the expectedType then call skipTlv to
+   * skip (and ignore) it.
+   * @param expectedType The expected type as a 32-bit Java int.
+   * @param endOffset The offset of the end of the parent TLV, returned
+   * by readNestedTlvsStart.
+   */
+  public final void
+  skipOptionalTlv(int expectedType, int endOffset) throws EncodingException
+  {
+    if (peekType(expectedType, endOffset))
+      skipTlv(expectedType);
   }
 
   /**

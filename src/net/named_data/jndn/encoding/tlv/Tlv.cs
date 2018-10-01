@@ -83,10 +83,17 @@ namespace net.named_data.jndn.encoding.tlv {
 		public const int ControlParameters_ControlParameters = 104;
 		public const int ControlParameters_FaceId = 105;
 		public const int ControlParameters_Uri = 114;
+		public const int ControlParameters_LocalUri = 129;
 		public const int ControlParameters_LocalControlFeature = 110;
 		public const int ControlParameters_Origin = 111;
 		public const int ControlParameters_Cost = 106;
+		public const int ControlParameters_Capacity = 131;
+		public const int ControlParameters_Count = 132;
+		public const int ControlParameters_BaseCongestionMarkingInterval = 135;
+		public const int ControlParameters_DefaultCongestionThreshold = 136;
+		public const int ControlParameters_Mtu = 137;
 		public const int ControlParameters_Flags = 108;
+		public const int ControlParameters_Mask = 112;
 		public const int ControlParameters_Strategy = 107;
 		public const int ControlParameters_ExpirationPeriod = 109;
 	

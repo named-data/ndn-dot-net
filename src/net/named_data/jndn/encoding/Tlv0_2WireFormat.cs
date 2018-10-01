@@ -388,7 +388,9 @@ namespace net.named_data.jndn.encoding {
 			} else
 				controlResponse.setBodyAsControlParameters(null);
 	
-			decoder.finishNestedTlvs(endOffset);
+			// The NFD management protocol is at the application-layer, so skip
+			// unrecognized type codes.
+			decoder.finishNestedTlvs(endOffset, true);
 		}
 	
 		/// <summary>
@@ -1279,6 +1281,8 @@ namespace net.named_data.jndn.encoding {
 				controlParameters.setUri("" + uri);
 			}
 	
+			decoder.skipOptionalTlv(net.named_data.jndn.encoding.tlv.Tlv.ControlParameters_LocalUri, endOffset);
+	
 			// decode integers
 			controlParameters.setLocalControlFeature((int) decoder
 					.readOptionalNonNegativeIntegerTlv(
@@ -1290,6 +1294,14 @@ namespace net.named_data.jndn.encoding {
 					.readOptionalNonNegativeIntegerTlv(net.named_data.jndn.encoding.tlv.Tlv.ControlParameters_Cost,
 							endOffset));
 	
+			decoder.skipOptionalTlv(net.named_data.jndn.encoding.tlv.Tlv.ControlParameters_Capacity, endOffset);
+			decoder.skipOptionalTlv(net.named_data.jndn.encoding.tlv.Tlv.ControlParameters_Count, endOffset);
+			decoder.skipOptionalTlv(
+					net.named_data.jndn.encoding.tlv.Tlv.ControlParameters_BaseCongestionMarkingInterval, endOffset);
+			decoder.skipOptionalTlv(
+					net.named_data.jndn.encoding.tlv.Tlv.ControlParameters_DefaultCongestionThreshold, endOffset);
+			decoder.skipOptionalTlv(net.named_data.jndn.encoding.tlv.Tlv.ControlParameters_Mtu, endOffset);
+	
 			// set forwarding flags
 			if (decoder.peekType(net.named_data.jndn.encoding.tlv.Tlv.ControlParameters_Flags, endOffset)) {
 				ForwardingFlags flags = new ForwardingFlags();
@@ -1297,6 +1309,8 @@ namespace net.named_data.jndn.encoding {
 						.readNonNegativeIntegerTlv(net.named_data.jndn.encoding.tlv.Tlv.ControlParameters_Flags));
 				controlParameters.setForwardingFlags(flags);
 			}
+	
+			decoder.skipOptionalTlv(net.named_data.jndn.encoding.tlv.Tlv.ControlParameters_Mask, endOffset);
 	
 			// decode strategy
 			if (decoder.peekType(net.named_data.jndn.encoding.tlv.Tlv.ControlParameters_Strategy, endOffset)) {
@@ -1312,7 +1326,9 @@ namespace net.named_data.jndn.encoding {
 					.readOptionalNonNegativeIntegerTlv(
 							net.named_data.jndn.encoding.tlv.Tlv.ControlParameters_ExpirationPeriod, endOffset));
 	
-			decoder.finishNestedTlvs(endOffset);
+			// The NFD management protocol is at the application-layer, so skip
+			// unrecognized type codes.
+			decoder.finishNestedTlvs(endOffset, true);
 		}
 	
 		/// <summary>

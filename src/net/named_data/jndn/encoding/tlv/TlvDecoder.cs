@@ -126,7 +126,7 @@ namespace net.named_data.jndn.encoding.tlv {
 		///
 		/// <param name="endOffset"></param>
 		/// <param name="skipCritical">without error.</param>
-		/// <exception cref="EncodingException">if the TLV length does not equal the total lengthof the nested TLVs.</exception>
+		/// <exception cref="EncodingException">if the TLV length does not equal the total lengthof the nested TLVs, or if skipCritical is false and the unrecognized typecode to skip is critical.</exception>
 		public void finishNestedTlvs(int endOffset, bool skipCritical) {
 			// We expect the position to be endOffset, so check this first.
 			if (input_.position() == endOffset)
@@ -166,7 +166,7 @@ namespace net.named_data.jndn.encoding.tlv {
 		/// </summary>
 		///
 		/// <param name="endOffset"></param>
-		/// <exception cref="EncodingException">if the TLV length does not equal the total lengthof the nested TLVs.</exception>
+		/// <exception cref="EncodingException">if the TLV length does not equal the total lengthof the nested TLVs, or the unrecognized type code to skip is critical.</exception>
 		public void finishNestedTlvs(int endOffset) {
 			finishNestedTlvs(endOffset, false);
 		}
@@ -330,6 +330,32 @@ namespace net.named_data.jndn.encoding.tlv {
 				return true;
 			} else
 				return false;
+		}
+	
+		/// <summary>
+		/// Decode the type and length from the input starting at the input buffer
+		/// position, expecting the type to be expectedType, then skip (and ignore) the
+		/// value.
+		/// </summary>
+		///
+		/// <param name="expectedType">The expected type as a 32-bit Java int.</param>
+		/// <exception cref="EncodingException">if did not get the expected TLV type.</exception>
+		public void skipTlv(int expectedType) {
+			int length = readTypeAndLength(expectedType);
+			// readTypeAndLength already checked if length exceeds the input buffer.
+			input_.position(input_.position() + length);
+		}
+	
+		/// <summary>
+		/// Peek at the next TLV, and if it has the expectedType then call skipTlv to
+		/// skip (and ignore) it.
+		/// </summary>
+		///
+		/// <param name="expectedType">The expected type as a 32-bit Java int.</param>
+		/// <param name="endOffset"></param>
+		public void skipOptionalTlv(int expectedType, int endOffset) {
+			if (peekType(expectedType, endOffset))
+				skipTlv(expectedType);
 		}
 	
 		/// <summary>

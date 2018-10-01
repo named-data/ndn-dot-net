@@ -474,7 +474,9 @@ public class Tlv0_2WireFormat extends WireFormat {
     else
       controlResponse.setBodyAsControlParameters(null);
 
-    decoder.finishNestedTlvs(endOffset);
+    // The NFD management protocol is at the application-layer, so skip
+    // unrecognized type codes.
+    decoder.finishNestedTlvs(endOffset, true);
   }
 
   /**
@@ -1438,6 +1440,8 @@ public class Tlv0_2WireFormat extends WireFormat {
       controlParameters.setUri("" + uri);
     }
 
+    decoder.skipOptionalTlv(Tlv.ControlParameters_LocalUri, endOffset);
+
     // decode integers
     controlParameters.setLocalControlFeature((int) decoder.
       readOptionalNonNegativeIntegerTlv(
@@ -1448,6 +1452,14 @@ public class Tlv0_2WireFormat extends WireFormat {
     controlParameters.setCost((int) decoder.readOptionalNonNegativeIntegerTlv(
       Tlv.ControlParameters_Cost, endOffset));
 
+    decoder.skipOptionalTlv(Tlv.ControlParameters_Capacity, endOffset);
+    decoder.skipOptionalTlv(Tlv.ControlParameters_Count, endOffset);
+    decoder.skipOptionalTlv
+      (Tlv.ControlParameters_BaseCongestionMarkingInterval, endOffset);
+    decoder.skipOptionalTlv
+      (Tlv.ControlParameters_DefaultCongestionThreshold, endOffset);
+    decoder.skipOptionalTlv(Tlv.ControlParameters_Mtu, endOffset);
+
     // set forwarding flags
     if (decoder.peekType(Tlv.ControlParameters_Flags, endOffset)) {
       ForwardingFlags flags = new ForwardingFlags();
@@ -1455,6 +1467,8 @@ public class Tlv0_2WireFormat extends WireFormat {
         readNonNegativeIntegerTlv(Tlv.ControlParameters_Flags));
       controlParameters.setForwardingFlags(flags);
     }
+
+    decoder.skipOptionalTlv(Tlv.ControlParameters_Mask, endOffset);
 
     // decode strategy
     if (decoder.peekType(Tlv.ControlParameters_Strategy, endOffset)) {
@@ -1470,7 +1484,9 @@ public class Tlv0_2WireFormat extends WireFormat {
       (decoder.readOptionalNonNegativeIntegerTlv
        (Tlv.ControlParameters_ExpirationPeriod, endOffset));
 
-    decoder.finishNestedTlvs(endOffset);
+    // The NFD management protocol is at the application-layer, so skip
+    // unrecognized type codes.
+    decoder.finishNestedTlvs(endOffset, true);
   }
 
   /**
