@@ -25,9 +25,9 @@ namespace net.named_data.jndn.tests.integration_tests {
 	/// <summary>
 	/// InMemoryStorageFace extends Face to hold an InMemoryStorageRetaining and
 	/// use it in expressInterest to instantly reply to an Interest. It also allows
-	/// one simple call to registerPrefix to remember the OnInterestCallback. This
-	/// also keeps a local DelayedCallTable (to use for callLater) so that you can
-	/// call its setNowOffsetMilliseconds_ for testing.
+	/// calls to registerPrefix to remember an OnInterestCallback. This also keeps a
+	/// local DelayedCallTable (to use for callLater) so that you can call its
+	/// setNowOffsetMilliseconds_ for testing.
 	/// </summary>
 	///
 	public class InMemoryStorageFace : Face {
@@ -48,6 +48,7 @@ namespace net.named_data.jndn.tests.integration_tests {
 		public override long expressInterest(Interest interest, OnData onData,
 				OnTimeout onTimeout, OnNetworkNack onNetworkNack,
 				WireFormat wireFormat) {
+			// Make a copy of the interest.
 			ILOG.J2CsMapping.Collections.Collections.Add(sentInterests_,new Interest(interest));
 	
 			Data data = storage_.find(interest);
@@ -85,8 +86,8 @@ namespace net.named_data.jndn.tests.integration_tests {
 		}
 	
 		/// <summary>
-		/// If registerPrefix has been called and the Interest matches the saved
-		/// registeredPrefix_, call the saved registeredOnInterest_.
+		/// For each entry from calls to registerPrefix where the Interest matches the
+		/// prefix, call its OnInterest callback.
 		/// </summary>
 		///
 		/// <param name="interest"></param>

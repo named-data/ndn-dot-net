@@ -87,7 +87,7 @@ namespace net.named_data.jndn.tests.integration_tests {
 			fixture_ = new TestEncryptorV2.EncryptorFixture (true, new TestEncryptorV2.Anonymous_C1 ());
 		}
 	
-		public void testEncryptAndPublishedCk() {
+		public void testEncryptAndPublishCk() {
 			fixture_.encryptor_.clearKekData_();
 			Assert.AssertEquals(false, fixture_.encryptor_.getIsKekRetrievalInProgress_());
 			fixture_.encryptor_.regenerateCk();

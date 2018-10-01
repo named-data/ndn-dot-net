@@ -99,13 +99,13 @@ namespace net.named_data.jndn.encrypt {
 	
 		public sealed class Anonymous_C2 : OnData {
 				private readonly EncryptorV2 outer_EncryptorV2;
-				private readonly IRunnable onReady;
 				private readonly net.named_data.jndn.encrypt.EncryptError.OnError  onError;
+				private readonly IRunnable onReady;
 		
 				public Anonymous_C2(EncryptorV2 paramouter_EncryptorV2,
-						IRunnable onReady_0, net.named_data.jndn.encrypt.EncryptError.OnError  onError_1) {
-					this.onReady = onReady_0;
-					this.onError = onError_1;
+						net.named_data.jndn.encrypt.EncryptError.OnError  onError_0, IRunnable onReady_1) {
+					this.onError = onError_0;
+					this.onReady = onReady_1;
 					this.outer_EncryptorV2 = paramouter_EncryptorV2;
 				}
 		
@@ -133,14 +133,14 @@ namespace net.named_data.jndn.encrypt {
 				}
 		
 				private readonly EncryptorV2 outer_EncryptorV2;
-				private readonly int nTriesLeft;
 				private readonly IRunnable onReady;
+				private readonly int nTriesLeft;
 				private readonly net.named_data.jndn.encrypt.EncryptError.OnError  onError;
 		
-				public Anonymous_C1(EncryptorV2 paramouter_EncryptorV2, int nTriesLeft_0,
-						IRunnable onReady_1, net.named_data.jndn.encrypt.EncryptError.OnError  onError_2) {
-					this.nTriesLeft = nTriesLeft_0;
-					this.onReady = onReady_1;
+				public Anonymous_C1(EncryptorV2 paramouter_EncryptorV2,
+						IRunnable onReady_0, int nTriesLeft_1, net.named_data.jndn.encrypt.EncryptError.OnError  onError_2) {
+					this.onReady = onReady_0;
+					this.nTriesLeft = nTriesLeft_1;
 					this.onError = onError_2;
 					this.outer_EncryptorV2 = paramouter_EncryptorV2;
 				}
@@ -191,14 +191,14 @@ namespace net.named_data.jndn.encrypt {
 				}
 		
 				internal readonly EncryptorV2 outer_EncryptorV2;
-				internal readonly net.named_data.jndn.encrypt.EncryptError.OnError  onError;
 				internal readonly IRunnable onReady;
+				internal readonly net.named_data.jndn.encrypt.EncryptError.OnError  onError;
 				internal readonly int nTriesLeft;
 		
 				public Anonymous_C0(EncryptorV2 paramouter_EncryptorV2,
-						net.named_data.jndn.encrypt.EncryptError.OnError  onError_0, IRunnable onReady_1, int nTriesLeft_2) {
-					this.onError = onError_0;
-					this.onReady = onReady_1;
+						IRunnable onReady_0, net.named_data.jndn.encrypt.EncryptError.OnError  onError_1, int nTriesLeft_2) {
+					this.onReady = onReady_0;
+					this.onError = onError_1;
 					this.nTriesLeft = nTriesLeft_2;
 					this.outer_EncryptorV2 = paramouter_EncryptorV2;
 				}
@@ -231,8 +231,8 @@ namespace net.named_data.jndn.encrypt {
 		/// <param name="accessPrefix"></param>
 		/// <param name="ckPrefix"></param>
 		/// <param name="ckDataSigningInfo"></param>
-		/// <param name="onError_0">onError.onError(errorCode, message) where errorCode is from the EncryptError.ErrorCode enum, and message is an error string. The encrypt method will continue trying to retrieve the KEK until success (with each attempt separated by RETRY_DELAY_KEK_RETRIEVAL) and onError may be called multiple times. NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
-		/// <param name="validator">The validation policy to ensure correctness of KEK.</param>
+		/// <param name="onError_0">onError.onError(errorCode, message) where errorCode is from the EncryptError.ErrorCode enum, and message is an error string. The encrypt method will continue trying to retrieve the KEK until success (with each attempt separated by RETRY_DELAY_KEK_RETRIEVAL_MS) and onError may be called multiple times. NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
+		/// <param name="validator">The validation policy to ensure correctness of the KEK.</param>
 		/// <param name="keyChain">The KeyChain used to sign Data packets.</param>
 		/// <param name="face">The Face that will be used to fetch the KEK and publish CK data.</param>
 		public EncryptorV2(Name accessPrefix, Name ckPrefix,
@@ -264,6 +264,13 @@ namespace net.named_data.jndn.encrypt {
 				face_.removePendingInterest(kekPendingInterestId_);
 		}
 	
+		/// <summary>
+		/// Encrypt the plainData using the existing Content Key (CK) and return a new
+		/// EncryptedContent.
+		/// </summary>
+		///
+		/// <param name="plainData">The data to encrypt.</param>
+		/// <returns>The new EncryptedContent.</returns>
 		public EncryptedContent encrypt(byte[] plainData) {
 			// Generate the initial vector.
 			byte[] iv = new byte[AES_IV_SIZE];
@@ -379,7 +386,7 @@ namespace net.named_data.jndn.encrypt {
 			try {
 				kekPendingInterestId_ = face_.expressInterest(new Interest(
 						new Name(accessPrefix_).append(NAME_COMPONENT_KEK))
-						.setMustBeFresh(true).setCanBePrefix(true), new EncryptorV2.Anonymous_C2 (this, onReady_0, onError_1), new EncryptorV2.Anonymous_C1 (this, nTriesLeft_2, onReady_0, onError_1), new EncryptorV2.Anonymous_C0 (this, onError_1, onReady_0, nTriesLeft_2));
+						.setMustBeFresh(true).setCanBePrefix(true), new EncryptorV2.Anonymous_C2 (this, onError_1, onReady_0), new EncryptorV2.Anonymous_C1 (this, onReady_0, nTriesLeft_2, onError_1), new EncryptorV2.Anonymous_C0 (this, onReady_0, onError_1, nTriesLeft_2));
 			} catch (Exception ex) {
 				onError_1.onError(net.named_data.jndn.encrypt.EncryptError.ErrorCode.General,
 						"expressInterest error: " + ex);
