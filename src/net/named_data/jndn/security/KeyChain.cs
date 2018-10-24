@@ -2013,6 +2013,10 @@ namespace net.named_data.jndn.security {
 			// have this problem.
 			tpm_ = createTpm(canonicalTpmLocator);
 			pib_.setTpmLocator(canonicalTpmLocator);
+	
+			// Provide a default NoVerifyPolicyManager, assuming the application will
+			// use a Validator.
+			policyManager_ = new NoVerifyPolicyManager();
 		}
 	
 		/// <summary>
