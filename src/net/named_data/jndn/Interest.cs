@@ -92,6 +92,37 @@ namespace net.named_data.jndn {
 		}
 	
 		/// <summary>
+		/// Create a new Interest with a Name from the given URI string, and "none" for
+		/// other values.
+		/// </summary>
+		///
+		/// <param name="uri">The URI string.</param>
+		public Interest(String uri) {
+			this.name_ = new ChangeCounter(new Name());
+			this.minSuffixComponents_ = -1;
+			this.maxSuffixComponents_ = -1;
+			this.keyLocator_ = new ChangeCounter(
+					new KeyLocator());
+			this.exclude_ = new ChangeCounter(new Exclude());
+			this.childSelector_ = -1;
+			this.mustBeFresh_ = true;
+			this.interestLifetimeMilliseconds_ = -1;
+			this.nonce_ = new Blob();
+			this.getNonceChangeCount_ = 0;
+			this.lpPacket_ = null;
+			this.linkWireEncoding_ = new Blob();
+			this.linkWireEncodingFormat_ = null;
+			this.forwardingHint_ = new ChangeCounter(
+					new DelegationSet());
+			this.link_ = new ChangeCounter(null);
+			this.selectedDelegationIndex_ = -1;
+			this.defaultWireEncoding_ = new SignedBlob();
+			this.getDefaultWireEncodingChangeCount_ = 0;
+			this.changeCount_ = 0;
+			name_.set(new Name(uri));
+		}
+	
+		/// <summary>
 		/// Create a new interest as a deep copy of the given interest.
 		/// </summary>
 		///
