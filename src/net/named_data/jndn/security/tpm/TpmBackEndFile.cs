@@ -137,7 +137,8 @@ namespace net.named_data.jndn.security.tpm {
 			try {
 				key = net.named_data.jndn.security.tpm.TpmPrivateKey.generatePrivateKey(paras);
 			} catch (TpmPrivateKey.Error ex) {
-				throw new TpmBackEndFile.Error ("Error in TpmPrivateKey.generatePrivateKey: " + ex);
+				throw new TpmBackEnd.Error(
+						"Error in TpmPrivateKey.generatePrivateKey: " + ex);
 			}
 			TpmKeyHandle keyHandle = new TpmKeyHandleMemory(key);
 	
@@ -155,6 +156,59 @@ namespace net.named_data.jndn.security.tpm {
 		/// <exception cref="TpmBackEnd.Error">if the deletion fails.</exception>
 		protected internal override void doDeleteKey(Name keyName) {
 			toFilePath(keyName).delete();
+		}
+	
+		/// <summary>
+		/// Get the encoded private key with name keyName in PKCS #8 format, possibly
+		/// password-encrypted.
+		/// </summary>
+		///
+		/// <param name="keyName">The name of the key in the TPM.</param>
+		/// <param name="password">If the password is null, return an unencrypted PKCS #8 PrivateKeyInfo.</param>
+		/// <returns>The encoded private key.</returns>
+		/// <exception cref="TpmBackEnd.Error">if the key does not exist or if the key cannot beexported, e.g., insufficient privileges.</exception>
+		protected internal override Blob doExportKey(Name keyName, ByteBuffer password) {
+			TpmPrivateKey key;
+			try {
+				key = loadKey(keyName);
+			} catch (TpmBackEnd.Error ex) {
+				throw new TpmBackEnd.Error("Cannot export private key: " + ex);
+			}
+	
+			try {
+				if (password != null)
+					return key.toEncryptedPkcs8(password);
+				else
+					return key.toPkcs8();
+			} catch (TpmPrivateKey.Error ex_0) {
+				// We don't expect this since we just decoded it.
+				throw new TpmBackEnd.Error("Error PKCS#8 encoding private key: "
+						+ ex_0);
+			}
+		}
+	
+		/// <summary>
+		/// Import an encoded private key with name keyName in PKCS #8 format, possibly
+		/// password-encrypted.
+		/// </summary>
+		///
+		/// <param name="keyName">The name of the key to use in the TPM.</param>
+		/// <param name="pkcs8">unencrypted PKCS #8 PrivateKeyInfo.</param>
+		/// <param name="password">If the password is null, import an unencrypted PKCS #8 PrivateKeyInfo.</param>
+		/// <exception cref="TpmBackEnd.Error">for an error importing the key.</exception>
+		protected internal override void doImportKey(Name keyName, ByteBuffer pkcs8,
+				ByteBuffer password) {
+			TpmPrivateKey key = new TpmPrivateKey();
+			try {
+				if (password != null)
+					key.loadEncryptedPkcs8(pkcs8, password);
+				else
+					key.loadPkcs8(pkcs8);
+			} catch (TpmPrivateKey.Error ex) {
+				throw new TpmBackEnd.Error("Cannot import private key: " + ex);
+			}
+	
+			saveKey(keyName, key);
 		}
 	
 		/// <summary>
@@ -179,9 +233,9 @@ namespace net.named_data.jndn.security.tpm {
 					reader.close();
 				}
 			} catch (FileNotFoundException ex) {
-				throw new TpmBackEndFile.Error ("Error reading private key file: " + ex);
+				throw new TpmBackEnd.Error("Error reading private key file: " + ex);
 			} catch (IOException ex_0) {
-				throw new TpmBackEndFile.Error ("Error reading private key file: " + ex_0);
+				throw new TpmBackEnd.Error("Error reading private key file: " + ex_0);
 			}
 	
 			byte[] pkcs = net.named_data.jndn.util.Common.base64Decode(base64.toString());
@@ -189,7 +243,7 @@ namespace net.named_data.jndn.security.tpm {
 			try {
 				key.loadPkcs1(ILOG.J2CsMapping.NIO.ByteBuffer.wrap(pkcs),  default(KeyType)/* was: null */);
 			} catch (TpmPrivateKey.Error ex_1) {
-				throw new TpmBackEndFile.Error ("Error decoding private key file: " + ex_1);
+				throw new TpmBackEnd.Error("Error decoding private key file: " + ex_1);
 			}
 			return key;
 		}
@@ -207,7 +261,7 @@ namespace net.named_data.jndn.security.tpm {
 				base64 = net.named_data.jndn.util.Common.base64Encode(key.toPkcs1().getImmutableArray(),
 						true);
 			} catch (TpmPrivateKey.Error ex) {
-				throw new TpmBackEndFile.Error ("Error encoding private key file: " + ex);
+				throw new TpmBackEnd.Error("Error encoding private key file: " + ex);
 			}
 	
 			try {
@@ -221,7 +275,7 @@ namespace net.named_data.jndn.security.tpm {
 					writer.close();
 				}
 			} catch (IOException ex_0) {
-				throw new TpmBackEndFile.Error ("Error writing private key file: " + ex_0);
+				throw new TpmBackEnd.Error("Error writing private key file: " + ex_0);
 			}
 		}
 	
