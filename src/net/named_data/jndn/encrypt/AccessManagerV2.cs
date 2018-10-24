@@ -117,20 +117,20 @@ namespace net.named_data.jndn.encrypt {
 			kekData.getMetaInfo().setFreshnessPeriod(
 					DEFAULT_KEK_FRESHNESS_PERIOD_MS);
 			keyChain_.sign(kekData, new SigningInfo(identity_));
-			// kek looks like a cert, but doesn't have ValidityPeriod
+			// A KEK looks like a certificate, but doesn't have a ValidityPeriod.
 			storage_.insert(kekData);
 	
 			OnInterestCallback serveFromStorage = new AccessManagerV2.Anonymous_C1 (this);
 	
-			OnRegisterFailed registerFailed = new AccessManagerV2.Anonymous_C0 ();
+			OnRegisterFailed onRegisterFailed = new AccessManagerV2.Anonymous_C0 ();
 	
 			kekRegisteredPrefixId_ = face_.registerPrefix(kekPrefix,
-					serveFromStorage, registerFailed);
+					serveFromStorage, onRegisterFailed);
 	
 			Name kdkPrefix = new Name(nacKey_.getIdentityName()).append(
 					net.named_data.jndn.encrypt.EncryptorV2.NAME_COMPONENT_KDK).append(nacKeyId);
 			kdkRegisteredPrefixId_ = face_.registerPrefix(kdkPrefix,
-					serveFromStorage, registerFailed);
+					serveFromStorage, onRegisterFailed);
 		}
 	
 		public void shutdown() {
@@ -158,8 +158,8 @@ namespace net.named_data.jndn.encrypt {
 			net.named_data.jndn.util.Common.getRandom().nextBytes(secret);
 			// To be compatible with OpenSSL which uses a null-terminated string,
 			// replace each 0 with 1. And to be compatible with the Java security
-			// library interprets the secret as a char array converted to UTF8, limit
-			// each byte to the ASCII range 1 to 127.
+			// library which interprets the secret as a char array converted to UTF8,
+			// limit each byte to the ASCII range 1 to 127.
 			for (int i = 0; i < secretLength; ++i) {
 				if (secret[i] == 0)
 					secret[i] = 1;
@@ -179,7 +179,7 @@ namespace net.named_data.jndn.encrypt {
 	
 			Data kdkData = new Data(kdkName);
 			kdkData.setContent(encryptedContent.wireEncodeV2());
-			// FreshnessPeriod can serve as a soft access control for revoking access
+			// FreshnessPeriod can serve as a soft access control for revoking access.
 			kdkData.getMetaInfo().setFreshnessPeriod(
 					DEFAULT_KDK_FRESHNESS_PERIOD_MS);
 			keyChain_.sign(kdkData, new SigningInfo(identity_));
@@ -190,7 +190,7 @@ namespace net.named_data.jndn.encrypt {
 		}
 	
 		/// <summary>
-		/// The number of packets stored in in-memory storage.
+		/// Get the number of packets stored in in-memory storage.
 		/// </summary>
 		///
 		/// <returns>The number of packets.</returns>

@@ -99,13 +99,13 @@ namespace net.named_data.jndn.encrypt {
 	
 		public sealed class Anonymous_C2 : OnData {
 				private readonly EncryptorV2 outer_EncryptorV2;
-				private readonly net.named_data.jndn.encrypt.EncryptError.OnError  onError;
 				private readonly IRunnable onReady;
+				private readonly net.named_data.jndn.encrypt.EncryptError.OnError  onError;
 		
 				public Anonymous_C2(EncryptorV2 paramouter_EncryptorV2,
-						net.named_data.jndn.encrypt.EncryptError.OnError  onError_0, IRunnable onReady_1) {
-					this.onError = onError_0;
-					this.onReady = onReady_1;
+						IRunnable onReady_0, net.named_data.jndn.encrypt.EncryptError.OnError  onError_1) {
+					this.onReady = onReady_0;
+					this.onError = onError_1;
 					this.outer_EncryptorV2 = paramouter_EncryptorV2;
 				}
 		
@@ -133,15 +133,15 @@ namespace net.named_data.jndn.encrypt {
 				}
 		
 				private readonly EncryptorV2 outer_EncryptorV2;
-				private readonly IRunnable onReady;
 				private readonly int nTriesLeft;
 				private readonly net.named_data.jndn.encrypt.EncryptError.OnError  onError;
+				private readonly IRunnable onReady;
 		
-				public Anonymous_C1(EncryptorV2 paramouter_EncryptorV2,
-						IRunnable onReady_0, int nTriesLeft_1, net.named_data.jndn.encrypt.EncryptError.OnError  onError_2) {
-					this.onReady = onReady_0;
-					this.nTriesLeft = nTriesLeft_1;
-					this.onError = onError_2;
+				public Anonymous_C1(EncryptorV2 paramouter_EncryptorV2, int nTriesLeft_0,
+						net.named_data.jndn.encrypt.EncryptError.OnError  onError_1, IRunnable onReady_2) {
+					this.nTriesLeft = nTriesLeft_0;
+					this.onError = onError_1;
+					this.onReady = onReady_2;
 					this.outer_EncryptorV2 = paramouter_EncryptorV2;
 				}
 		
@@ -192,14 +192,14 @@ namespace net.named_data.jndn.encrypt {
 		
 				internal readonly EncryptorV2 outer_EncryptorV2;
 				internal readonly IRunnable onReady;
-				internal readonly net.named_data.jndn.encrypt.EncryptError.OnError  onError;
 				internal readonly int nTriesLeft;
+				internal readonly net.named_data.jndn.encrypt.EncryptError.OnError  onError;
 		
 				public Anonymous_C0(EncryptorV2 paramouter_EncryptorV2,
-						IRunnable onReady_0, net.named_data.jndn.encrypt.EncryptError.OnError  onError_1, int nTriesLeft_2) {
+						IRunnable onReady_0, int nTriesLeft_1, net.named_data.jndn.encrypt.EncryptError.OnError  onError_2) {
 					this.onReady = onReady_0;
-					this.onError = onError_1;
-					this.nTriesLeft = nTriesLeft_2;
+					this.nTriesLeft = nTriesLeft_1;
+					this.onError = onError_2;
 					this.outer_EncryptorV2 = paramouter_EncryptorV2;
 				}
 		
@@ -273,13 +273,13 @@ namespace net.named_data.jndn.encrypt {
 		/// <returns>The new EncryptedContent.</returns>
 		public EncryptedContent encrypt(byte[] plainData) {
 			// Generate the initial vector.
-			byte[] iv = new byte[AES_IV_SIZE];
-			net.named_data.jndn.util.Common.getRandom().nextBytes(iv);
+			byte[] initialVector = new byte[AES_IV_SIZE];
+			net.named_data.jndn.util.Common.getRandom().nextBytes(initialVector);
 	
 			Cipher cipher = javax.crypto.Cipher.getInstance("AES/CBC/PKCS5PADDING");
 			try {
 				cipher.init(javax.crypto.Cipher.ENCRYPT_MODE, new SecretKeySpec(ckBits_, "AES"),
-						new IvParameterSpec(iv));
+						new IvParameterSpec(initialVector));
 			} catch (InvalidKeyException ex) {
 				throw new Exception(
 						"If the error is 'Illegal key size', try installing the "
@@ -289,7 +289,7 @@ namespace net.named_data.jndn.encrypt {
 			byte[] encryptedData = cipher.doFinal(plainData);
 	
 			EncryptedContent content = new EncryptedContent();
-			content.setInitialVector(new Blob(iv, false));
+			content.setInitialVector(new Blob(initialVector, false));
 			content.setPayload(new Blob(encryptedData, false));
 			content.setKeyLocatorName(ckName_);
 	
@@ -322,7 +322,7 @@ namespace net.named_data.jndn.encrypt {
 		}
 	
 		/// <summary>
-		/// The number of packets stored in in-memory storage.
+		/// Get the number of packets stored in in-memory storage.
 		/// </summary>
 		///
 		/// <returns>The number of packets.</returns>
@@ -379,14 +379,15 @@ namespace net.named_data.jndn.encrypt {
 					new Name(accessPrefix_).append(NAME_COMPONENT_KEK));
 	
 			if (kekPendingInterestId_ > 0) {
-				onError_1.onError(net.named_data.jndn.encrypt.EncryptError.ErrorCode.SecurityException,
+				onError_1.onError(net.named_data.jndn.encrypt.EncryptError.ErrorCode.General,
 						"fetchKekAndPublishCkData: There is already a kekPendingInterestId_");
 				return;
 			}
+	
 			try {
 				kekPendingInterestId_ = face_.expressInterest(new Interest(
 						new Name(accessPrefix_).append(NAME_COMPONENT_KEK))
-						.setMustBeFresh(true).setCanBePrefix(true), new EncryptorV2.Anonymous_C2 (this, onError_1, onReady_0), new EncryptorV2.Anonymous_C1 (this, onReady_0, nTriesLeft_2, onError_1), new EncryptorV2.Anonymous_C0 (this, onReady_0, onError_1, nTriesLeft_2));
+						.setMustBeFresh(true).setCanBePrefix(true), new EncryptorV2.Anonymous_C2 (this, onReady_0, onError_1), new EncryptorV2.Anonymous_C1 (this, nTriesLeft_2, onError_1, onReady_0), new EncryptorV2.Anonymous_C0 (this, onReady_0, nTriesLeft_2, onError_1));
 			} catch (Exception ex) {
 				onError_1.onError(net.named_data.jndn.encrypt.EncryptError.ErrorCode.General,
 						"expressInterest error: " + ex);
@@ -411,7 +412,7 @@ namespace net.named_data.jndn.encrypt {
 				Data ckData = new Data(new Name(ckName_).append(
 						NAME_COMPONENT_ENCRYPTED_BY).append(kekData_.getName()));
 				ckData.setContent(content.wireEncodeV2());
-				// FreshnessPeriod can serve as a soft access control for revoking access
+				// FreshnessPeriod can serve as a soft access control for revoking access.
 				ckData.getMetaInfo().setFreshnessPeriod(
 						DEFAULT_CK_FRESHNESS_PERIOD_MS);
 				keyChain_.sign(ckData, ckDataSigningInfo_);

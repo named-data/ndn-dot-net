@@ -35,13 +35,13 @@ namespace net.named_data.jndn.encrypt {
 	public class DecryptorV2 {
 		public sealed class Anonymous_C5 : OnData {
 				private readonly DecryptorV2 outer_DecryptorV2;
-				private readonly net.named_data.jndn.encrypt.EncryptError.OnError  onError;
 				private readonly DecryptorV2.ContentKey  contentKey;
+				private readonly net.named_data.jndn.encrypt.EncryptError.OnError  onError;
 		
 				public Anonymous_C5(DecryptorV2 paramouter_DecryptorV2,
-						net.named_data.jndn.encrypt.EncryptError.OnError  onError_0, DecryptorV2.ContentKey  contentKey_1) {
-					this.onError = onError_0;
-					this.contentKey = contentKey_1;
+						DecryptorV2.ContentKey  contentKey_0, net.named_data.jndn.encrypt.EncryptError.OnError  onError_1) {
+					this.contentKey = contentKey_0;
+					this.onError = onError_1;
 					this.outer_DecryptorV2 = paramouter_DecryptorV2;
 				}
 		
@@ -58,21 +58,19 @@ namespace net.named_data.jndn.encrypt {
 							// The error has already been reported.
 							return;
 		
-						// Check if KDK already exists.
-						PibIdentity kdkIdentity;
+						// Check if the KDK already exists.
+						PibIdentity kdkIdentity = null;
 						try {
 							kdkIdentity = outer_DecryptorV2.internalKeyChain_.getPib()
 									.getIdentity(kdkIdentityName[0]);
 						} catch (Pib.Error ex) {
-							kdkIdentity = null;
 						}
 						if (kdkIdentity != null) {
-							PibKey kdkKey;
+							PibKey kdkKey = null;
 							try {
 								kdkKey = kdkIdentity
 										.getKey(kdkKeyName[0]);
 							} catch (Pib.Error ex_0) {
-								kdkKey = null;
 							}
 							if (kdkKey != null) {
 								// The KDK was already fetched and imported.
@@ -98,17 +96,17 @@ namespace net.named_data.jndn.encrypt {
 	
 		public sealed class Anonymous_C4 : OnTimeout {
 				private readonly DecryptorV2 outer_DecryptorV2;
-				private readonly Name ckName;
-				private readonly DecryptorV2.ContentKey  contentKey;
 				private readonly int nTriesLeft;
+				private readonly DecryptorV2.ContentKey  contentKey;
 				private readonly net.named_data.jndn.encrypt.EncryptError.OnError  onError;
+				private readonly Name ckName;
 		
-				public Anonymous_C4(DecryptorV2 paramouter_DecryptorV2, Name ckName_0,
-						DecryptorV2.ContentKey  contentKey_1, int nTriesLeft_2, net.named_data.jndn.encrypt.EncryptError.OnError  onError_3) {
-					this.ckName = ckName_0;
+				public Anonymous_C4(DecryptorV2 paramouter_DecryptorV2, int nTriesLeft_0,
+						DecryptorV2.ContentKey  contentKey_1, net.named_data.jndn.encrypt.EncryptError.OnError  onError_2, Name ckName_3) {
+					this.nTriesLeft = nTriesLeft_0;
 					this.contentKey = contentKey_1;
-					this.nTriesLeft = nTriesLeft_2;
-					this.onError = onError_3;
+					this.onError = onError_2;
+					this.ckName = ckName_3;
 					this.outer_DecryptorV2 = paramouter_DecryptorV2;
 				}
 		
@@ -127,12 +125,12 @@ namespace net.named_data.jndn.encrypt {
 			}
 	
 		public sealed class Anonymous_C3 : OnNetworkNack {
-			private readonly net.named_data.jndn.encrypt.EncryptError.OnError  onError;
 			private readonly DecryptorV2.ContentKey  contentKey;
+			private readonly net.named_data.jndn.encrypt.EncryptError.OnError  onError;
 	
-			public Anonymous_C3(net.named_data.jndn.encrypt.EncryptError.OnError  onError_0, DecryptorV2.ContentKey  contentKey_1) {
-				this.onError = onError_0;
-				this.contentKey = contentKey_1;
+			public Anonymous_C3(DecryptorV2.ContentKey  contentKey_0, net.named_data.jndn.encrypt.EncryptError.OnError  onError_1) {
+				this.contentKey = contentKey_0;
+				this.onError = onError_1;
 			}
 	
 			public void onNetworkNack(Interest interest,
@@ -149,22 +147,21 @@ namespace net.named_data.jndn.encrypt {
 	
 		public sealed class Anonymous_C2 : OnData {
 				private readonly DecryptorV2 outer_DecryptorV2;
-				private readonly DecryptorV2.ContentKey  contentKey;
-				private readonly Data ckData;
 				private readonly Name kdkPrefix;
+				private readonly DecryptorV2.ContentKey  contentKey;
 				private readonly net.named_data.jndn.encrypt.EncryptError.OnError  onError;
+				private readonly Data ckData;
 		
-				public Anonymous_C2(DecryptorV2 paramouter_DecryptorV2,
-						DecryptorV2.ContentKey  contentKey_0, Data ckData_1, Name kdkPrefix_2,
-						net.named_data.jndn.encrypt.EncryptError.OnError  onError_3) {
-					this.contentKey = contentKey_0;
-					this.ckData = ckData_1;
-					this.kdkPrefix = kdkPrefix_2;
-					this.onError = onError_3;
+				public Anonymous_C2(DecryptorV2 paramouter_DecryptorV2, Name kdkPrefix_0,
+						DecryptorV2.ContentKey  contentKey_1, net.named_data.jndn.encrypt.EncryptError.OnError  onError_2, Data ckData_3) {
+					this.kdkPrefix = kdkPrefix_0;
+					this.contentKey = contentKey_1;
+					this.onError = onError_2;
+					this.ckData = ckData_3;
 					this.outer_DecryptorV2 = paramouter_DecryptorV2;
 				}
 		
-				public void onData(Interest ckInterest, Data kdkData) {
+				public void onData(Interest kdkInterest, Data kdkData) {
 					contentKey.pendingInterest = 0;
 					// TODO: Verify that the key is legitimate.
 		
@@ -182,19 +179,19 @@ namespace net.named_data.jndn.encrypt {
 		public sealed class Anonymous_C1 : OnTimeout {
 				private readonly DecryptorV2 outer_DecryptorV2;
 				private readonly int nTriesLeft;
-				private readonly DecryptorV2.ContentKey  contentKey;
-				private readonly net.named_data.jndn.encrypt.EncryptError.OnError  onError;
-				private readonly Data ckData;
 				private readonly Name kdkPrefix;
+				private readonly net.named_data.jndn.encrypt.EncryptError.OnError  onError;
+				private readonly DecryptorV2.ContentKey  contentKey;
+				private readonly Data ckData;
 		
 				public Anonymous_C1(DecryptorV2 paramouter_DecryptorV2, int nTriesLeft_0,
-						DecryptorV2.ContentKey  contentKey_1, net.named_data.jndn.encrypt.EncryptError.OnError  onError_2, Data ckData_3,
-						Name kdkPrefix_4) {
+						Name kdkPrefix_1, net.named_data.jndn.encrypt.EncryptError.OnError  onError_2, DecryptorV2.ContentKey  contentKey_3,
+						Data ckData_4) {
 					this.nTriesLeft = nTriesLeft_0;
-					this.contentKey = contentKey_1;
+					this.kdkPrefix = kdkPrefix_1;
 					this.onError = onError_2;
-					this.ckData = ckData_3;
-					this.kdkPrefix = kdkPrefix_4;
+					this.contentKey = contentKey_3;
+					this.ckData = ckData_4;
 					this.outer_DecryptorV2 = paramouter_DecryptorV2;
 				}
 		
@@ -238,13 +235,13 @@ namespace net.named_data.jndn.encrypt {
 		}
 	
 		/// <summary>
-		/// Create a DecryptorV2 with the give parameters.
+		/// Create a DecryptorV2 with the given parameters.
 		/// </summary>
 		///
-		/// <param name="credentialsKey">Credentials key to be used to retrieve and decrypt KDK</param>
-		/// <param name="validator">Validation policy to ensure validity of KDK and CK</param>
-		/// <param name="keyChain">KeyChain</param>
-		/// <param name="face">Face that will be used to fetch CK and KDK</param>
+		/// <param name="credentialsKey"></param>
+		/// <param name="validator"></param>
+		/// <param name="keyChain">The KeyChain that will be used to decrypt the KDK.</param>
+		/// <param name="face">The Face that will be used to fetch the CK and KDK.</param>
 		public DecryptorV2(PibKey credentialsKey, Validator validator,
 				KeyChain keyChain, Face face) {
 			this.contentKeys_ = new Hashtable<Name, ContentKey>();
@@ -302,6 +299,7 @@ namespace net.named_data.jndn.encrypt {
 				onError_0.onError(
 						net.named_data.jndn.encrypt.EncryptError.ErrorCode.MissingRequiredInitialVector,
 						"Missing required initial vector in the supplied EncryptedContent block");
+				return;
 			}
 	
 			Name ckName_1 = encryptedContent.getKeyLocatorName();
@@ -355,8 +353,8 @@ namespace net.named_data.jndn.encrypt {
 	
 		internal void fetchCk(Name ckName_0, DecryptorV2.ContentKey  contentKey_1,
 				EncryptError.OnError onError_2, int nTriesLeft_3) {
-			// full name of CK is
-	
+			// The full name of the CK is
+			//
 			// <whatever-prefix>/CK/<ck-id>  /ENCRYPTED-BY /<kek-prefix>/KEK/<key-id>
 			// \                          /                \                        /
 			//  -----------  -------------                  -----------  -----------
@@ -368,8 +366,8 @@ namespace net.named_data.jndn.encrypt {
 			try {
 				contentKey_1.pendingInterest = face_.expressInterest(new Interest(
 						ckName_0).setMustBeFresh(false).setCanBePrefix(true),
-						new DecryptorV2.Anonymous_C5 (this, onError_2, contentKey_1), new DecryptorV2.Anonymous_C4 (this, ckName_0, contentKey_1, nTriesLeft_3,
-								onError_2), new DecryptorV2.Anonymous_C3 (onError_2, contentKey_1));
+						new DecryptorV2.Anonymous_C5 (this, contentKey_1, onError_2), new DecryptorV2.Anonymous_C4 (this, nTriesLeft_3, contentKey_1, onError_2,
+								ckName_0), new DecryptorV2.Anonymous_C3 (contentKey_1, onError_2));
 			} catch (Exception ex) {
 				onError_2.onError(net.named_data.jndn.encrypt.EncryptError.ErrorCode.General,
 						"expressInterest error: " + ex);
@@ -394,15 +392,17 @@ namespace net.named_data.jndn.encrypt {
 			try {
 				contentKey_0.pendingInterest = face_.expressInterest(new Interest(
 						kdkName).setMustBeFresh(true).setCanBePrefix(false),
-						new DecryptorV2.Anonymous_C2 (this, contentKey_0, ckData_2, kdkPrefix_1,
-								onError_3), new DecryptorV2.Anonymous_C1 (this, nTriesLeft_4, contentKey_0, onError_3,
-								ckData_2, kdkPrefix_1), new DecryptorV2.Anonymous_C0 (onError_3, contentKey_0));
+						new DecryptorV2.Anonymous_C2 (this, kdkPrefix_1, contentKey_0, onError_3,
+								ckData_2), new DecryptorV2.Anonymous_C1 (this, nTriesLeft_4, kdkPrefix_1, onError_3,
+								contentKey_0, ckData_2), new DecryptorV2.Anonymous_C0 (onError_3, contentKey_0));
 			} catch (Exception ex) {
 				onError_3.onError(net.named_data.jndn.encrypt.EncryptError.ErrorCode.General,
 						"expressInterest error: " + ex);
 			}
 		}
 	
+		
+		/// <returns>True for success, false for error (where this has called onError).</returns>
 		internal bool decryptAndImportKdk(Data kdkData,
 				EncryptError.OnError onError_0) {
 			try {
@@ -478,7 +478,7 @@ namespace net.named_data.jndn.encrypt {
 			ILOG.J2CsMapping.Collections.Collections.Clear(contentKey_0.pendingDecrypts);
 		}
 	
-		private void doDecrypt(EncryptedContent content, Blob ckBits,
+		private static void doDecrypt(EncryptedContent content, Blob ckBits,
 				DecryptorV2.DecryptSuccessCallback  onSuccess_0, EncryptError.OnError onError_1) {
 			if (!content.hasInitialVector()) {
 				onError_1.onError(
@@ -510,7 +510,7 @@ namespace net.named_data.jndn.encrypt {
 		}
 	
 		/// <summary>
-		/// Convert KEK name to the KDK prefix:
+		/// Convert the KEK name to the KDK prefix:
 		/// <access-namespace>/KEK/<key-id> ==> <access-namespace>/KDK/<key-id>.
 		/// </summary>
 		///
@@ -531,7 +531,7 @@ namespace net.named_data.jndn.encrypt {
 		}
 	
 		/// <summary>
-		/// Extract KDK information from the CK Data packet name. The KDK identity name
+		/// Extract the KDK information from the CK Data packet name. The KDK identity name
 		/// plus the KDK key ID together identify the KDK private key in the KeyChain.
 		/// </summary>
 		///
@@ -576,7 +576,7 @@ namespace net.named_data.jndn.encrypt {
 		// The internal in-memory keychain for temporarily storing KDKs.
 		internal readonly KeyChain internalKeyChain_;
 	
-		// TODO add some expiration, so they are not stored forever
+		// TODO: add some expiration, so they are not stored forever.
 		private readonly Hashtable<Name, ContentKey> contentKeys_;
 	
 		static internal readonly Logger logger_ = ILOG.J2CsMapping.Util.Logging.Logger.getLogger(typeof(DecryptorV2).FullName);
