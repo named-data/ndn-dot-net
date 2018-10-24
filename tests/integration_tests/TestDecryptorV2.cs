@@ -52,7 +52,6 @@ namespace net.named_data.jndn.tests.integration_tests {
 	
 			public void onError(EncryptError.ErrorCode errorCode,
 					String message) {
-				System.Console.Out.WriteLine("Debug onError " + message);
 				++nFailures[0];
 			}
 		}
