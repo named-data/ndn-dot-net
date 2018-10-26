@@ -222,7 +222,7 @@ namespace net.named_data.jndn.security.tpm {
 		/// </summary>
 		///
 		/// <param name="keyName">The name of the key in the TPM.</param>
-		/// <param name="password">If the password is null, return an unencrypted PKCS #8 PrivateKeyInfo.</param>
+		/// <param name="password">it to return a PKCS #8 EncryptedPrivateKeyInfo. If the password is null, return an unencrypted PKCS #8 PrivateKeyInfo.</param>
 		/// <returns>The private key encoded in PKCS #8 format, or an isNull Blob if
 		/// the key does not exist.</returns>
 		/// <exception cref="TpmBackEnd.Error">if the key does not exist or if the key cannot beexported, e.g., insufficient privileges.</exception>
@@ -238,7 +238,7 @@ namespace net.named_data.jndn.security.tpm {
 		///
 		/// <param name="keyName">The name of the key to use in the TPM.</param>
 		/// <param name="pkcs8">unencrypted PKCS #8 PrivateKeyInfo.</param>
-		/// <param name="password">If the password is null, import an unencrypted PKCS #8 PrivateKeyInfo.</param>
+		/// <param name="password">it to decrypt the PKCS #8 EncryptedPrivateKeyInfo. If the password is null, import an unencrypted PKCS #8 PrivateKeyInfo.</param>
 		/// <exception cref="TpmBackEnd.Error">if the key cannot be imported.</exception>
 		public void importPrivateKey_(Name keyName, ByteBuffer pkcs8,
 				ByteBuffer password) {

@@ -52,7 +52,7 @@ namespace net.named_data.jndn.security {
 		/// <param name="keyName">This copies the Name.</param>
 		/// <param name="privateKeyBag">PKCS #8 PrivateKeyInfo.</param>
 		/// <param name="publicKeyEncoding">The encoded public key for the certificate.</param>
-		/// <param name="password">PKCS #8 EncryptedPrivateKeyInfo.</param>
+		/// <param name="password">of 1 to 127. If the password is supplied, use it to decrypt the PKCS #8 EncryptedPrivateKeyInfo. If the password is null, privateKeyBag is an unencrypted PKCS #8 PrivateKeyInfo.</param>
 		/// <param name="digestAlgorithm"></param>
 		/// <param name="wireFormat"></param>
 		public SafeBag(Name keyName, Blob privateKeyBag, Blob publicKeyEncoding,
@@ -75,7 +75,7 @@ namespace net.named_data.jndn.security {
 		/// <param name="keyName">This copies the Name.</param>
 		/// <param name="privateKeyBag">PKCS #8 PrivateKeyInfo.</param>
 		/// <param name="publicKeyEncoding">The encoded public key for the certificate.</param>
-		/// <param name="password">PKCS #8 EncryptedPrivateKeyInfo.</param>
+		/// <param name="password">of 1 to 127. If the password is supplied, use it to decrypt the PKCS #8 EncryptedPrivateKeyInfo. If the password is null, privateKeyBag is an unencrypted PKCS #8 PrivateKeyInfo.</param>
 		/// <param name="digestAlgorithm"></param>
 		public SafeBag(Name keyName, Blob privateKeyBag, Blob publicKeyEncoding,
 				ByteBuffer password, DigestAlgorithm digestAlgorithm) {
@@ -97,7 +97,7 @@ namespace net.named_data.jndn.security {
 		/// <param name="keyName">This copies the Name.</param>
 		/// <param name="privateKeyBag">PKCS #8 PrivateKeyInfo.</param>
 		/// <param name="publicKeyEncoding">The encoded public key for the certificate.</param>
-		/// <param name="password">PKCS #8 EncryptedPrivateKeyInfo.</param>
+		/// <param name="password">of 1 to 127. If the password is supplied, use it to decrypt the PKCS #8 EncryptedPrivateKeyInfo. If the password is null, privateKeyBag is an unencrypted PKCS #8 PrivateKeyInfo.</param>
 		public SafeBag(Name keyName, Blob privateKeyBag, Blob publicKeyEncoding,
 				ByteBuffer password) {
 			this.certificate_ = null;

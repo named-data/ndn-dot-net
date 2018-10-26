@@ -210,7 +210,7 @@ namespace net.named_data.jndn.security.tpm {
 		/// </summary>
 		///
 		/// <param name="encoding">The byte buffer with the private key encoding.</param>
-		/// <param name="password">The password for decrypting the private key.</param>
+		/// <param name="password"></param>
 		/// <exception cref="TpmPrivateKey.Error">for errors decoding or decrypting the key.</exception>
 		public void loadEncryptedPkcs8(ByteBuffer encoding,
 				ByteBuffer password) {
@@ -516,7 +516,7 @@ namespace net.named_data.jndn.security.tpm {
 		/// Get the encoded encrypted private key in PKCS #8.
 		/// </summary>
 		///
-		/// <param name="password">The password for encrypting the private key.</param>
+		/// <param name="password"></param>
 		/// <returns>The encoding Blob of the EncryptedPrivateKeyInfo.</returns>
 		/// <exception cref="TpmPrivateKey.Error">if no private key is loaded, or error encoding.</exception>
 		public Blob toEncryptedPkcs8(ByteBuffer password) {

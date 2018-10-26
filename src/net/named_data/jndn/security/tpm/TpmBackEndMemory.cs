@@ -100,7 +100,7 @@ namespace net.named_data.jndn.security.tpm {
 		/// </summary>
 		///
 		/// <param name="keyName">The name of the key in the TPM.</param>
-		/// <param name="password">If the password is null, return an unencrypted PKCS #8 PrivateKeyInfo.</param>
+		/// <param name="password">it to return a PKCS #8 EncryptedPrivateKeyInfo. If the password is null, return an unencrypted PKCS #8 PrivateKeyInfo.</param>
 		/// <returns>The encoded private key.</returns>
 		/// <exception cref="TpmBackEnd.Error">if the key does not exist or if the key cannot beexported, e.g., insufficient privileges.</exception>
 		protected internal override Blob doExportKey(Name keyName, ByteBuffer password) {
@@ -124,7 +124,7 @@ namespace net.named_data.jndn.security.tpm {
 		///
 		/// <param name="keyName">The name of the key to use in the TPM.</param>
 		/// <param name="pkcs8">unencrypted PKCS #8 PrivateKeyInfo.</param>
-		/// <param name="password">If the password is null, import an unencrypted PKCS #8 PrivateKeyInfo.</param>
+		/// <param name="password">it to decrypt the PKCS #8 EncryptedPrivateKeyInfo. If the password is null, import an unencrypted PKCS #8 PrivateKeyInfo.</param>
 		/// <exception cref="TpmBackEnd.Error">for an error importing the key.</exception>
 		protected internal override void doImportKey(Name keyName, ByteBuffer pkcs8,
 				ByteBuffer password) {

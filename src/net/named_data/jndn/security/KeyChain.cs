@@ -750,7 +750,7 @@ namespace net.named_data.jndn.security {
 		/// </summary>
 		///
 		/// <param name="certificate"></param>
-		/// <param name="password">the SafeBag. If the password is null, put an unencrypted PKCS #8 PrivateKeyInfo in the SafeBag.</param>
+		/// <param name="password">it to put a PKCS #8 EncryptedPrivateKeyInfo in the SafeBag. If the password is null, put an unencrypted PKCS #8 PrivateKeyInfo in the SafeBag.</param>
 		/// <returns>A SafeBag carrying the certificate and private key.</returns>
 		/// <exception cref="KeyChain.Error">certificate.getKeyName() key does not exist, if thepassword is null and the TPM does not support exporting an unencryptedprivate key, or for other errors exporting the private key.</exception>
 		public SafeBag exportSafeBag(CertificateV2 certificate,
@@ -788,7 +788,7 @@ namespace net.named_data.jndn.security {
 		/// </summary>
 		///
 		/// <param name="safeBag"></param>
-		/// <param name="password">If the password is null, import an unencrypted PKCS #8 PrivateKeyInfo.</param>
+		/// <param name="password">it to decrypt the PKCS #8 EncryptedPrivateKeyInfo. If the password is null, import an unencrypted PKCS #8 PrivateKeyInfo.</param>
 		/// <exception cref="KeyChain.Error">if the private key cannot be imported, or if apublic key or private key of the same name already exists, or if acertificate of the same name already exists.</exception>
 		public void importSafeBag(SafeBag safeBag, ByteBuffer password) {
 			CertificateV2 certificate = new CertificateV2(safeBag.getCertificate());
