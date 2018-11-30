@@ -471,6 +471,9 @@ namespace ILOG.J2CsMapping.NIO {
     public bool 
     equals(ByteBuffer byteBuffer)
     {
+      if (byteBuffer == this)
+        // The other is the same ByteBuffer.
+        return true;
       if (byteBuffer.remaining() != remaining())
         return false;
       int j = byteBuffer.arrayOffset_ + byteBuffer.position_;
