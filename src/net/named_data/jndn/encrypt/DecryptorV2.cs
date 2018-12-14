@@ -35,13 +35,13 @@ namespace net.named_data.jndn.encrypt {
 	public class DecryptorV2 {
 		public sealed class Anonymous_C5 : OnData {
 				private readonly DecryptorV2 outer_DecryptorV2;
-				private readonly DecryptorV2.ContentKey  contentKey;
 				private readonly net.named_data.jndn.encrypt.EncryptError.OnError  onError;
+				private readonly DecryptorV2.ContentKey  contentKey;
 		
 				public Anonymous_C5(DecryptorV2 paramouter_DecryptorV2,
-						DecryptorV2.ContentKey  contentKey_0, net.named_data.jndn.encrypt.EncryptError.OnError  onError_1) {
-					this.contentKey = contentKey_0;
-					this.onError = onError_1;
+						net.named_data.jndn.encrypt.EncryptError.OnError  onError_0, DecryptorV2.ContentKey  contentKey_1) {
+					this.onError = onError_0;
+					this.contentKey = contentKey_1;
 					this.outer_DecryptorV2 = paramouter_DecryptorV2;
 				}
 		
@@ -96,17 +96,17 @@ namespace net.named_data.jndn.encrypt {
 	
 		public sealed class Anonymous_C4 : OnTimeout {
 				private readonly DecryptorV2 outer_DecryptorV2;
-				private readonly int nTriesLeft;
+				private readonly Name ckName;
 				private readonly DecryptorV2.ContentKey  contentKey;
 				private readonly net.named_data.jndn.encrypt.EncryptError.OnError  onError;
-				private readonly Name ckName;
+				private readonly int nTriesLeft;
 		
-				public Anonymous_C4(DecryptorV2 paramouter_DecryptorV2, int nTriesLeft_0,
-						DecryptorV2.ContentKey  contentKey_1, net.named_data.jndn.encrypt.EncryptError.OnError  onError_2, Name ckName_3) {
-					this.nTriesLeft = nTriesLeft_0;
+				public Anonymous_C4(DecryptorV2 paramouter_DecryptorV2, Name ckName_0,
+						DecryptorV2.ContentKey  contentKey_1, net.named_data.jndn.encrypt.EncryptError.OnError  onError_2, int nTriesLeft_3) {
+					this.ckName = ckName_0;
 					this.contentKey = contentKey_1;
 					this.onError = onError_2;
-					this.ckName = ckName_3;
+					this.nTriesLeft = nTriesLeft_3;
 					this.outer_DecryptorV2 = paramouter_DecryptorV2;
 				}
 		
@@ -125,12 +125,12 @@ namespace net.named_data.jndn.encrypt {
 			}
 	
 		public sealed class Anonymous_C3 : OnNetworkNack {
-			private readonly DecryptorV2.ContentKey  contentKey;
 			private readonly net.named_data.jndn.encrypt.EncryptError.OnError  onError;
+			private readonly DecryptorV2.ContentKey  contentKey;
 	
-			public Anonymous_C3(DecryptorV2.ContentKey  contentKey_0, net.named_data.jndn.encrypt.EncryptError.OnError  onError_1) {
-				this.contentKey = contentKey_0;
-				this.onError = onError_1;
+			public Anonymous_C3(net.named_data.jndn.encrypt.EncryptError.OnError  onError_0, DecryptorV2.ContentKey  contentKey_1) {
+				this.onError = onError_0;
+				this.contentKey = contentKey_1;
 			}
 	
 			public void onNetworkNack(Interest interest,
@@ -147,17 +147,17 @@ namespace net.named_data.jndn.encrypt {
 	
 		public sealed class Anonymous_C2 : OnData {
 				private readonly DecryptorV2 outer_DecryptorV2;
+				private readonly Data ckData;
+				private readonly net.named_data.jndn.encrypt.EncryptError.OnError  onError;
 				private readonly Name kdkPrefix;
 				private readonly DecryptorV2.ContentKey  contentKey;
-				private readonly net.named_data.jndn.encrypt.EncryptError.OnError  onError;
-				private readonly Data ckData;
 		
-				public Anonymous_C2(DecryptorV2 paramouter_DecryptorV2, Name kdkPrefix_0,
-						DecryptorV2.ContentKey  contentKey_1, net.named_data.jndn.encrypt.EncryptError.OnError  onError_2, Data ckData_3) {
-					this.kdkPrefix = kdkPrefix_0;
-					this.contentKey = contentKey_1;
-					this.onError = onError_2;
-					this.ckData = ckData_3;
+				public Anonymous_C2(DecryptorV2 paramouter_DecryptorV2, Data ckData_0,
+						net.named_data.jndn.encrypt.EncryptError.OnError  onError_1, Name kdkPrefix_2, DecryptorV2.ContentKey  contentKey_3) {
+					this.ckData = ckData_0;
+					this.onError = onError_1;
+					this.kdkPrefix = kdkPrefix_2;
+					this.contentKey = contentKey_3;
 					this.outer_DecryptorV2 = paramouter_DecryptorV2;
 				}
 		
@@ -179,19 +179,19 @@ namespace net.named_data.jndn.encrypt {
 		public sealed class Anonymous_C1 : OnTimeout {
 				private readonly DecryptorV2 outer_DecryptorV2;
 				private readonly int nTriesLeft;
-				private readonly Name kdkPrefix;
 				private readonly net.named_data.jndn.encrypt.EncryptError.OnError  onError;
 				private readonly DecryptorV2.ContentKey  contentKey;
 				private readonly Data ckData;
+				private readonly Name kdkPrefix;
 		
 				public Anonymous_C1(DecryptorV2 paramouter_DecryptorV2, int nTriesLeft_0,
-						Name kdkPrefix_1, net.named_data.jndn.encrypt.EncryptError.OnError  onError_2, DecryptorV2.ContentKey  contentKey_3,
-						Data ckData_4) {
+						net.named_data.jndn.encrypt.EncryptError.OnError  onError_1, DecryptorV2.ContentKey  contentKey_2, Data ckData_3,
+						Name kdkPrefix_4) {
 					this.nTriesLeft = nTriesLeft_0;
-					this.kdkPrefix = kdkPrefix_1;
-					this.onError = onError_2;
-					this.contentKey = contentKey_3;
-					this.ckData = ckData_4;
+					this.onError = onError_1;
+					this.contentKey = contentKey_2;
+					this.ckData = ckData_3;
+					this.kdkPrefix = kdkPrefix_4;
 					this.outer_DecryptorV2 = paramouter_DecryptorV2;
 				}
 		
@@ -366,8 +366,8 @@ namespace net.named_data.jndn.encrypt {
 			try {
 				contentKey_1.pendingInterest = face_.expressInterest(new Interest(
 						ckName_0).setMustBeFresh(false).setCanBePrefix(true),
-						new DecryptorV2.Anonymous_C5 (this, contentKey_1, onError_2), new DecryptorV2.Anonymous_C4 (this, nTriesLeft_3, contentKey_1, onError_2,
-								ckName_0), new DecryptorV2.Anonymous_C3 (contentKey_1, onError_2));
+						new DecryptorV2.Anonymous_C5 (this, onError_2, contentKey_1), new DecryptorV2.Anonymous_C4 (this, ckName_0, contentKey_1, onError_2,
+								nTriesLeft_3), new DecryptorV2.Anonymous_C3 (onError_2, contentKey_1));
 			} catch (Exception ex) {
 				onError_2.onError(net.named_data.jndn.encrypt.EncryptError.ErrorCode.General,
 						"expressInterest error: " + ex);
@@ -392,9 +392,9 @@ namespace net.named_data.jndn.encrypt {
 			try {
 				contentKey_0.pendingInterest = face_.expressInterest(new Interest(
 						kdkName).setMustBeFresh(true).setCanBePrefix(false),
-						new DecryptorV2.Anonymous_C2 (this, kdkPrefix_1, contentKey_0, onError_3,
-								ckData_2), new DecryptorV2.Anonymous_C1 (this, nTriesLeft_4, kdkPrefix_1, onError_3,
-								contentKey_0, ckData_2), new DecryptorV2.Anonymous_C0 (onError_3, contentKey_0));
+						new DecryptorV2.Anonymous_C2 (this, ckData_2, onError_3, kdkPrefix_1,
+								contentKey_0), new DecryptorV2.Anonymous_C1 (this, nTriesLeft_4, onError_3, contentKey_0,
+								ckData_2, kdkPrefix_1), new DecryptorV2.Anonymous_C0 (onError_3, contentKey_0));
 			} catch (Exception ex) {
 				onError_3.onError(net.named_data.jndn.encrypt.EncryptError.ErrorCode.General,
 						"expressInterest error: " + ex);
@@ -454,8 +454,8 @@ namespace net.named_data.jndn.encrypt {
 						content.getPayload().buf(), kdkKeyName);
 			} catch (Exception ex_3) {
 				// We don't expect this from the in-memory KeyChain.
-				onError_2.onError(net.named_data.jndn.encrypt.EncryptError.ErrorCode.EncryptionFailure,
-						"Error decrypting CK EncryptedContent " + ex_3);
+				onError_2.onError(net.named_data.jndn.encrypt.EncryptError.ErrorCode.DecryptionFailure,
+						"Error decrypting the CK EncryptedContent " + ex_3);
 				return;
 			}
 	
