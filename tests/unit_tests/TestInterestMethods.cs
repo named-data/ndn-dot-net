@@ -526,12 +526,16 @@ namespace net.named_data.jndn.tests.unit_tests {
 		}
 	
 		public void testSetParameters() {
-			Interest interest = new Interest();
+			Interest interest = new Interest("/ndn");
 			Assert.AssertTrue(!interest.hasParameters());
 			Blob parameters = new Blob(toBuffer(new int[] { 0x23, 0x00 }), false);
 			interest.setParameters(parameters);
 			Assert.AssertTrue(interest.hasParameters());
 			Assert.AssertTrue(interest.getParameters().equals(parameters));
+	
+			Interest decodedInterest = new Interest();
+			decodedInterest.wireDecode(interest.wireEncode());
+			Assert.AssertTrue(decodedInterest.getParameters().equals(parameters));
 	
 			interest.setParameters(new Blob());
 			Assert.AssertTrue(!interest.hasParameters());
