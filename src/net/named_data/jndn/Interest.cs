@@ -11,6 +11,7 @@
 namespace net.named_data.jndn {
 	
 	using ILOG.J2CsMapping.NIO;
+	using ILOG.J2CsMapping.Util.Logging;
 	using System;
 	using System.Collections;
 	using System.ComponentModel;
@@ -50,6 +51,7 @@ namespace net.named_data.jndn {
 			this.linkWireEncodingFormat_ = null;
 			this.forwardingHint_ = new ChangeCounter(
 					new DelegationSet());
+			this.parameters_ = new Blob();
 			this.link_ = new ChangeCounter(null);
 			this.selectedDelegationIndex_ = -1;
 			this.defaultWireEncoding_ = new SignedBlob();
@@ -82,6 +84,7 @@ namespace net.named_data.jndn {
 			this.linkWireEncodingFormat_ = null;
 			this.forwardingHint_ = new ChangeCounter(
 					new DelegationSet());
+			this.parameters_ = new Blob();
 			this.link_ = new ChangeCounter(null);
 			this.selectedDelegationIndex_ = -1;
 			this.defaultWireEncoding_ = new SignedBlob();
@@ -114,6 +117,7 @@ namespace net.named_data.jndn {
 			this.linkWireEncodingFormat_ = null;
 			this.forwardingHint_ = new ChangeCounter(
 					new DelegationSet());
+			this.parameters_ = new Blob();
 			this.link_ = new ChangeCounter(null);
 			this.selectedDelegationIndex_ = -1;
 			this.defaultWireEncoding_ = new SignedBlob();
@@ -144,6 +148,7 @@ namespace net.named_data.jndn {
 			this.linkWireEncodingFormat_ = null;
 			this.forwardingHint_ = new ChangeCounter(
 					new DelegationSet());
+			this.parameters_ = new Blob();
 			this.link_ = new ChangeCounter(null);
 			this.selectedDelegationIndex_ = -1;
 			this.defaultWireEncoding_ = new SignedBlob();
@@ -161,6 +166,7 @@ namespace net.named_data.jndn {
 			nonce_ = interest.getNonce();
 	
 			forwardingHint_.set(new DelegationSet(interest.getForwardingHint()));
+			parameters_ = interest.parameters_;
 			linkWireEncoding_ = interest.linkWireEncoding_;
 			linkWireEncodingFormat_ = interest.linkWireEncodingFormat_;
 			if (interest.link_.get() != null)
@@ -192,6 +198,7 @@ namespace net.named_data.jndn {
 			this.linkWireEncodingFormat_ = null;
 			this.forwardingHint_ = new ChangeCounter(
 					new DelegationSet());
+			this.parameters_ = new Blob();
 			this.link_ = new ChangeCounter(null);
 			this.selectedDelegationIndex_ = -1;
 			this.defaultWireEncoding_ = new SignedBlob();
@@ -420,6 +427,24 @@ namespace net.named_data.jndn {
 		}
 	
 		/// <summary>
+		/// Check if the Interest parameters are specified.
+		/// </summary>
+		///
+		/// <returns>True if the Interest parameters are specified, false if not.</returns>
+		public bool hasParameters() {
+			return parameters_.size() > 0;
+		}
+	
+		/// <summary>
+		/// Get the Interest parameters.
+		/// </summary>
+		///
+		/// <returns>The parameters as a Blob, which isNull() if unspecified.</returns>
+		public Blob getParameters() {
+			return parameters_;
+		}
+	
+		/// <summary>
 		/// Check if this interest has a link object (or a link wire encoding which
 		/// can be decoded to make the link object).
 		/// </summary>
@@ -643,6 +668,42 @@ namespace net.named_data.jndn {
 			forwardingHint_.set((forwardingHint == null) ? new DelegationSet()
 					: new DelegationSet(forwardingHint));
 			++changeCount_;
+			return this;
+		}
+	
+		/// <summary>
+		/// Set the Interest parameters to the given value.
+		/// </summary>
+		///
+		/// <param name="parameters">The Interest parameters Blob.</param>
+		/// <returns>This Interest so that you can chain calls to update values.</returns>
+		public Interest setParameters(Blob parameters) {
+			parameters_ = ((parameters == null) ? new Blob() : parameters);
+			++changeCount_;
+			return this;
+		}
+	
+		/// <summary>
+		/// Append the digest of the Interest parameters to the Name as a
+		/// ParametersSha256DigestComponent. However, if the Interest parameters is
+		/// unspecified, do nothing. This does not check if the Name already has a
+		/// parameters digest component, so calling again will append another component.
+		/// </summary>
+		///
+		/// <returns>This Interest so that you can chain calls to update values.</returns>
+		public Interest appendParametersDigestToName() {
+			if (!hasParameters())
+				return this;
+	
+			try {
+				getName().appendParametersSha256Digest(
+						new Blob(net.named_data.jndn.util.Common.digestSha256(parameters_.buf()), false));
+			} catch (EncodingException ex) {
+				// We don't expect this.
+				ILOG.J2CsMapping.Util.Logging.Logger.getLogger(typeof(Interest).FullName).log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, null,
+						ex);
+			}
+	
 			return this;
 		}
 	
@@ -925,6 +986,7 @@ namespace net.named_data.jndn {
 		private Blob linkWireEncoding_;
 		private WireFormat linkWireEncodingFormat_;
 		private readonly ChangeCounter forwardingHint_;
+		private Blob parameters_;
 		private readonly ChangeCounter link_;
 		private int selectedDelegationIndex_;
 		private SignedBlob defaultWireEncoding_;
