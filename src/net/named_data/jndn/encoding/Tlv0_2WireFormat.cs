@@ -37,7 +37,7 @@ namespace net.named_data.jndn.encoding {
 		/// <param name="name">The Name object to encode.</param>
 		/// <returns>A Blob containing the encoding.</returns>
 		public override Blob encodeName(Name name) {
-			TlvEncoder encoder = new TlvEncoder();
+			TlvEncoder encoder = new TlvEncoder(256);
 			encodeName(name, new int[1], new int[1], encoder);
 			return new Blob(encoder.getOutput(), false);
 		}
@@ -65,7 +65,14 @@ namespace net.named_data.jndn.encoding {
 		/// <returns>A Blob containing the encoding.</returns>
 		public override Blob encodeInterest(Interest interest,
 				int[] signedPortionBeginOffset, int[] signedPortionEndOffset) {
-			TlvEncoder encoder = new TlvEncoder();
+			if (interest.hasParameters())
+				// The application has specified a format v0.3 field. As we transition to
+				// format v0.3, encode as format v0.3 even though the application default
+				// is Tlv0_2WireFormat.
+				return encodeInterestV03(interest, signedPortionBeginOffset,
+						signedPortionEndOffset);
+	
+			TlvEncoder encoder = new TlvEncoder(256);
 			int saveLength = encoder.getLength();
 	
 			// Encode backwards.
@@ -230,6 +237,9 @@ namespace net.named_data.jndn.encoding {
 			if (interest.getSelectedDelegationIndex() >= 0 && !interest.hasLink())
 				throw new EncodingException(
 						"Interest has a selected delegation, but no link object");
+	
+			// Format v0.2 doesn't have Interest parameters.
+			interest.setParameters(new Blob());
 	
 			// Set the nonce last because setting other interest fields clears it.
 			interest.setNonce(new Blob(nonce, copy));
@@ -1384,10 +1394,99 @@ namespace net.named_data.jndn.encoding {
 		}
 	
 		/// <summary>
+		/// Encode interest in NDN-TLV format v0.3 and return the encoding.
+		/// </summary>
+		///
+		/// <param name="interest">The Interest object to encode.</param>
+		/// <param name="signedPortionBeginOffset">name component and ends just before the final name component (which is assumed to be a signature for a signed interest).</param>
+		/// <param name="signedPortionEndOffset">name component and ends just before the final name component (which is assumed to be a signature for a signed interest).</param>
+		/// <returns>A Blob containing the encoding.</returns>
+		private static Blob encodeInterestV03(Interest interest,
+				int[] signedPortionBeginOffset, int[] signedPortionEndOffset) {
+			// TODO: Throw an exception if the interest speficies V02 fields.
+	
+			TlvEncoder encoder = new TlvEncoder(256);
+			int saveLength = encoder.getLength();
+	
+			// Encode backwards.
+			encoder.writeOptionalBlobTlv(net.named_data.jndn.encoding.tlv.Tlv.Parameters, interest.getParameters()
+					.buf());
+			// TODO: HopLimit.
+			encoder.writeOptionalNonNegativeIntegerTlvFromDouble(
+					net.named_data.jndn.encoding.tlv.Tlv.InterestLifetime,
+					interest.getInterestLifetimeMilliseconds());
+	
+			// Encode the Nonce as 4 bytes.
+			if (interest.getNonce().size() == 0) {
+				// This is the most common case. Generate a nonce.
+				ByteBuffer nonce = ILOG.J2CsMapping.NIO.ByteBuffer.allocate(4);
+				random_.nextBytes(nonce.array());
+				encoder.writeBlobTlv(net.named_data.jndn.encoding.tlv.Tlv.Nonce, nonce);
+			} else if (interest.getNonce().size() < 4) {
+				ByteBuffer nonce_0 = ILOG.J2CsMapping.NIO.ByteBuffer.allocate(4);
+				// Copy existing nonce bytes.
+				nonce_0.put(interest.getNonce().buf());
+	
+				// Generate random bytes for remaining bytes in the nonce.
+				for (int i = 0; i < 4 - interest.getNonce().size(); ++i)
+					nonce_0.put((byte) random_.Next());
+	
+				nonce_0.flip();
+				encoder.writeBlobTlv(net.named_data.jndn.encoding.tlv.Tlv.Nonce, nonce_0);
+			} else if (interest.getNonce().size() == 4)
+				// Use the nonce as-is.
+				encoder.writeBlobTlv(net.named_data.jndn.encoding.tlv.Tlv.Nonce, interest.getNonce().buf());
+			else {
+				// Truncate.
+				ByteBuffer nonce_1 = interest.getNonce().buf();
+				// buf() returns a new ByteBuffer, so we can change its limit.
+				nonce_1.limit(nonce_1.position() + 4);
+				encoder.writeBlobTlv(net.named_data.jndn.encoding.tlv.Tlv.Nonce, nonce_1);
+			}
+	
+			if (interest.getForwardingHint().size() > 0) {
+				if (interest.getSelectedDelegationIndex() >= 0)
+					throw new Exception(
+							"An Interest may not have a selected delegation when encoding a forwarding hint");
+				if (interest.hasLink())
+					throw new Exception(
+							"An Interest may not have a link object when encoding a forwarding hint");
+	
+				int forwardingHintSaveLength = encoder.getLength();
+				encodeDelegationSet(interest.getForwardingHint(), encoder);
+				encoder.writeTypeAndLength(net.named_data.jndn.encoding.tlv.Tlv.ForwardingHint, encoder.getLength()
+						- forwardingHintSaveLength);
+			}
+	
+			if (interest.getMustBeFresh())
+				encoder.writeTypeAndLength(net.named_data.jndn.encoding.tlv.Tlv.MustBeFresh, 0);
+			if (interest.getCanBePrefix())
+				encoder.writeTypeAndLength(net.named_data.jndn.encoding.tlv.Tlv.CanBePrefix, 0);
+	
+			int[] tempSignedPortionBeginOffset = new int[1];
+			int[] tempSignedPortionEndOffset = new int[1];
+			encodeName(interest.getName(), tempSignedPortionBeginOffset,
+					tempSignedPortionEndOffset, encoder);
+			int signedPortionBeginOffsetFromBack = encoder.getLength()
+					- tempSignedPortionBeginOffset[0];
+			int signedPortionEndOffsetFromBack = encoder.getLength()
+					- tempSignedPortionEndOffset[0];
+	
+			encoder.writeTypeAndLength(net.named_data.jndn.encoding.tlv.Tlv.Interest, encoder.getLength()
+					- saveLength);
+			signedPortionBeginOffset[0] = encoder.getLength()
+					- signedPortionBeginOffsetFromBack;
+			signedPortionEndOffset[0] = encoder.getLength()
+					- signedPortionEndOffsetFromBack;
+	
+			return new Blob(encoder.getOutput(), false);
+		}
+	
+		/// <summary>
 		/// Decode input as an Interest in NDN-TLV format v0.3 and set the fields of
 		/// the Interest object. This private method is called if the main
 		/// decodeInterest fails to decode as v0.2. This ignores HopLimit and
-		/// Parameters, and interprets CanBePrefix using MaxSuffixComponents.
+		/// interprets CanBePrefix using MaxSuffixComponents.
 		/// </summary>
 		///
 		/// <param name="interest">The Interest object whose fields are updated.</param>
@@ -1434,8 +1533,12 @@ namespace net.named_data.jndn.encoding {
 			interest.unsetLink();
 			interest.setSelectedDelegationIndex(-1);
 	
-			// Ignore the HopLimit and Parameters.
+			// Ignore the HopLimit.
 			decoder.readOptionalBlobTlv(net.named_data.jndn.encoding.tlv.Tlv.HopLimit, endOffset);
+	
+			interest.setParameters(new Blob(decoder.readOptionalBlobTlv(
+					net.named_data.jndn.encoding.tlv.Tlv.Parameters, endOffset), copy));
+	
 			decoder.readOptionalBlobTlv(net.named_data.jndn.encoding.tlv.Tlv.Parameters, endOffset);
 	
 			// Set the nonce last because setting other interest fields clears it.
