@@ -5,7 +5,7 @@
 // ${CustomMessageForDisclaimer}                                                                             
 // --------------------------------------------------------------------------------------------------
  /// <summary>
-/// Copyright (C) 2015-2018 Regents of the University of California.
+/// Copyright (C) 2015-2019 Regents of the University of California.
 /// </summary>
 ///
 namespace net.named_data.jndn.tests.integration_tests {
@@ -223,8 +223,8 @@ namespace net.named_data.jndn.tests.integration_tests {
 			ProducerDb testDb = new Sqlite3ProducerDb(
 					databaseFilePath.FullName);
 			Producer producer = new Producer(prefix, suffix, face, keyChain, testDb);
-			producer.createContentKey(testTime, new TestProducer.Anonymous_C2 (requestCount, cKeyName, timeMarkerThirdHop,
-					expectedInterest));
+			producer.createContentKey(testTime, new TestProducer.Anonymous_C2 (cKeyName, expectedInterest, requestCount,
+					timeMarkerThirdHop));
 		}
 	
 		public void testContentKeyTimeout() {
@@ -325,17 +325,17 @@ namespace net.named_data.jndn.tests.integration_tests {
 			}
 		}
 		public sealed class Anonymous_C2 : Producer.OnEncryptedKeys {
-			private readonly int[] requestCount;
 			private readonly Name cKeyName;
-			private readonly Name timeMarkerThirdHop;
 			private readonly Name expectedInterest;
+			private readonly int[] requestCount;
+			private readonly Name timeMarkerThirdHop;
 	
-			public Anonymous_C2(int[] requestCount_0, Name cKeyName_1,
-					Name timeMarkerThirdHop_2, Name expectedInterest_3) {
-				this.requestCount = requestCount_0;
-				this.cKeyName = cKeyName_1;
-				this.timeMarkerThirdHop = timeMarkerThirdHop_2;
-				this.expectedInterest = expectedInterest_3;
+			public Anonymous_C2(Name cKeyName_0, Name expectedInterest_1,
+					int[] requestCount_2, Name timeMarkerThirdHop_3) {
+				this.cKeyName = cKeyName_0;
+				this.expectedInterest = expectedInterest_1;
+				this.requestCount = requestCount_2;
+				this.timeMarkerThirdHop = timeMarkerThirdHop_3;
 			}
 	
 			public void onEncryptedKeys(IList result) {

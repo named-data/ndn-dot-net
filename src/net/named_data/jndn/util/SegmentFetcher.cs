@@ -5,7 +5,7 @@
 // ${CustomMessageForDisclaimer}                                                                             
 // --------------------------------------------------------------------------------------------------
  /// <summary>
-/// Copyright (C) 2015-2018 Regents of the University of California.
+/// Copyright (C) 2015-2019 Regents of the University of California.
 /// </summary>
 ///
 namespace net.named_data.jndn.util {
@@ -76,13 +76,13 @@ namespace net.named_data.jndn.util {
 		}
 	
 		public sealed class Anonymous_C0 : OnVerified {
-			private readonly SegmentFetcher thisSegmentFetcher;
 			private readonly Interest originalInterest;
+			private readonly SegmentFetcher thisSegmentFetcher;
 	
-			public Anonymous_C0(SegmentFetcher thisSegmentFetcher_0,
-					Interest originalInterest_1) {
-				this.thisSegmentFetcher = thisSegmentFetcher_0;
-				this.originalInterest = originalInterest_1;
+			public Anonymous_C0(Interest originalInterest_0,
+					SegmentFetcher thisSegmentFetcher_1) {
+				this.originalInterest = originalInterest_0;
+				this.thisSegmentFetcher = thisSegmentFetcher_1;
 			}
 	
 			public void onVerified(Data localData) {
@@ -206,7 +206,7 @@ namespace net.named_data.jndn.util {
 			if (validatorKeyChain_ != null) {
 				try {
 					SegmentFetcher thisSegmentFetcher_1 = this;
-					validatorKeyChain_.verifyData(data, new SegmentFetcher.Anonymous_C0 (thisSegmentFetcher_1, originalInterest_0), this);
+					validatorKeyChain_.verifyData(data, new SegmentFetcher.Anonymous_C0 (originalInterest_0, thisSegmentFetcher_1), this);
 				} catch (Exception ex) {
 					try {
 						onError_.onError(net.named_data.jndn.util.SegmentFetcher.ErrorCode.SEGMENT_VERIFICATION_FAILED,

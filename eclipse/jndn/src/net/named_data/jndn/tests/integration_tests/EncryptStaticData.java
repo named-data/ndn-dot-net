@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2018 Regents of the University of California.
+ * Copyright (C) 2018-2019 Regents of the University of California.
  * @author: Jeff Thompson <jefft0@remap.ucla.edu>
  * @author: From ndn-group-encrypt unit tests
  * https://github.com/named-data/name-based-access-control/blob/new/tests/tests/static-data.hpp
@@ -168,7 +168,7 @@ class EncryptStaticData2 {
 }
 
 /**
- * EncryptStaticData has static data blocs used by TestEncryptorV2, etc.
+ * EncryptStaticData has static data blocks used by TestEncryptorV2, etc.
  */
 public class EncryptStaticData {
   // Convert the int array to a ByteBuffer.

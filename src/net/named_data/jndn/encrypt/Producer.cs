@@ -5,7 +5,7 @@
 // ${CustomMessageForDisclaimer}                                                                             
 // --------------------------------------------------------------------------------------------------
  /// <summary>
-/// Copyright (C) 2015-2018 Regents of the University of California.
+/// Copyright (C) 2015-2019 Regents of the University of California.
 /// </summary>
 ///
 namespace net.named_data.jndn.encrypt {
@@ -22,6 +22,8 @@ namespace net.named_data.jndn.encrypt {
 	using net.named_data.jndn.encoding;
 	using net.named_data.jndn.encrypt.algo;
 	using net.named_data.jndn.security;
+	using net.named_data.jndn.security.pib;
+	using net.named_data.jndn.security.tpm;
 	using net.named_data.jndn.util;
 	
 	/// <summary>
@@ -40,14 +42,14 @@ namespace net.named_data.jndn.encrypt {
 		public sealed class Anonymous_C2 : OnData {
 				private readonly Producer outer_Producer;
 				private readonly double timeSlot;
-				private readonly net.named_data.jndn.encrypt.EncryptError.OnError  onError;
 				private readonly Producer.OnEncryptedKeys  onEncryptedKeys;
+				private readonly net.named_data.jndn.encrypt.EncryptError.OnError  onError;
 		
 				public Anonymous_C2(Producer paramouter_Producer, double timeSlot_0,
-						net.named_data.jndn.encrypt.EncryptError.OnError  onError_1, Producer.OnEncryptedKeys  onEncryptedKeys_2) {
+						Producer.OnEncryptedKeys  onEncryptedKeys_1, net.named_data.jndn.encrypt.EncryptError.OnError  onError_2) {
 					this.timeSlot = timeSlot_0;
-					this.onError = onError_1;
-					this.onEncryptedKeys = onEncryptedKeys_2;
+					this.onEncryptedKeys = onEncryptedKeys_1;
+					this.onError = onError_2;
 					this.outer_Producer = paramouter_Producer;
 				}
 		
@@ -386,7 +388,7 @@ namespace net.named_data.jndn.encrypt {
 		/// <param name="onEncryptedKeys_1"></param>
 		private void sendKeyInterest(Interest interest, double timeSlot_0,
 				Producer.OnEncryptedKeys  onEncryptedKeys_1, net.named_data.jndn.encrypt.EncryptError.OnError  onError_2) {
-			OnData onKey = new Producer.Anonymous_C2 (this, timeSlot_0, onError_2, onEncryptedKeys_1);
+			OnData onKey = new Producer.Anonymous_C2 (this, timeSlot_0, onEncryptedKeys_1, onError_2);
 	
 			OnTimeout onTimeout = new Producer.Anonymous_C1 (this, onEncryptedKeys_1, onError_2, timeSlot_0);
 	

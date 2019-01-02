@@ -5,7 +5,7 @@
 // ${CustomMessageForDisclaimer}                                                                             
 // --------------------------------------------------------------------------------------------------
  /// <summary>
-/// Copyright (C) 2018 Regents of the University of California.
+/// Copyright (C) 2018-2019 Regents of the University of California.
 /// </summary>
 ///
 namespace net.named_data.jndn.tests.integration_tests {
@@ -216,7 +216,7 @@ namespace net.named_data.jndn.tests.integration_tests {
 	}
 	
 	/// <summary>
-	/// EncryptStaticData has static data blocs used by TestEncryptorV2, etc.
+	/// EncryptStaticData has static data blocks used by TestEncryptorV2, etc.
 	/// </summary>
 	///
 	public class EncryptStaticData {
