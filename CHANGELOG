@@ -1,8 +1,9 @@
-Interim changes since NDN-DOT-NET v0.4 (2018-10-24)
+Interim changes since NDN-DOT-NET v0.4 (2019-01-02)
 ---------------------------------------------------
 
 Changes
 * In TpmBackEndFile, implemented private key import/export.
+* Removed deprecated KeyType.ECDSA. (Use EC.)
 
 Bug fixes
 * https://redmine.named-data.net/issues/4732 In decodeControlParameters, skip
