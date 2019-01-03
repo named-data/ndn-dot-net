@@ -565,7 +565,7 @@ namespace net.named_data.jndn {
 										// Call each callback added while the connection was opening.
 										for (int i = 0; i < outer_Node.onConnectedCallbacks_.Count; ++i)
 											((IRunnable) outer_Node.onConnectedCallbacks_[i]).run();
-                    outer_Node.onConnectedCallbacks_.Clear();
+          ILOG.J2CsMapping.Collections.Collections.Clear(outer_Node.onConnectedCallbacks_);
 
 										// Make future calls to expressInterest send directly to the
 										// Transport.

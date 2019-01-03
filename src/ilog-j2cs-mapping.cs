@@ -90,7 +90,13 @@ namespace ILOG.J2CsMapping.Collections {
     }
 
     public static void 
-    Clear<T>(System.Collections.Generic.ICollection<T> collection) { collection.Clear(); }
+    Clear<T>(ArrayList<T> collection) { collection.Clear(); }
+
+    public static void 
+    Clear<T>(HashedSet<T> collection) { collection.Clear(); }
+
+    public static void 
+    Clear(System.Collections.IList collection) { collection.Clear(); }
 
     public static bool 
     Contains<T>(T x, System.Collections.Generic.ICollection<T> collection) { return collection.Contains(x); }
