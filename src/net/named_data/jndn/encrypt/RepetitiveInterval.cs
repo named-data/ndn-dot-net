@@ -257,13 +257,11 @@ namespace net.named_data.jndn.encrypt {
 		}
 	
 		public override int GetHashCode() {
+			long longStartDate = BitConverter.DoubleToInt64Bits(startDate_);
+			long longEndDate = BitConverter.DoubleToInt64Bits(endDate_);
 			int hash = 3;
-			hash = 73
-					* hash
-					+ (int) (BitConverter.DoubleToInt64Bits(startDate_) ^ ((long) (((ulong) (startDate_)) >> 32)));
-			hash = 73
-					* hash
-					+ (int) (BitConverter.DoubleToInt64Bits(endDate_) ^ ((long) (((ulong) (endDate_)) >> 32)));
+			hash = 73 * hash + (int) (longStartDate ^ ((long) (((ulong) longStartDate) >> 32)));
+			hash = 73 * hash + (int) (longEndDate ^ ((long) (((ulong) longEndDate) >> 32)));
 			hash = 73 * hash + intervalStartHour_;
 			hash = 73 * hash + intervalEndHour_;
 			hash = 73 * hash + nRepeats_;
