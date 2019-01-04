@@ -66,12 +66,13 @@ namespace net.named_data.jndn.tests.unit_tests {
 				privateKeyStorage_.setKeyPairForKeyName(keyName, net.named_data.jndn.security.KeyType.RSA,
 						DEFAULT_RSA_PUBLIC_KEY_DER, DEFAULT_RSA_PRIVATE_KEY_DER);
 	
-#if false // Skip ECDSA for now.
-        identityStorage_.addKey(ecdsaKeyName, net.named_data.jndn.security.KeyType.EC, new Blob(
-						DEFAULT_EC_PUBLIC_KEY_DER, false));
-				privateKeyStorage_.setKeyPairForKeyName(ecdsaKeyName, net.named_data.jndn.security.KeyType.EC,
-						DEFAULT_EC_PUBLIC_KEY_DER, DEFAULT_EC_PRIVATE_KEY_DER);
-#endif
+				if (testEcdsa_) {
+					identityStorage_.addKey(ecdsaKeyName, net.named_data.jndn.security.KeyType.EC, new Blob(
+							DEFAULT_EC_PUBLIC_KEY_DER, false));
+					privateKeyStorage_.setKeyPairForKeyName(ecdsaKeyName,
+							net.named_data.jndn.security.KeyType.EC, DEFAULT_EC_PUBLIC_KEY_DER,
+							DEFAULT_EC_PRIVATE_KEY_DER);
+				}
 			} catch (SecurityException ex) {
 				// Don't expect this to happen;
 				System.Console.Out.WriteLine("Exception setting test keys: " + ex);
@@ -288,6 +289,8 @@ namespace net.named_data.jndn.tests.unit_tests {
 		private readonly KeyChain keyChain_;
 		private readonly Name defaultCertName_;
 		private readonly Name ecdsaCertName_;
+		// Set testEcdsa_ false if ECDSA is not available.
+		public static bool testEcdsa_ = false;
 	} 
 	
 	public class TestDataMethods {
@@ -668,8 +671,10 @@ namespace net.named_data.jndn.tests.unit_tests {
 					counter.onVerifiedCallCount_);
 		}
 	
-#if false // Skip ECDSA for now.
 		public void testVerifyEcdsa() {
+			if (!net.named_data.jndn.tests.unit_tests.CredentialStorage.testEcdsa_)
+				return;
+	
 			VerifyCounter counter = new VerifyCounter();
 	
 			try {
@@ -684,8 +689,7 @@ namespace net.named_data.jndn.tests.unit_tests {
 			Assert.AssertEquals("Verification callback was not used", 1,
 					counter.onVerifiedCallCount_);
 		}
-#endif
-
+	
 		public void testVerifyDigestSha256() {
 			VerifyCounter counter = new VerifyCounter();
 	
