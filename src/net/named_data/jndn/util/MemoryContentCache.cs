@@ -381,10 +381,12 @@ namespace net.named_data.jndn.util {
 					try {
 						// Send to the same face from the original call to onInterest.
 						// wireEncode returns the cached encoding if available.
+						logger_.log(ILOG.J2CsMapping.Util.Logging.Level.INFO,
+								"MemoryContentCache:  Reply w/ add Data {0}",
+								data.getName());
 						pendingInterest.getFace().send(data.wireEncode());
 					} catch (IOException ex) {
-						ILOG.J2CsMapping.Util.Logging.Logger.getLogger(typeof(MemoryContentCache).FullName).log(
-								ILOG.J2CsMapping.Util.Logging.Level.SEVERE, ex.Message);
+						logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, ex.Message);
 						return;
 					}
 	
@@ -443,6 +445,9 @@ namespace net.named_data.jndn.util {
 	
 		public void onInterest(Name prefix, Interest interest, Face face,
 				long interestFilterId, InterestFilter filter) {
+			logger_.log(ILOG.J2CsMapping.Util.Logging.Level.INFO, "MemoryContentCache:  Received Interest {0}",
+					interest.toUri());
+	
 			double nowMilliseconds = net.named_data.jndn.util.Common.getNowMilliseconds();
 			doCleanup(nowMilliseconds);
 	
@@ -465,11 +470,13 @@ namespace net.named_data.jndn.util {
 						&& !(interest.getMustBeFresh() && !isFresh)) {
 					if (interest.getChildSelector() < 0) {
 						// No child selector, so send the first match that we have found.
+						logger_.log(ILOG.J2CsMapping.Util.Logging.Level.INFO,
+								"MemoryContentCache:         Reply Data {0}",
+								content.getName());
 						try {
 							face.send(content.getDataEncoding());
 						} catch (IOException ex) {
-							ILOG.J2CsMapping.Util.Logging.Logger.getLogger(typeof(MemoryContentCache).FullName)
-									.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, null, ex);
+							logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, null, ex);
 						}
 						return;
 					} else {
@@ -508,12 +515,17 @@ namespace net.named_data.jndn.util {
 			if (selectedEncoding != null) {
 				// We found the leftmost or rightmost child.
 				try {
+					logger_.log(ILOG.J2CsMapping.Util.Logging.Level.INFO,
+							"MemoryContentCache: Reply Data to Interest {0}",
+							interest.toUri());
 					face.send(selectedEncoding);
 				} catch (IOException ex_0) {
-					ILOG.J2CsMapping.Util.Logging.Logger.getLogger(typeof(MemoryContentCache).FullName).log(
-							ILOG.J2CsMapping.Util.Logging.Level.SEVERE, null, ex_0);
+					logger_.log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, null, ex_0);
 				}
 			} else {
+				logger_.log(ILOG.J2CsMapping.Util.Logging.Level.INFO,
+						"MemoryContentCache: onDataNotFound for {0}",
+						interest.toUri());
 				// Call the onDataNotFound callback (if defined).
 				Object onDataNotFound = ILOG.J2CsMapping.Collections.Collections.Get(onDataNotFoundForPrefix_,prefix.toUri());
 				if (onDataNotFound != null) {
