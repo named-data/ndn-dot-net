@@ -1,7 +1,7 @@
 /**
  * Copyright (C) 2017-2019 Regents of the University of California.
  * @author: Jeff Thompson <jefft0@remap.ucla.edu>
- * @author: From ndn-cxx security https://github.com/named-data/ndn-cxx/blob/master/src/security/tpm/tpm.cpp
+ * @author: From ndn-cxx security https://github.com/named-data/ndn-cxx/blob/master/ndn-cxx/security/tpm/tpm.cpp
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -243,8 +243,7 @@ public class Tpm {
    * have characters in the range of 1 to 127. If the password is supplied, use
    * it to return a PKCS #8 EncryptedPrivateKeyInfo. If the password is null,
    * return an unencrypted PKCS #8 PrivateKeyInfo.
-   * @return The private key encoded in PKCS #8 format, or an isNull Blob if
-   * the key does not exist.
+   * @return The private key encoded in PKCS #8 format.
    * @throws TpmBackEnd.Error if the key does not exist or if the key cannot be
    * exported, e.g., insufficient privileges.
    */
