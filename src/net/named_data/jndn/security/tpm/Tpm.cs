@@ -223,8 +223,7 @@ namespace net.named_data.jndn.security.tpm {
 		///
 		/// <param name="keyName">The name of the key in the TPM.</param>
 		/// <param name="password">it to return a PKCS #8 EncryptedPrivateKeyInfo. If the password is null, return an unencrypted PKCS #8 PrivateKeyInfo.</param>
-		/// <returns>The private key encoded in PKCS #8 format, or an isNull Blob if
-		/// the key does not exist.</returns>
+		/// <returns>The private key encoded in PKCS #8 format.</returns>
 		/// <exception cref="TpmBackEnd.Error">if the key does not exist or if the key cannot beexported, e.g., insufficient privileges.</exception>
 		public Blob exportPrivateKey_(Name keyName, ByteBuffer password) {
 			return backEnd_.exportKey(keyName, password);

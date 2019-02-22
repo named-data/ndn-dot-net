@@ -144,7 +144,7 @@ namespace net.named_data.jndn.tests.unit_tests {
 				0x0A, 0x04, 0x12, 0x34, 0x56, 0x78, // Nonce
 				0x0C, 0x02, 0x10, 0x00, // InterestLifetime = 4096
 				0x22, 0x01, 0xD6, // HopLimit
-				0x23, 0x04, 0xC0, 0xC1, 0xC2, 0xC3 // Parameters
+				0x23, 0x04, 0xC0, 0xC1, 0xC2, 0xC3 // ApplicationParameters
 		});
 	
 		private static readonly ArrayList fullCodedInterestV03Dump = new ArrayList(
@@ -525,35 +525,38 @@ namespace net.named_data.jndn.tests.unit_tests {
 							.doesMatch(new Name("/a/b/c")));
 		}
 	
-		public void testSetParameters() {
+		public void testSetApplicationParameters() {
 			Interest interest = new Interest("/ndn");
-			Assert.AssertTrue(!interest.hasParameters());
-			Blob parameters = new Blob(toBuffer(new int[] { 0x23, 0x00 }), false);
-			interest.setParameters(parameters);
-			Assert.AssertTrue(interest.hasParameters());
-			Assert.AssertTrue(interest.getParameters().equals(parameters));
+			Assert.AssertTrue(!interest.hasApplicationParameters());
+			Blob applicationParameters = new Blob(
+					toBuffer(new int[] { 0x23, 0x00 }), false);
+			interest.setApplicationParameters(applicationParameters);
+			Assert.AssertTrue(interest.hasApplicationParameters());
+			Assert.AssertTrue(interest.getApplicationParameters().equals(
+					applicationParameters));
 	
 			Interest decodedInterest = new Interest();
 			decodedInterest.wireDecode(interest.wireEncode());
-			Assert.AssertTrue(decodedInterest.getParameters().equals(parameters));
+			Assert.AssertTrue(decodedInterest.getApplicationParameters().equals(
+					applicationParameters));
 	
-			interest.setParameters(new Blob());
-			Assert.AssertTrue(!interest.hasParameters());
+			interest.setApplicationParameters(new Blob());
+			Assert.AssertTrue(!interest.hasApplicationParameters());
 		}
 	
 		public void testAppendParametersDigest() {
 			Name name = new Name("/local/ndn/prefix");
 			Interest interest = new Interest(name);
 	
-			Assert.AssertTrue(!interest.hasParameters());
-			// No parameters yet, so it should do nothing.
+			Assert.AssertTrue(!interest.hasApplicationParameters());
+			// No application parameters yet, so it should do nothing.
 			interest.appendParametersDigestToName();
 			Assert.AssertEquals("/local/ndn/prefix", interest.getName().toUri());
 	
-			Blob parameters = new Blob(toBuffer(new int[] { 0x23, 0x01, 0xC0 }),
-					false);
-			interest.setParameters(parameters);
-			Assert.AssertTrue(interest.hasParameters());
+			Blob applicationParameters = new Blob(toBuffer(new int[] { 0x23, 0x01,
+					0xC0 }), false);
+			interest.setApplicationParameters(applicationParameters);
+			Assert.AssertTrue(interest.hasApplicationParameters());
 			interest.appendParametersDigestToName();
 			Assert.AssertEquals(name.size() + 1, interest.getName().size());
 			Assert.AssertTrue(interest.getName().getPrefix(-1).equals(name));
