@@ -105,7 +105,7 @@ public class Tlv0_2WireFormat extends WireFormat {
   encodeInterest
     (Interest interest, int[] signedPortionBeginOffset, int[] signedPortionEndOffset)
   {
-    if (interest.hasParameters())
+    if (interest.hasApplicationParameters())
       // The application has specified a format v0.3 field. As we transition to
       // format v0.3, encode as format v0.3 even though the application default
       // is Tlv0_2WireFormat.
@@ -294,8 +294,8 @@ public class Tlv0_2WireFormat extends WireFormat {
       throw new EncodingException
         ("Interest has a selected delegation, but no link object");
 
-    // Format v0.2 doesn't have Interest parameters.
-    interest.setParameters(new Blob());
+    // Format v0.2 doesn't have application parameters.
+    interest.setApplicationParameters(new Blob());
 
     // Set the nonce last because setting other interest fields clears it.
     interest.setNonce(new Blob(nonce, copy));
@@ -1577,7 +1577,8 @@ public class Tlv0_2WireFormat extends WireFormat {
     int saveLength = encoder.getLength();
 
     // Encode backwards.
-    encoder.writeOptionalBlobTlv(Tlv.Parameters, interest.getParameters().buf());
+    encoder.writeOptionalBlobTlv
+      (Tlv.ApplicationParameters, interest.getApplicationParameters().buf());
     // TODO: HopLimit.
     encoder.writeOptionalNonNegativeIntegerTlvFromDouble
       (Tlv.InterestLifetime, interest.getInterestLifetimeMilliseconds());
@@ -1715,10 +1716,11 @@ public class Tlv0_2WireFormat extends WireFormat {
     // Ignore the HopLimit.
     decoder.readOptionalBlobTlv(Tlv.HopLimit, endOffset);
 
-    interest.setParameters
-      (new Blob(decoder.readOptionalBlobTlv(Tlv.Parameters, endOffset), copy));
+    interest.setApplicationParameters
+      (new Blob(decoder.readOptionalBlobTlv
+                (Tlv.ApplicationParameters, endOffset), copy));
 
-    decoder.readOptionalBlobTlv(Tlv.Parameters, endOffset);
+    decoder.readOptionalBlobTlv(Tlv.ApplicationParameters, endOffset);
 
     // Set the nonce last because setting other interest fields clears it.
     interest.setNonce(new Blob(nonce, copy));

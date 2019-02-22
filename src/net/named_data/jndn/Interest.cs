@@ -51,7 +51,7 @@ namespace net.named_data.jndn {
 			this.linkWireEncodingFormat_ = null;
 			this.forwardingHint_ = new ChangeCounter(
 					new DelegationSet());
-			this.parameters_ = new Blob();
+			this.applicationParameters_ = new Blob();
 			this.link_ = new ChangeCounter(null);
 			this.selectedDelegationIndex_ = -1;
 			this.defaultWireEncoding_ = new SignedBlob();
@@ -84,7 +84,7 @@ namespace net.named_data.jndn {
 			this.linkWireEncodingFormat_ = null;
 			this.forwardingHint_ = new ChangeCounter(
 					new DelegationSet());
-			this.parameters_ = new Blob();
+			this.applicationParameters_ = new Blob();
 			this.link_ = new ChangeCounter(null);
 			this.selectedDelegationIndex_ = -1;
 			this.defaultWireEncoding_ = new SignedBlob();
@@ -117,7 +117,7 @@ namespace net.named_data.jndn {
 			this.linkWireEncodingFormat_ = null;
 			this.forwardingHint_ = new ChangeCounter(
 					new DelegationSet());
-			this.parameters_ = new Blob();
+			this.applicationParameters_ = new Blob();
 			this.link_ = new ChangeCounter(null);
 			this.selectedDelegationIndex_ = -1;
 			this.defaultWireEncoding_ = new SignedBlob();
@@ -148,7 +148,7 @@ namespace net.named_data.jndn {
 			this.linkWireEncodingFormat_ = null;
 			this.forwardingHint_ = new ChangeCounter(
 					new DelegationSet());
-			this.parameters_ = new Blob();
+			this.applicationParameters_ = new Blob();
 			this.link_ = new ChangeCounter(null);
 			this.selectedDelegationIndex_ = -1;
 			this.defaultWireEncoding_ = new SignedBlob();
@@ -166,7 +166,7 @@ namespace net.named_data.jndn {
 			nonce_ = interest.getNonce();
 	
 			forwardingHint_.set(new DelegationSet(interest.getForwardingHint()));
-			parameters_ = interest.parameters_;
+			applicationParameters_ = interest.applicationParameters_;
 			linkWireEncoding_ = interest.linkWireEncoding_;
 			linkWireEncodingFormat_ = interest.linkWireEncodingFormat_;
 			if (interest.link_.get() != null)
@@ -198,7 +198,7 @@ namespace net.named_data.jndn {
 			this.linkWireEncodingFormat_ = null;
 			this.forwardingHint_ = new ChangeCounter(
 					new DelegationSet());
-			this.parameters_ = new Blob();
+			this.applicationParameters_ = new Blob();
 			this.link_ = new ChangeCounter(null);
 			this.selectedDelegationIndex_ = -1;
 			this.defaultWireEncoding_ = new SignedBlob();
@@ -427,21 +427,29 @@ namespace net.named_data.jndn {
 		}
 	
 		/// <summary>
-		/// Check if the Interest parameters are specified.
+		/// Check if the application parameters are specified.
 		/// </summary>
 		///
-		/// <returns>True if the Interest parameters are specified, false if not.</returns>
+		/// <returns>True if the application parameters are specified, false if not.</returns>
+		public bool hasApplicationParameters() {
+			return applicationParameters_.size() > 0;
+		}
+	
 		public bool hasParameters() {
-			return parameters_.size() > 0;
+			return hasApplicationParameters();
 		}
 	
 		/// <summary>
-		/// Get the Interest parameters.
+		/// Get the application parameters.
 		/// </summary>
 		///
 		/// <returns>The parameters as a Blob, which isNull() if unspecified.</returns>
+		public Blob getApplicationParameters() {
+			return applicationParameters_;
+		}
+	
 		public Blob getParameters() {
-			return parameters_;
+			return getApplicationParameters();
 		}
 	
 		/// <summary>
@@ -672,32 +680,38 @@ namespace net.named_data.jndn {
 		}
 	
 		/// <summary>
-		/// Set the Interest parameters to the given value.
+		/// Set the application parameters to the given value.
 		/// </summary>
 		///
-		/// <param name="parameters">The Interest parameters Blob.</param>
+		/// <param name="applicationParameters">The application parameters Blob.</param>
 		/// <returns>This Interest so that you can chain calls to update values.</returns>
-		public Interest setParameters(Blob parameters) {
-			parameters_ = ((parameters == null) ? new Blob() : parameters);
+		public Interest setApplicationParameters(Blob applicationParameters) {
+			applicationParameters_ = ((applicationParameters == null) ? new Blob()
+					: applicationParameters);
 			++changeCount_;
 			return this;
 		}
 	
+		public Interest setParameters(Blob applicationParameters) {
+			return setApplicationParameters(applicationParameters);
+		}
+	
 		/// <summary>
-		/// Append the digest of the Interest parameters to the Name as a
-		/// ParametersSha256DigestComponent. However, if the Interest parameters is
+		/// Append the digest of the application parameters to the Name as a
+		/// ParametersSha256DigestComponent. However, if the application parameters is
 		/// unspecified, do nothing. This does not check if the Name already has a
 		/// parameters digest component, so calling again will append another component.
 		/// </summary>
 		///
 		/// <returns>This Interest so that you can chain calls to update values.</returns>
 		public Interest appendParametersDigestToName() {
-			if (!hasParameters())
+			if (!hasApplicationParameters())
 				return this;
 	
 			try {
 				getName().appendParametersSha256Digest(
-						new Blob(net.named_data.jndn.util.Common.digestSha256(parameters_.buf()), false));
+						new Blob(net.named_data.jndn.util.Common.digestSha256(applicationParameters_.buf()),
+								false));
 			} catch (EncodingException ex) {
 				// We don't expect this.
 				ILOG.J2CsMapping.Util.Logging.Logger.getLogger(typeof(Interest).FullName).log(ILOG.J2CsMapping.Util.Logging.Level.SEVERE, null,
@@ -986,7 +1000,7 @@ namespace net.named_data.jndn {
 		private Blob linkWireEncoding_;
 		private WireFormat linkWireEncodingFormat_;
 		private readonly ChangeCounter forwardingHint_;
-		private Blob parameters_;
+		private Blob applicationParameters_;
 		private readonly ChangeCounter link_;
 		private int selectedDelegationIndex_;
 		private SignedBlob defaultWireEncoding_;

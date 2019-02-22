@@ -1,4 +1,4 @@
-Interim changes since NDN-DOT-NET v0.4 (2019-01-02)
+Interim changes since NDN-DOT-NET v0.4 (2019-02-22)
 ---------------------------------------------------
 
 Changes
@@ -8,6 +8,10 @@ Changes
 Bug fixes
 * https://redmine.named-data.net/issues/4732 In decodeControlParameters, skip
   unrecognized TLVs.
+
+Deprecated
+* In Interest, deprecated getParameters, setParameters and hasParameters. Use
+  getApplicationParameters, setApplicationParameters and hasApplicationParameters.
 
 NDN-DOT-NET v0.4 (2018-09-17)
 -----------------------------

@@ -65,7 +65,7 @@ namespace net.named_data.jndn.encoding {
 		/// <returns>A Blob containing the encoding.</returns>
 		public override Blob encodeInterest(Interest interest,
 				int[] signedPortionBeginOffset, int[] signedPortionEndOffset) {
-			if (interest.hasParameters())
+			if (interest.hasApplicationParameters())
 				// The application has specified a format v0.3 field. As we transition to
 				// format v0.3, encode as format v0.3 even though the application default
 				// is Tlv0_2WireFormat.
@@ -238,8 +238,8 @@ namespace net.named_data.jndn.encoding {
 				throw new EncodingException(
 						"Interest has a selected delegation, but no link object");
 	
-			// Format v0.2 doesn't have Interest parameters.
-			interest.setParameters(new Blob());
+			// Format v0.2 doesn't have application parameters.
+			interest.setApplicationParameters(new Blob());
 	
 			// Set the nonce last because setting other interest fields clears it.
 			interest.setNonce(new Blob(nonce, copy));
@@ -1409,8 +1409,8 @@ namespace net.named_data.jndn.encoding {
 			int saveLength = encoder.getLength();
 	
 			// Encode backwards.
-			encoder.writeOptionalBlobTlv(net.named_data.jndn.encoding.tlv.Tlv.Parameters, interest.getParameters()
-					.buf());
+			encoder.writeOptionalBlobTlv(net.named_data.jndn.encoding.tlv.Tlv.ApplicationParameters, interest
+					.getApplicationParameters().buf());
 			// TODO: HopLimit.
 			encoder.writeOptionalNonNegativeIntegerTlvFromDouble(
 					net.named_data.jndn.encoding.tlv.Tlv.InterestLifetime,
@@ -1536,10 +1536,10 @@ namespace net.named_data.jndn.encoding {
 			// Ignore the HopLimit.
 			decoder.readOptionalBlobTlv(net.named_data.jndn.encoding.tlv.Tlv.HopLimit, endOffset);
 	
-			interest.setParameters(new Blob(decoder.readOptionalBlobTlv(
-					net.named_data.jndn.encoding.tlv.Tlv.Parameters, endOffset), copy));
+			interest.setApplicationParameters(new Blob(decoder.readOptionalBlobTlv(
+					net.named_data.jndn.encoding.tlv.Tlv.ApplicationParameters, endOffset), copy));
 	
-			decoder.readOptionalBlobTlv(net.named_data.jndn.encoding.tlv.Tlv.Parameters, endOffset);
+			decoder.readOptionalBlobTlv(net.named_data.jndn.encoding.tlv.Tlv.ApplicationParameters, endOffset);
 	
 			// Set the nonce last because setting other interest fields clears it.
 			interest.setNonce(new Blob(nonce, copy));
