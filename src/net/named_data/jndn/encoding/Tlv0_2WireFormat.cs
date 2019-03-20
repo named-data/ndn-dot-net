@@ -65,6 +65,12 @@ namespace net.named_data.jndn.encoding {
 		/// <returns>A Blob containing the encoding.</returns>
 		public override Blob encodeInterest(Interest interest,
 				int[] signedPortionBeginOffset, int[] signedPortionEndOffset) {
+			if (!interest.getDidSetCanBePrefix_() && !didCanBePrefixWarning_) {
+				System.Console.Out
+						.WriteLine("WARNING: The default CanBePrefix will change. See Interest.setDefaultCanBePrefix() for details.");
+				didCanBePrefixWarning_ = true;
+			}
+	
 			if (interest.hasApplicationParameters())
 				// The application has specified a format v0.3 field. As we transition to
 				// format v0.3, encode as format v0.3 even though the application default
@@ -1549,5 +1555,6 @@ namespace net.named_data.jndn.encoding {
 	
 		private static readonly Random random_ = new Random();
 		private static Tlv0_2WireFormat instance_ = new Tlv0_2WireFormat();
+		private static bool didCanBePrefixWarning_ = false;
 	}
 }
