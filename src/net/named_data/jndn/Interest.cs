@@ -37,7 +37,8 @@ namespace net.named_data.jndn {
 		public Interest(Name name, double interestLifetimeMilliseconds) {
 			this.name_ = new ChangeCounter(new Name());
 			this.minSuffixComponents_ = -1;
-			this.maxSuffixComponents_ = -1;
+			this.maxSuffixComponents_ = ((defaultCanBePrefix_) ? -1 : 1);
+			this.didSetCanBePrefix_ = didSetDefaultCanBePrefix_;
 			this.keyLocator_ = new ChangeCounter(
 					new KeyLocator());
 			this.exclude_ = new ChangeCounter(new Exclude());
@@ -70,7 +71,8 @@ namespace net.named_data.jndn {
 		public Interest(Name name) {
 			this.name_ = new ChangeCounter(new Name());
 			this.minSuffixComponents_ = -1;
-			this.maxSuffixComponents_ = -1;
+			this.maxSuffixComponents_ = ((defaultCanBePrefix_) ? -1 : 1);
+			this.didSetCanBePrefix_ = didSetDefaultCanBePrefix_;
 			this.keyLocator_ = new ChangeCounter(
 					new KeyLocator());
 			this.exclude_ = new ChangeCounter(new Exclude());
@@ -103,7 +105,8 @@ namespace net.named_data.jndn {
 		public Interest(String uri) {
 			this.name_ = new ChangeCounter(new Name());
 			this.minSuffixComponents_ = -1;
-			this.maxSuffixComponents_ = -1;
+			this.maxSuffixComponents_ = ((defaultCanBePrefix_) ? -1 : 1);
+			this.didSetCanBePrefix_ = didSetDefaultCanBePrefix_;
 			this.keyLocator_ = new ChangeCounter(
 					new KeyLocator());
 			this.exclude_ = new ChangeCounter(new Exclude());
@@ -134,7 +137,8 @@ namespace net.named_data.jndn {
 		public Interest(Interest interest) {
 			this.name_ = new ChangeCounter(new Name());
 			this.minSuffixComponents_ = -1;
-			this.maxSuffixComponents_ = -1;
+			this.maxSuffixComponents_ = ((defaultCanBePrefix_) ? -1 : 1);
+			this.didSetCanBePrefix_ = didSetDefaultCanBePrefix_;
 			this.keyLocator_ = new ChangeCounter(
 					new KeyLocator());
 			this.exclude_ = new ChangeCounter(new Exclude());
@@ -157,6 +161,7 @@ namespace net.named_data.jndn {
 			name_.set(new Name(interest.getName()));
 			minSuffixComponents_ = interest.minSuffixComponents_;
 			maxSuffixComponents_ = interest.maxSuffixComponents_;
+			didSetCanBePrefix_ = interest.didSetCanBePrefix_;
 			keyLocator_.set(new KeyLocator(interest.getKeyLocator()));
 			exclude_.set(new Exclude(interest.getExclude()));
 			childSelector_ = interest.childSelector_;
@@ -184,7 +189,8 @@ namespace net.named_data.jndn {
 		public Interest() {
 			this.name_ = new ChangeCounter(new Name());
 			this.minSuffixComponents_ = -1;
-			this.maxSuffixComponents_ = -1;
+			this.maxSuffixComponents_ = ((defaultCanBePrefix_) ? -1 : 1);
+			this.didSetCanBePrefix_ = didSetDefaultCanBePrefix_;
 			this.keyLocator_ = new ChangeCounter(
 					new KeyLocator());
 			this.exclude_ = new ChangeCounter(new Exclude());
@@ -208,6 +214,32 @@ namespace net.named_data.jndn {
 	
 		public const int CHILD_SELECTOR_LEFT = 0;
 		public const int CHILD_SELECTOR_RIGHT = 1;
+	
+		/// <summary>
+		/// Get the default value of the CanBePrefix flag used in the Interest 
+		/// constructor. You can change this with setDefaultCanBePrefix().
+		/// </summary>
+		///
+		/// <returns>The default value of the CanBePrefix flag.</returns>
+		public static bool getDefaultCanBePrefix() {
+			return defaultCanBePrefix_;
+		}
+	
+		/// <summary>
+		/// Set the default value of the CanBePrefix flag used in the Interest
+		/// constructor. The default is currently true, but will be changed at a later
+		/// date. The application should call this before creating any Interest
+		/// (even to set the default again to true), or the application should
+		/// explicitly call setCanBePrefix() after creating the Interest. Otherwise
+		/// wireEncode will print a warning message. This is to avoid breaking any code
+		/// when the library default for CanBePrefix is changed at a later date.
+		/// </summary>
+		///
+		/// <param name="defaultCanBePrefix">The default value of the CanBePrefix flag.</param>
+		public static void setDefaultCanBePrefix(bool defaultCanBePrefix) {
+			defaultCanBePrefix_ = defaultCanBePrefix;
+			didSetDefaultCanBePrefix_ = true;
+		}
 	
 		/// <summary>
 		/// Encode this Interest for a particular wire format. If wireFormat is the
@@ -586,6 +618,7 @@ namespace net.named_data.jndn {
 			// Use the closest v0.2 semantics. CanBePrefix is the opposite of exact
 			// match where MaxSuffixComponents is 1 (for the implicit digest).
 			maxSuffixComponents_ = ((canBePrefix) ? -1 : 1);
+			didSetCanBePrefix_ = true;
 			++changeCount_;
 			return this;
 		}
@@ -977,6 +1010,16 @@ namespace net.named_data.jndn {
 			return changeCount_;
 		}
 	
+		/// <summary>
+		/// This internal library method gets didSetCanBePrefix_ which is set true when
+		/// the application calls setCanBePrefix(), or if the application had already
+		/// called setDefaultCanBePrefix() before creating the Interest.
+		/// </summary>
+		///
+		public bool getDidSetCanBePrefix_() {
+			return didSetCanBePrefix_;
+		}
+	
 		private void setDefaultWireEncoding(SignedBlob defaultWireEncoding,
 				WireFormat defaultWireEncodingFormat) {
 			defaultWireEncoding_ = defaultWireEncoding;
@@ -989,6 +1032,8 @@ namespace net.named_data.jndn {
 		private readonly ChangeCounter name_;
 		private int minSuffixComponents_;
 		private int maxSuffixComponents_;
+		// didSetCanBePrefix_ is true if the app already called setDefaultCanBePrefix().
+		private bool didSetCanBePrefix_;
 		private readonly ChangeCounter keyLocator_;
 		private readonly ChangeCounter exclude_;
 		private int childSelector_;
@@ -1008,5 +1053,7 @@ namespace net.named_data.jndn {
 		private long getDefaultWireEncodingChangeCount_;
 		private long changeCount_;
 		private static readonly Random random_ = new Random();
+		private static bool defaultCanBePrefix_ = true;
+		private static bool didSetDefaultCanBePrefix_ = false;
 	}
 }
