@@ -68,6 +68,9 @@ namespace TestNdnDotNet
     static void Main(string[] args)
     {
       try {
+        // Silence the warning from Interest wire encode.
+        Interest.setDefaultCanBePrefix(true);
+
         var face = new ThreadPoolFace("memoria.ndn.ucla.edu");
 
         var counter = new Counter(3);
