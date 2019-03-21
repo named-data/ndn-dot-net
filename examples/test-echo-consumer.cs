@@ -55,6 +55,9 @@ namespace TestNdnDotNet
     static void Main(string[] args)
     {
       try {
+        // Silence the warning from Interest wire encode.
+        Interest.setDefaultCanBePrefix(true);
+
         var face = new Face
           (new TcpTransport(), new TcpTransport.ConnectionInfo("localhost"));
 

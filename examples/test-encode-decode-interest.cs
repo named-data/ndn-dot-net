@@ -206,6 +206,9 @@ namespace TestNdnDotNet {
 
     static void Main(string[] args)
     {
+      // Silence the warning from Interest wire encode.
+      Interest.setDefaultCanBePrefix(true);
+
       var interest = new Interest();
       interest.wireDecode(new Blob(TlvInterest));
       Console.Out.WriteLine("Interest:");
