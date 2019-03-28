@@ -397,7 +397,8 @@ namespace net.named_data.jndn {
 		}
 	
 		/// <summary>
-		/// Get the CanBePrefix flag. If not specified, the default is true.
+		/// Get the CanBePrefix flag. If not specified, the default is true, or the
+		/// value from setDefaultCanBePrefix().
 		/// </summary>
 		///
 		/// <returns>The CanBePrefix flag.</returns>
@@ -612,7 +613,7 @@ namespace net.named_data.jndn {
 		/// Set the CanBePrefix flag.
 		/// </summary>
 		///
-		/// <param name="canBePrefix"></param>
+		/// <param name="canBePrefix">True if the Interest name can be a prefix.</param>
 		/// <returns>This Interest so that you can chain calls to update values.</returns>
 		public Interest setCanBePrefix(bool canBePrefix) {
 			// Use the closest v0.2 semantics. CanBePrefix is the opposite of exact

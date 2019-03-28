@@ -69,8 +69,10 @@ namespace net.named_data.jndn {
 		/// </summary>
 		///
 		/// <param name="childInherit">true to set the flag, false to clear it.</param>
-		public void setChildInherit(bool childInherit) {
+		/// <returns>This ForwardingFlags so that you can chain calls to update values.</returns>
+		public ForwardingFlags setChildInherit(bool childInherit) {
 			childInherit_ = childInherit;
+			return this;
 		}
 	
 		/// <summary>
@@ -78,8 +80,10 @@ namespace net.named_data.jndn {
 		/// </summary>
 		///
 		/// <param name="capture">true to set the flag, false to clear it.</param>
-		public void setCapture(bool capture) {
+		/// <returns>This ForwardingFlags so that you can chain calls to update values.</returns>
+		public ForwardingFlags setCapture(bool capture) {
 			capture_ = capture;
+			return this;
 		}
 	
 		/// <summary>
@@ -105,9 +109,11 @@ namespace net.named_data.jndn {
 		/// </summary>
 		///
 		/// <param name="nfdForwardingFlags">An integer with the bits set.</param>
-		public void setNfdForwardingFlags(int nfdForwardingFlags) {
+		/// <returns>This ForwardingFlags so that you can chain calls to update values.</returns>
+		public ForwardingFlags setNfdForwardingFlags(int nfdForwardingFlags) {
 			childInherit_ = (nfdForwardingFlags & NfdForwardingFlags_CHILD_INHERIT) != 0;
 			capture_ = (nfdForwardingFlags & NfdForwardingFlags_CAPTURE) != 0;
+			return this;
 		}
 	
 		private const int NfdForwardingFlags_CHILD_INHERIT = 1;
