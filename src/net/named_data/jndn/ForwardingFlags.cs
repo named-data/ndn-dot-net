@@ -32,6 +32,7 @@ namespace net.named_data.jndn {
 		public ForwardingFlags() {
 			this.childInherit_ = true;
 			this.capture_ = false;
+			this.origin_ = -1;
 		}
 	
 		/// <summary>
@@ -42,8 +43,10 @@ namespace net.named_data.jndn {
 		public ForwardingFlags(ForwardingFlags forwardingFlags) {
 			this.childInherit_ = true;
 			this.capture_ = false;
+			this.origin_ = -1;
 			childInherit_ = forwardingFlags.childInherit_;
 			capture_ = forwardingFlags.capture_;
+			origin_ = forwardingFlags.origin_;
 		}
 	
 		/// <summary>
@@ -62,6 +65,15 @@ namespace net.named_data.jndn {
 		/// <returns>true if the flag is set, false if it is cleared.</returns>
 		public bool getCapture() {
 			return capture_;
+		}
+	
+		/// <summary>
+		/// Get the origin value.
+		/// </summary>
+		///
+		/// <returns>The origin value, or -1 if not specified.</returns>
+		public int getOrigin() {
+			return origin_;
 		}
 	
 		/// <summary>
@@ -87,8 +99,20 @@ namespace net.named_data.jndn {
 		}
 	
 		/// <summary>
+		/// Set the origin value.
+		/// </summary>
+		///
+		/// <param name="origin">The new origin value, or -1 for not specified.</param>
+		/// <returns>This ForwardingFlags so that you can chain calls to update values.</returns>
+		public ForwardingFlags setOrigin(int origin) {
+			origin_ = origin;
+			return this;
+		}
+	
+		/// <summary>
 		/// Get an integer with the bits set according to the NFD forwarding flags as
 		/// used in the ControlParameters of the command interest.
+		/// This ignores the origin value.
 		/// </summary>
 		///
 		/// <returns>An integer with the bits set.</returns>
@@ -121,5 +145,7 @@ namespace net.named_data.jndn {
 	
 		private bool childInherit_;
 		private bool capture_;
+		private int origin_;
+		/**< -1 for none. */
 	}
 }
