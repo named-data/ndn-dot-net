@@ -63,8 +63,8 @@ namespace net.named_data.jndn.tests.integration_tests {
 	
 		public override long registerPrefix(Name prefix, OnInterestCallback onInterest,
 				OnRegisterFailed onRegisterFailed,
-				OnRegisterSuccess onRegisterSuccess, ForwardingFlags flags,
-				WireFormat wireFormat) {
+				OnRegisterSuccess onRegisterSuccess,
+				RegistrationOptions registrationOptions, WireFormat wireFormat) {
 			interestFilterTable_.setInterestFilter(0, new InterestFilter(prefix),
 					onInterest, this);
 	

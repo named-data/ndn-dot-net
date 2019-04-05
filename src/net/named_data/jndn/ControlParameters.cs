@@ -39,7 +39,7 @@ namespace net.named_data.jndn {
 			this.localControlFeature_ = -1;
 			this.origin_ = -1;
 			this.cost_ = -1;
-			this.flags_ = new ForwardingFlags();
+			this.flags_ = new RegistrationOptions();
 			this.strategy_ = new Name();
 			this.expirationPeriod_ = -1.0d;
 		}
@@ -56,7 +56,7 @@ namespace net.named_data.jndn {
 			this.localControlFeature_ = -1;
 			this.origin_ = -1;
 			this.cost_ = -1;
-			this.flags_ = new ForwardingFlags();
+			this.flags_ = new RegistrationOptions();
 			this.strategy_ = new Name();
 			this.expirationPeriod_ = -1.0d;
 			name_ = (controlParameters.name_ == null) ? null : new Name(
@@ -66,7 +66,7 @@ namespace net.named_data.jndn {
 			localControlFeature_ = controlParameters.localControlFeature_;
 			origin_ = controlParameters.origin_;
 			cost_ = controlParameters.cost_;
-			flags_ = new ForwardingFlags(controlParameters.flags_);
+			flags_ = new RegistrationOptions(controlParameters.flags_);
 			strategy_ = new Name(controlParameters.strategy_);
 			expirationPeriod_ = controlParameters.expirationPeriod_;
 		}
@@ -164,7 +164,7 @@ namespace net.named_data.jndn {
 			return cost_;
 		}
 	
-		public ForwardingFlags getForwardingFlags() {
+		public RegistrationOptions getForwardingFlags() {
 			return flags_;
 		}
 	
@@ -244,16 +244,15 @@ namespace net.named_data.jndn {
 		}
 	
 		/// <summary>
-		/// Set the ForwardingFlags object to a copy of forwardingFlags. You can use
-		/// getForwardingFlags() and change the existing ForwardingFlags object.
+		/// Set the RegistrationOptions object to a copy of flags. You can use
+		/// getForwardingFlags() and change the existing RegistrationOptions object.
 		/// </summary>
 		///
-		/// <param name="forwardingFlags">The new cost value, or null for not specified.</param>
+		/// <param name="flags"></param>
 		/// <returns>This ControlParameters so that you can chain calls to update values.</returns>
-		public ControlParameters setForwardingFlags(
-				ForwardingFlags forwardingFlags) {
-			flags_ = (forwardingFlags == null) ? new ForwardingFlags()
-					: new ForwardingFlags(forwardingFlags);
+		public ControlParameters setForwardingFlags(RegistrationOptions flags) {
+			flags_ = (flags == null) ? new RegistrationOptions()
+					: new RegistrationOptions(flags);
 			return this;
 		}
 	
@@ -290,7 +289,7 @@ namespace net.named_data.jndn {
 			localControlFeature_ = -1;
 			origin_ = -1;
 			cost_ = -1;
-			flags_ = new ForwardingFlags();
+			flags_ = new RegistrationOptions();
 			strategy_ = new Name();
 			expirationPeriod_ = -1.0d;
 		}
@@ -321,7 +320,7 @@ namespace net.named_data.jndn {
 		/// < -1 for none. 
 		/// </summary>
 		///
-		private ForwardingFlags flags_;
+		private RegistrationOptions flags_;
 		private Name strategy_;
 		private double expirationPeriod_;
 		/**< Milliseconds. -1 for none. */

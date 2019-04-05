@@ -1237,7 +1237,7 @@ namespace net.named_data.jndn.encoding {
 			// Encode ForwardingFlags
 			int flags = controlParameters.getForwardingFlags()
 					.getNfdForwardingFlags();
-			if (flags != new ForwardingFlags().getNfdForwardingFlags())
+			if (flags != new RegistrationOptions().getNfdForwardingFlags())
 				// The flags are not the default value.
 				encoder.writeNonNegativeIntegerTlv(net.named_data.jndn.encoding.tlv.Tlv.ControlParameters_Flags,
 						flags);
@@ -1320,7 +1320,7 @@ namespace net.named_data.jndn.encoding {
 	
 			// set forwarding flags
 			if (decoder.peekType(net.named_data.jndn.encoding.tlv.Tlv.ControlParameters_Flags, endOffset)) {
-				ForwardingFlags flags = new ForwardingFlags();
+				RegistrationOptions flags = new RegistrationOptions();
 				flags.setNfdForwardingFlags((int) decoder
 						.readNonNegativeIntegerTlv(net.named_data.jndn.encoding.tlv.Tlv.ControlParameters_Flags));
 				controlParameters.setForwardingFlags(flags);
