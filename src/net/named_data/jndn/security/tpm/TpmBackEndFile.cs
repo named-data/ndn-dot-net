@@ -58,8 +58,11 @@ namespace net.named_data.jndn.security.tpm {
 		/// Create a TpmBackEndFile to use the given path to store files.
 		/// </summary>
 		///
-		/// <param name="locationPath">the default directory path from an Android files directory with getDefaultDirecoryPath(context.getFilesDir()) .</param>
+		/// <param name="locationPath">If locationPath is empty, then store private key files in the default location HOME/.ndn/ndnsec-key-file where HOME is System.getProperty("user.home"). Note that on Android there is no HOME and you must supply the locationPath. For example, you can get the default directory path from an Android files directory with getDefaultDirecoryPath(context.getFilesDir()) .</param>
 		public TpmBackEndFile(String locationPath) {
+			if (locationPath == null || locationPath.equals(""))
+				locationPath = getDefaultDirecoryPath(net.named_data.jndn.util.Common.getHomeDirectory());
+	
 			keyStorePath_ = new FileInfo(locationPath);
 			System.IO.Directory.CreateDirectory(keyStorePath_.FullName);
 		}
