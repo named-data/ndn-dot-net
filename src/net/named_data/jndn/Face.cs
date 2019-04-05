@@ -531,7 +531,7 @@ namespace net.named_data.jndn {
 		/// <param name="onInterest">onInterest.onInterest(prefix, interest, face, interestFilterId, filter). The onInterest callback should supply the Data with face.putData(). NOTE: You must not change the prefix or filter objects - if you need to change them then make a copy. If onInterest is null, it is ignored and you must call setInterestFilter. NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
 		/// <param name="onRegisterFailed">NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
 		/// <param name="onRegisterSuccess">receives a success message from the forwarder. If onRegisterSuccess is null, this does not use it. (The onRegisterSuccess parameter comes after onRegisterFailed because it can be null or omitted, unlike onRegisterFailed.) NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
-		/// <param name="flags"></param>
+		/// <param name="registrationOptions"></param>
 		/// <param name="wireFormat">A WireFormat object used to encode the message.</param>
 		/// <returns>The registered prefix ID which can be used with
 		/// removeRegisteredPrefix.</returns>
@@ -539,24 +539,24 @@ namespace net.named_data.jndn {
 		/// <exception cref="System.Security.SecurityException">If signing a command interest for NFD and cannotfind the private key for the certificateName.</exception>
 		public virtual long registerPrefix(Name prefix, OnInterestCallback onInterest,
 				OnRegisterFailed onRegisterFailed,
-				OnRegisterSuccess onRegisterSuccess, ForwardingFlags flags,
-				WireFormat wireFormat) {
+				OnRegisterSuccess onRegisterSuccess,
+				RegistrationOptions registrationOptions, WireFormat wireFormat) {
 			// Get the registeredPrefixId now so we can return it to the caller.
 			long registeredPrefixId = node_.getNextEntryId();
 	
 			node_.registerPrefix(registeredPrefixId, prefix, onInterest,
-					onRegisterFailed, onRegisterSuccess, flags, wireFormat,
-					commandKeyChain_, commandCertificateName_, this);
+					onRegisterFailed, onRegisterSuccess, registrationOptions,
+					wireFormat, commandKeyChain_, commandCertificateName_, this);
 	
 			return registeredPrefixId;
 		}
 	
 		public long registerPrefix(Name prefix, OnInterestCallback onInterest,
 				OnRegisterSuccess onRegisterSuccess,
-				OnRegisterFailed onRegisterFailed, ForwardingFlags flags,
-				WireFormat wireFormat) {
+				OnRegisterFailed onRegisterFailed,
+				RegistrationOptions registrationOptions, WireFormat wireFormat) {
 			return registerPrefix(prefix, onInterest, onRegisterFailed,
-					onRegisterSuccess, flags, wireFormat);
+					onRegisterSuccess, registrationOptions, wireFormat);
 		}
 	
 		/// <summary>
@@ -569,28 +569,32 @@ namespace net.named_data.jndn {
 		/// <param name="onInterest">onInterest.onInterest(prefix, interest, face, interestFilterId, filter). The onInterest callback should supply the Data with face.putData(). NOTE: You must not change the prefix or filter objects - if you need to change them then make a copy. If onInterest is null, it is ignored and you must call setInterestFilter. NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
 		/// <param name="onRegisterFailed">NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
 		/// <param name="onRegisterSuccess">receives a success message from the forwarder. If onRegisterSuccess is null, this does not use it. (The onRegisterSuccess parameter comes after onRegisterFailed because it can be null or omitted, unlike onRegisterFailed.) NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
-		/// <param name="flags"></param>
+		/// <param name="registrationOptions"></param>
 		/// <returns>The registered prefix ID which can be used with
 		/// removeRegisteredPrefix.</returns>
 		/// <exception cref="IOException">For I/O error in sending the registration request.</exception>
 		public long registerPrefix(Name prefix, OnInterestCallback onInterest,
 				OnRegisterFailed onRegisterFailed,
-				OnRegisterSuccess onRegisterSuccess, ForwardingFlags flags) {
+				OnRegisterSuccess onRegisterSuccess,
+				RegistrationOptions registrationOptions) {
 			return registerPrefix(prefix, onInterest, onRegisterFailed,
-					onRegisterSuccess, flags, net.named_data.jndn.encoding.WireFormat.getDefaultWireFormat());
+					onRegisterSuccess, registrationOptions,
+					net.named_data.jndn.encoding.WireFormat.getDefaultWireFormat());
 		}
 	
 		public long registerPrefix(Name prefix, OnInterestCallback onInterest,
 				OnRegisterSuccess onRegisterSuccess,
-				OnRegisterFailed onRegisterFailed, ForwardingFlags flags) {
+				OnRegisterFailed onRegisterFailed,
+				RegistrationOptions registrationOptions) {
 			return registerPrefix(prefix, onInterest, onRegisterFailed,
-					onRegisterSuccess, flags, net.named_data.jndn.encoding.WireFormat.getDefaultWireFormat());
+					onRegisterSuccess, registrationOptions,
+					net.named_data.jndn.encoding.WireFormat.getDefaultWireFormat());
 		}
 	
 		/// <summary>
 		/// Register prefix with the connected NDN hub and call onInterest when a
 		/// matching interest is received.
-		/// Use default ForwardingFlags.
+		/// Use default RegistrationOptions.
 		/// </summary>
 		///
 		/// <param name="prefix">A Name for the prefix to register. This copies the Name.</param>
@@ -606,21 +610,21 @@ namespace net.named_data.jndn {
 				OnRegisterFailed onRegisterFailed,
 				OnRegisterSuccess onRegisterSuccess, WireFormat wireFormat) {
 			return registerPrefix(prefix, onInterest, onRegisterFailed,
-					onRegisterSuccess, new ForwardingFlags(), wireFormat);
+					onRegisterSuccess, new RegistrationOptions(), wireFormat);
 		}
 	
 		public long registerPrefix(Name prefix, OnInterestCallback onInterest,
 				OnRegisterSuccess onRegisterSuccess,
 				OnRegisterFailed onRegisterFailed, WireFormat wireFormat) {
 			return registerPrefix(prefix, onInterest, onRegisterFailed,
-					onRegisterSuccess, new ForwardingFlags(), wireFormat);
+					onRegisterSuccess, new RegistrationOptions(), wireFormat);
 		}
 	
 		/// <summary>
 		/// Register prefix with the connected NDN hub and call onInterest when a
 		/// matching interest is received.
 		/// This uses the default WireFormat.getDefaultWireFormat().
-		/// Use default ForwardingFlags.
+		/// Use default RegistrationOptions.
 		/// </summary>
 		///
 		/// <param name="prefix">A Name for the prefix to register. This copies the Name.</param>
@@ -635,7 +639,7 @@ namespace net.named_data.jndn {
 				OnRegisterFailed onRegisterFailed,
 				OnRegisterSuccess onRegisterSuccess) {
 			return registerPrefix(prefix, onInterest, onRegisterFailed,
-					onRegisterSuccess, new ForwardingFlags(),
+					onRegisterSuccess, new RegistrationOptions(),
 					net.named_data.jndn.encoding.WireFormat.getDefaultWireFormat());
 		}
 	
@@ -643,7 +647,7 @@ namespace net.named_data.jndn {
 				OnRegisterSuccess onRegisterSuccess,
 				OnRegisterFailed onRegisterFailed) {
 			return registerPrefix(prefix, onInterest, onRegisterFailed,
-					onRegisterSuccess, new ForwardingFlags(),
+					onRegisterSuccess, new RegistrationOptions(),
 					net.named_data.jndn.encoding.WireFormat.getDefaultWireFormat());
 		}
 	
@@ -656,17 +660,17 @@ namespace net.named_data.jndn {
 		/// <param name="prefix">A Name for the prefix to register. This copies the Name.</param>
 		/// <param name="onInterest">onInterest.onInterest(prefix, interest, face, interestFilterId, filter). The onInterest callback should supply the Data with face.putData(). NOTE: You must not change the prefix or filter objects - if you need to change them then make a copy. If onInterest is null, it is ignored and you must call setInterestFilter. NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
 		/// <param name="onRegisterFailed">NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
-		/// <param name="flags"></param>
+		/// <param name="registrationOptions"></param>
 		/// <param name="wireFormat">A WireFormat object used to encode the message.</param>
 		/// <returns>The registered prefix ID which can be used with
 		/// removeRegisteredPrefix.</returns>
 		/// <exception cref="IOException">For I/O error in sending the registration request.</exception>
 		/// <exception cref="System.Security.SecurityException">If signing a command interest for NFD and cannotfind the private key for the certificateName.</exception>
 		public long registerPrefix(Name prefix, OnInterestCallback onInterest,
-				OnRegisterFailed onRegisterFailed, ForwardingFlags flags,
-				WireFormat wireFormat) {
+				OnRegisterFailed onRegisterFailed,
+				RegistrationOptions registrationOptions, WireFormat wireFormat) {
 			return registerPrefix(prefix, onInterest, onRegisterFailed, null,
-					flags, wireFormat);
+					registrationOptions, wireFormat);
 		}
 	
 		/// <summary>
@@ -679,21 +683,22 @@ namespace net.named_data.jndn {
 		/// <param name="prefix">A Name for the prefix to register. This copies the Name.</param>
 		/// <param name="onInterest">onInterest.onInterest(prefix, interest, face, interestFilterId, filter). The onInterest callback should supply the Data with face.putData(). NOTE: You must not change the prefix or filter objects - if you need to change them then make a copy. If onInterest is null, it is ignored and you must call setInterestFilter. NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
 		/// <param name="onRegisterFailed">NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
-		/// <param name="flags"></param>
+		/// <param name="registrationOptions"></param>
 		/// <returns>The registered prefix ID which can be used with
 		/// removeRegisteredPrefix.</returns>
 		/// <exception cref="IOException">For I/O error in sending the registration request.</exception>
 		public long registerPrefix(Name prefix, OnInterestCallback onInterest,
-				OnRegisterFailed onRegisterFailed, ForwardingFlags flags) {
+				OnRegisterFailed onRegisterFailed,
+				RegistrationOptions registrationOptions) {
 			return registerPrefix(prefix, onInterest, onRegisterFailed, null,
-					flags, net.named_data.jndn.encoding.WireFormat.getDefaultWireFormat());
+					registrationOptions, net.named_data.jndn.encoding.WireFormat.getDefaultWireFormat());
 		}
 	
 		/// <summary>
 		/// Register prefix with the connected NDN hub and call onInterest when a
 		/// matching interest is received. To register a prefix with NFD, you must
 		/// first call setCommandSigningInfo.
-		/// Use default ForwardingFlags.
+		/// Use default RegistrationOptions.
 		/// </summary>
 		///
 		/// <param name="prefix">A Name for the prefix to register. This copies the Name.</param>
@@ -707,7 +712,7 @@ namespace net.named_data.jndn {
 		public long registerPrefix(Name prefix, OnInterestCallback onInterest,
 				OnRegisterFailed onRegisterFailed, WireFormat wireFormat) {
 			return registerPrefix(prefix, onInterest, onRegisterFailed, null,
-					new ForwardingFlags(), wireFormat);
+					new RegistrationOptions(), wireFormat);
 		}
 	
 		/// <summary>
@@ -715,7 +720,7 @@ namespace net.named_data.jndn {
 		/// matching interest is received. To register a prefix with NFD, you must
 		/// first call setCommandSigningInfo.
 		/// This uses the default WireFormat.getDefaultWireFormat().
-		/// Use default ForwardingFlags.
+		/// Use default RegistrationOptions.
 		/// </summary>
 		///
 		/// <param name="prefix">A Name for the prefix to register. This copies the Name.</param>
@@ -728,7 +733,7 @@ namespace net.named_data.jndn {
 		public long registerPrefix(Name prefix, OnInterestCallback onInterest,
 				OnRegisterFailed onRegisterFailed) {
 			return registerPrefix(prefix, onInterest, onRegisterFailed, null,
-					new ForwardingFlags(), net.named_data.jndn.encoding.WireFormat.getDefaultWireFormat());
+					new RegistrationOptions(), net.named_data.jndn.encoding.WireFormat.getDefaultWireFormat());
 		}
 	
 		/// <summary>

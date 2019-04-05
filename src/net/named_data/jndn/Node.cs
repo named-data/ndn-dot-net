@@ -102,16 +102,16 @@ namespace net.named_data.jndn {
 							connectStatus_ = net.named_data.jndn.Node.ConnectStatus.CONNECT_REQUESTED;
 			
 							// expressInterestHelper will be called by onConnected.
-							ILOG.J2CsMapping.Collections.Collections.Add(onConnectedCallbacks_,new Node.Anonymous_C3 (this, onNetworkNack, pendingInterestId,
-													wireFormat, interestCopy, face, onTimeout, onData));
+							ILOG.J2CsMapping.Collections.Collections.Add(onConnectedCallbacks_,new Node.Anonymous_C3 (this, face, pendingInterestId, onTimeout,
+													onData, interestCopy, onNetworkNack, wireFormat));
 			
 							IRunnable onConnected = new Node.Anonymous_C2 (this);
 							transport_.connect(connectionInfo_, this, onConnected);
 						} else if (connectStatus_ == net.named_data.jndn.Node.ConnectStatus.CONNECT_REQUESTED) {
 							// Still connecting. add to the interests to express by onConnected.
-							ILOG.J2CsMapping.Collections.Collections.Add(onConnectedCallbacks_,new Node.Anonymous_C1 (this, wireFormat, onTimeout,
-													pendingInterestId, face, onData, onNetworkNack,
-													interestCopy));
+							ILOG.J2CsMapping.Collections.Collections.Add(onConnectedCallbacks_,new Node.Anonymous_C1 (this, interestCopy, wireFormat,
+													pendingInterestId, onNetworkNack, onTimeout, onData,
+													face));
 						} else if (connectStatus_ == net.named_data.jndn.Node.ConnectStatus.CONNECT_COMPLETE)
 							// We have to repeat this check for CONNECT_COMPLETE in case the
 							// onConnected callback was called while we were waiting to enter this
@@ -165,7 +165,7 @@ namespace net.named_data.jndn {
 		/// <param name="onInterest">onInterest.onInterest(prefix, interest, face, interestFilterId, filter). If onInterest is null, it is ignored and you must call setInterestFilter.</param>
 		/// <param name="onRegisterFailed">prefix.</param>
 		/// <param name="onRegisterSuccess">receives a success message from the forwarder. If onRegisterSuccess is null, this does not use it.</param>
-		/// <param name="flags"></param>
+		/// <param name="registrationOptions"></param>
 		/// <param name="wireFormat">A WireFormat object used to encode the message.</param>
 		/// <param name="commandKeyChain">The KeyChain object for signing interests.</param>
 		/// <param name="commandCertificateName">The certificate name for signing interests.</param>
@@ -174,12 +174,12 @@ namespace net.named_data.jndn {
 		/// <exception cref="System.Security.SecurityException">If signing a command interest for NFD and cannotfind the private key for the certificateName.</exception>
 		public void registerPrefix(long registeredPrefixId, Name prefix,
 				OnInterestCallback onInterest, OnRegisterFailed onRegisterFailed,
-				OnRegisterSuccess onRegisterSuccess, ForwardingFlags flags,
-				WireFormat wireFormat, KeyChain commandKeyChain,
-				Name commandCertificateName, Face face) {
+				OnRegisterSuccess onRegisterSuccess,
+				RegistrationOptions registrationOptions, WireFormat wireFormat,
+				KeyChain commandKeyChain, Name commandCertificateName, Face face) {
 			nfdRegisterPrefix(registeredPrefixId, new Name(prefix), onInterest,
-					onRegisterFailed, onRegisterSuccess, flags, commandKeyChain,
-					commandCertificateName, wireFormat, face);
+					onRegisterFailed, onRegisterSuccess, registrationOptions,
+					commandKeyChain, commandCertificateName, wireFormat, face);
 		}
 	
 		/// <summary>
@@ -522,25 +522,25 @@ namespace net.named_data.jndn {
 	
 		public sealed class Anonymous_C3 : IRunnable {
 				private readonly Node outer_Node;
-				private readonly OnNetworkNack onNetworkNack;
-				private readonly long pendingInterestId;
-				private readonly WireFormat wireFormat;
-				private readonly Interest interestCopy;
 				private readonly Face face;
+				private readonly long pendingInterestId;
 				private readonly OnTimeout onTimeout;
 				private readonly OnData onData;
+				private readonly Interest interestCopy;
+				private readonly OnNetworkNack onNetworkNack;
+				private readonly WireFormat wireFormat;
 		
-				public Anonymous_C3(Node paramouter_Node, OnNetworkNack onNetworkNack_0,
-						long pendingInterestId_1, WireFormat wireFormat_2,
-						Interest interestCopy_3, Face face_4, OnTimeout onTimeout_5,
-						OnData onData_6) {
-					this.onNetworkNack = onNetworkNack_0;
+				public Anonymous_C3(Node paramouter_Node, Face face_0,
+						long pendingInterestId_1, OnTimeout onTimeout_2, OnData onData_3,
+						Interest interestCopy_4, OnNetworkNack onNetworkNack_5,
+						WireFormat wireFormat_6) {
+					this.face = face_0;
 					this.pendingInterestId = pendingInterestId_1;
-					this.wireFormat = wireFormat_2;
-					this.interestCopy = interestCopy_3;
-					this.face = face_4;
-					this.onTimeout = onTimeout_5;
-					this.onData = onData_6;
+					this.onTimeout = onTimeout_2;
+					this.onData = onData_3;
+					this.interestCopy = interestCopy_4;
+					this.onNetworkNack = onNetworkNack_5;
+					this.wireFormat = wireFormat_6;
 					this.outer_Node = paramouter_Node;
 				}
 		
@@ -576,25 +576,25 @@ namespace net.named_data.jndn {
 			}
 		public sealed class Anonymous_C1 : IRunnable {
 				private readonly Node outer_Node;
-				private readonly WireFormat wireFormat;
-				private readonly OnTimeout onTimeout;
-				private readonly long pendingInterestId;
-				private readonly Face face;
-				private readonly OnData onData;
-				private readonly OnNetworkNack onNetworkNack;
 				private readonly Interest interestCopy;
+				private readonly WireFormat wireFormat;
+				private readonly long pendingInterestId;
+				private readonly OnNetworkNack onNetworkNack;
+				private readonly OnTimeout onTimeout;
+				private readonly OnData onData;
+				private readonly Face face;
 		
-				public Anonymous_C1(Node paramouter_Node, WireFormat wireFormat_0,
-						OnTimeout onTimeout_1, long pendingInterestId_2, Face face_3,
-						OnData onData_4, OnNetworkNack onNetworkNack_5,
-						Interest interestCopy_6) {
-					this.wireFormat = wireFormat_0;
-					this.onTimeout = onTimeout_1;
+				public Anonymous_C1(Node paramouter_Node, Interest interestCopy_0,
+						WireFormat wireFormat_1, long pendingInterestId_2,
+						OnNetworkNack onNetworkNack_3, OnTimeout onTimeout_4,
+						OnData onData_5, Face face_6) {
+					this.interestCopy = interestCopy_0;
+					this.wireFormat = wireFormat_1;
 					this.pendingInterestId = pendingInterestId_2;
-					this.face = face_3;
-					this.onData = onData_4;
-					this.onNetworkNack = onNetworkNack_5;
-					this.interestCopy = interestCopy_6;
+					this.onNetworkNack = onNetworkNack_3;
+					this.onTimeout = onTimeout_4;
+					this.onData = onData_5;
+					this.face = face_6;
 					this.outer_Node = paramouter_Node;
 				}
 		
@@ -764,7 +764,7 @@ namespace net.named_data.jndn {
 		/// <param name="onInterest"></param>
 		/// <param name="onRegisterFailed"></param>
 		/// <param name="onRegisterSuccess"></param>
-		/// <param name="flags"></param>
+		/// <param name="registrationOptions"></param>
 		/// <param name="commandKeyChain"></param>
 		/// <param name="commandCertificateName"></param>
 		/// <param name="wireFormat_0"></param>
@@ -772,9 +772,9 @@ namespace net.named_data.jndn {
 		/// <exception cref="System.Security.SecurityException">If cannot find the private key for thecertificateName.</exception>
 		private void nfdRegisterPrefix(long registeredPrefixId, Name prefix,
 				OnInterestCallback onInterest, OnRegisterFailed onRegisterFailed,
-				OnRegisterSuccess onRegisterSuccess, ForwardingFlags flags,
-				KeyChain commandKeyChain, Name commandCertificateName,
-				WireFormat wireFormat_0, Face face_1) {
+				OnRegisterSuccess onRegisterSuccess,
+				RegistrationOptions registrationOptions, KeyChain commandKeyChain,
+				Name commandCertificateName, WireFormat wireFormat_0, Face face_1) {
 			if (commandKeyChain == null)
 				throw new Exception(
 						"registerPrefix: The command KeyChain has not been set. You must call setCommandSigningInfo.");
@@ -784,9 +784,9 @@ namespace net.named_data.jndn {
 	
 			ControlParameters controlParameters = new ControlParameters();
 			controlParameters.setName(prefix);
-			controlParameters.setForwardingFlags(flags);
-			if (flags.getOrigin() >= 0) {
-				controlParameters.setOrigin(flags.getOrigin());
+			controlParameters.setForwardingFlags(registrationOptions);
+			if (registrationOptions.getOrigin() >= 0) {
+				controlParameters.setOrigin(registrationOptions.getOrigin());
 				// Remove the origin value from the flags since it is not used to encode.
 				controlParameters.getForwardingFlags().setOrigin(-1);
 			}
