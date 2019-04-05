@@ -87,19 +87,20 @@ namespace net.named_data.jndn.util {
 		/// <param name="onRegisterFailed">NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
 		/// <param name="onRegisterSuccess">receives a success message from the forwarder. If onRegisterSuccess is null, this does not use it. NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
 		/// <param name="onDataNotFound">onDataNotFound.onInterest(prefix, interest, face, interestFilterId, filter). Your callback can find the Data packet for the interest and call face.putData(data).  If your callback cannot find the Data packet, it can optionally call storePendingInterest(interest, face) to store the pending interest in this object to be satisfied by a later call to add(data). If you want to automatically store all pending interests, you can simply use getStorePendingInterest() for onDataNotFound. If onDataNotFound is null, this does not use it. NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
-		/// <param name="flags">See Face.registerPrefix.</param>
+		/// <param name="registrationOptions">See Face.registerPrefix.</param>
 		/// <param name="wireFormat">See Face.registerPrefix.</param>
 		/// <exception cref="IOException">For I/O error in sending the registration request.</exception>
 		/// <exception cref="System.Security.SecurityException">If signing a command interest for NFD and cannotfind the private key for the certificateName.</exception>
 		public void registerPrefix(Name prefix,
 				OnRegisterFailed onRegisterFailed,
 				OnRegisterSuccess onRegisterSuccess,
-				OnInterestCallback onDataNotFound, ForwardingFlags flags,
-				WireFormat wireFormat) {
+				OnInterestCallback onDataNotFound,
+				RegistrationOptions registrationOptions, WireFormat wireFormat) {
 			if (onDataNotFound != null)
 				ILOG.J2CsMapping.Collections.Collections.Put(onDataNotFoundForPrefix_,prefix.toUri(),onDataNotFound);
 			long registeredPrefixId = face_.registerPrefix(prefix, this,
-					onRegisterFailed, onRegisterSuccess, flags, wireFormat);
+					onRegisterFailed, onRegisterSuccess, registrationOptions,
+					wireFormat);
 			ILOG.J2CsMapping.Collections.Collections.Add(registeredPrefixIdList_,registeredPrefixId);
 		}
 	
@@ -115,15 +116,17 @@ namespace net.named_data.jndn.util {
 		/// <param name="onRegisterFailed">NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
 		/// <param name="onRegisterSuccess">receives a success message from the forwarder. If onRegisterSuccess is null, this does not use it. NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
 		/// <param name="onDataNotFound">onInterest.onInterest(prefix, interest, face, interestFilterId, filter). Your callback can find the Data packet for the interest and call face.putData(data).  If your callback cannot find the Data packet, it can optionally call storePendingInterest(interest, face) to store the pending interest in this object to be satisfied by a later call to add(data). If you want to automatically store all pending interests, you can simply use getStorePendingInterest() for onDataNotFound. If onDataNotFound is null, this does not use it.</param>
-		/// <param name="flags">See Face.registerPrefix.</param>
+		/// <param name="registrationOptions">See Face.registerPrefix.</param>
 		/// <exception cref="IOException">For I/O error in sending the registration request.</exception>
 		/// <exception cref="System.Security.SecurityException">If signing a command interest for NFD and cannotfind the private key for the certificateName.</exception>
 		public void registerPrefix(Name prefix,
 				OnRegisterFailed onRegisterFailed,
 				OnRegisterSuccess onRegisterSuccess,
-				OnInterestCallback onDataNotFound, ForwardingFlags flags) {
+				OnInterestCallback onDataNotFound,
+				RegistrationOptions registrationOptions) {
 			registerPrefix(prefix, onRegisterFailed, onRegisterSuccess,
-					onDataNotFound, flags, net.named_data.jndn.encoding.WireFormat.getDefaultWireFormat());
+					onDataNotFound, registrationOptions,
+					net.named_data.jndn.encoding.WireFormat.getDefaultWireFormat());
 		}
 	
 		/// <summary>
@@ -132,7 +135,7 @@ namespace net.named_data.jndn.util {
 		/// Alternatively, if the Face's registerPrefix has already been called, then
 		/// you can call this object's setInterestFilter.
 		/// This uses the default WireFormat.getDefaultWireFormat().
-		/// Use default ForwardingFlags.
+		/// Use default RegistrationOptions.
 		/// </summary>
 		///
 		/// <param name="prefix">The Name for the prefix to register. This copies the Name.</param>
@@ -146,7 +149,7 @@ namespace net.named_data.jndn.util {
 				OnRegisterSuccess onRegisterSuccess,
 				OnInterestCallback onDataNotFound) {
 			registerPrefix(prefix, onRegisterFailed, onRegisterSuccess,
-					onDataNotFound, new ForwardingFlags(),
+					onDataNotFound, new RegistrationOptions(),
 					net.named_data.jndn.encoding.WireFormat.getDefaultWireFormat());
 		}
 	
@@ -157,7 +160,7 @@ namespace net.named_data.jndn.util {
 		/// you can call this object's setInterestFilter.
 		/// Do not call a callback if a data packet is not found in the cache.
 		/// This uses the default WireFormat.getDefaultWireFormat().
-		/// Use default ForwardingFlags.
+		/// Use default RegistrationOptions.
 		/// </summary>
 		///
 		/// <param name="prefix">The Name for the prefix to register. This copies the Name.</param>
@@ -169,7 +172,7 @@ namespace net.named_data.jndn.util {
 				OnRegisterFailed onRegisterFailed,
 				OnRegisterSuccess onRegisterSuccess) {
 			registerPrefix(prefix, onRegisterFailed, onRegisterSuccess, null,
-					new ForwardingFlags(), net.named_data.jndn.encoding.WireFormat.getDefaultWireFormat());
+					new RegistrationOptions(), net.named_data.jndn.encoding.WireFormat.getDefaultWireFormat());
 		}
 	
 		/// <summary>
@@ -182,16 +185,16 @@ namespace net.named_data.jndn.util {
 		/// <param name="prefix">The Name for the prefix to register. This copies the Name.</param>
 		/// <param name="onRegisterFailed">NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
 		/// <param name="onDataNotFound">onDataNotFound.onInterest(prefix, interest, face, interestFilterId, filter). Your callback can find the Data packet for the interest and call face.putData(data).  If your callback cannot find the Data packet, it can optionally call storePendingInterest(interest, face) to store the pending interest in this object to be satisfied by a later call to add(data). If you want to automatically store all pending interests, you can simply use getStorePendingInterest() for onDataNotFound. If onDataNotFound is null, this does not use it. NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
-		/// <param name="flags">See Face.registerPrefix.</param>
+		/// <param name="registrationOptions">See Face.registerPrefix.</param>
 		/// <param name="wireFormat">See Face.registerPrefix.</param>
 		/// <exception cref="IOException">For I/O error in sending the registration request.</exception>
 		/// <exception cref="System.Security.SecurityException">If signing a command interest for NFD and cannotfind the private key for the certificateName.</exception>
 		public void registerPrefix(Name prefix,
 				OnRegisterFailed onRegisterFailed,
-				OnInterestCallback onDataNotFound, ForwardingFlags flags,
-				WireFormat wireFormat) {
-			registerPrefix(prefix, onRegisterFailed, null, onDataNotFound, flags,
-					wireFormat);
+				OnInterestCallback onDataNotFound,
+				RegistrationOptions registrationOptions, WireFormat wireFormat) {
+			registerPrefix(prefix, onRegisterFailed, null, onDataNotFound,
+					registrationOptions, wireFormat);
 		}
 	
 		/// <summary>
@@ -205,14 +208,15 @@ namespace net.named_data.jndn.util {
 		/// <param name="prefix">The Name for the prefix to register. This copies the Name.</param>
 		/// <param name="onRegisterFailed">NOTE: The library will log any exceptions thrown by this callback, but for better error handling the callback should catch and properly handle any exceptions.</param>
 		/// <param name="onDataNotFound">onDataNotFound.onInterest(prefix, interest, face, interestFilterId, filter). Your callback can find the Data packet for the interest and call face.putData(data).  If your callback cannot find the Data packet, it can optionally call storePendingInterest(interest, face) to store the pending interest in this object to be satisfied by a later call to add(data). If you want to automatically store all pending interests, you can simply use getStorePendingInterest() for onDataNotFound. If onDataNotFound is null, this does not use it.</param>
-		/// <param name="flags">See Face.registerPrefix.</param>
+		/// <param name="registrationOptions">See Face.registerPrefix.</param>
 		/// <exception cref="IOException">For I/O error in sending the registration request.</exception>
 		/// <exception cref="System.Security.SecurityException">If signing a command interest for NFD and cannotfind the private key for the certificateName.</exception>
 		public void registerPrefix(Name prefix,
 				OnRegisterFailed onRegisterFailed,
-				OnInterestCallback onDataNotFound, ForwardingFlags flags) {
-			registerPrefix(prefix, onRegisterFailed, onDataNotFound, flags,
-					net.named_data.jndn.encoding.WireFormat.getDefaultWireFormat());
+				OnInterestCallback onDataNotFound,
+				RegistrationOptions registrationOptions) {
+			registerPrefix(prefix, onRegisterFailed, onDataNotFound,
+					registrationOptions, net.named_data.jndn.encoding.WireFormat.getDefaultWireFormat());
 		}
 	
 		/// <summary>
@@ -221,7 +225,7 @@ namespace net.named_data.jndn.util {
 		/// Alternatively, if the Face's registerPrefix has already been called, then
 		/// you can call this object's setInterestFilter.
 		/// This uses the default WireFormat.getDefaultWireFormat().
-		/// Use default ForwardingFlags.
+		/// Use default RegistrationOptions.
 		/// </summary>
 		///
 		/// <param name="prefix">The Name for the prefix to register. This copies the Name.</param>
@@ -232,7 +236,7 @@ namespace net.named_data.jndn.util {
 		public void registerPrefix(Name prefix,
 				OnRegisterFailed onRegisterFailed, OnInterestCallback onDataNotFound) {
 			registerPrefix(prefix, onRegisterFailed, onDataNotFound,
-					new ForwardingFlags(), net.named_data.jndn.encoding.WireFormat.getDefaultWireFormat());
+					new RegistrationOptions(), net.named_data.jndn.encoding.WireFormat.getDefaultWireFormat());
 		}
 	
 		/// <summary>
@@ -242,7 +246,7 @@ namespace net.named_data.jndn.util {
 		/// you can call this object's setInterestFilter.
 		/// Do not call a callback if a data packet is not found in the cache.
 		/// This uses the default WireFormat.getDefaultWireFormat().
-		/// Use default ForwardingFlags.
+		/// Use default RegistrationOptions.
 		/// </summary>
 		///
 		/// <param name="prefix">The Name for the prefix to register. This copies the Name.</param>
@@ -251,8 +255,8 @@ namespace net.named_data.jndn.util {
 		/// <exception cref="System.Security.SecurityException">If signing a command interest for NFD and cannotfind the private key for the certificateName.</exception>
 		public void registerPrefix(Name prefix,
 				OnRegisterFailed onRegisterFailed) {
-			registerPrefix(prefix, onRegisterFailed, null, new ForwardingFlags(),
-					net.named_data.jndn.encoding.WireFormat.getDefaultWireFormat());
+			registerPrefix(prefix, onRegisterFailed, null,
+					new RegistrationOptions(), net.named_data.jndn.encoding.WireFormat.getDefaultWireFormat());
 		}
 	
 		/// <summary>
