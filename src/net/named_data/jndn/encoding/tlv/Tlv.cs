@@ -53,19 +53,6 @@ namespace net.named_data.jndn.encoding.tlv {
 		public const int CanBePrefix = 33;
 		public const int HopLimit = 34;
 		public const int ApplicationParameters = 35;
-		public const int FaceInstance = 128;
-		public const int ForwardingEntry = 129;
-		public const int StatusResponse = 130;
-		public const int Action = 131;
-		public const int FaceID = 132;
-		public const int IPProto = 133;
-		public const int Host = 134;
-		public const int Port = 135;
-		public const int MulticastInterface = 136;
-		public const int MulticastTTL = 137;
-		public const int ForwardingFlags = 138;
-		public const int StatusCode = 139;
-		public const int StatusText = 140;
 	
 		public const int SignatureType_DigestSha256 = 0;
 		public const int SignatureType_SignatureSha256WithRsa = 1;
