@@ -51,8 +51,18 @@ namespace net.named_data.jndn {
 			this.timeoutPrefix_ = new Name("/local/timeout");
 			this.lastEntryIdLock_ = new Object();
 			this.connectStatus_ = net.named_data.jndn.Node.ConnectStatus.UNCONNECTED;
+			this.interestLoopbackEnabled_ = false;
 			transport_ = transport;
 			connectionInfo_ = connectionInfo;
+		}
+	
+		/// <summary>
+		/// Enable or disable Interest loopback.
+		/// </summary>
+		///
+		/// <param name="interestLoopbackEnabled"></param>
+		internal void setInterestLoopbackEnabled(bool interestLoopbackEnabled) {
+			interestLoopbackEnabled_ = interestLoopbackEnabled;
 		}
 	
 		/// <summary>
@@ -102,16 +112,15 @@ namespace net.named_data.jndn {
 							connectStatus_ = net.named_data.jndn.Node.ConnectStatus.CONNECT_REQUESTED;
 			
 							// expressInterestHelper will be called by onConnected.
-							ILOG.J2CsMapping.Collections.Collections.Add(onConnectedCallbacks_,new Node.Anonymous_C3 (this, face, pendingInterestId, onTimeout,
-													onData, interestCopy, onNetworkNack, wireFormat));
+							ILOG.J2CsMapping.Collections.Collections.Add(onConnectedCallbacks_,new Node.Anonymous_C3 (this, onTimeout, onNetworkNack, interestCopy,
+													face, onData, pendingInterestId, wireFormat));
 			
 							IRunnable onConnected = new Node.Anonymous_C2 (this);
 							transport_.connect(connectionInfo_, this, onConnected);
 						} else if (connectStatus_ == net.named_data.jndn.Node.ConnectStatus.CONNECT_REQUESTED) {
 							// Still connecting. add to the interests to express by onConnected.
-							ILOG.J2CsMapping.Collections.Collections.Add(onConnectedCallbacks_,new Node.Anonymous_C1 (this, interestCopy, wireFormat,
-													pendingInterestId, onNetworkNack, onTimeout, onData,
-													face));
+							ILOG.J2CsMapping.Collections.Collections.Add(onConnectedCallbacks_,new Node.Anonymous_C1 (this, pendingInterestId, onNetworkNack, face,
+													interestCopy, onData, wireFormat, onTimeout));
 						} else if (connectStatus_ == net.named_data.jndn.Node.ConnectStatus.CONNECT_COMPLETE)
 							// We have to repeat this check for CONNECT_COMPLETE in case the
 							// onConnected callback was called while we were waiting to enter this
@@ -234,6 +243,21 @@ namespace net.named_data.jndn {
 		/// <param name="wireFormat">A WireFormat object used to encode the Data packet.</param>
 		/// <exception cref="System.Exception">If the encoded Data packet size exceeds getMaxNdnPacketSize().</exception>
 		public void putData(Data data, WireFormat wireFormat) {
+			if (interestLoopbackEnabled_) {
+				bool hasApplicationMatch = satisfyPendingInterests(data);
+				if (hasApplicationMatch)
+					// satisfyPendingInterests called the OnData callback for one of
+					// the pending Interests from the application, so we don't need
+					// to send the Data packet to the forwarder. There is a
+					// possibility that we also received an overlapping  matching
+					// Interest from the forwarder within the Interest lifetime which
+					// we won't satisfy by sending the Data to the forwarder. To fix
+					// this case we could just send the Data to the forwarder anyway,
+					// or we can make the pending Interest table more complicated by
+					// also tracking the Interests that we receive from the forwarder.
+					return;
+			}
+	
 			Blob encoding = data.wireEncode(wireFormat);
 			if (encoding.size() > getMaxNdnPacketSize())
 				throw new Exception(
@@ -425,7 +449,8 @@ namespace net.named_data.jndn {
 	
 		/// <summary>
 		/// Do the work of expressInterest once we know we are connected. Add the entry
-		/// to the PIT, encode and send the interest.
+		/// to the PIT, encode and send the interest. If Interest loopback is
+		/// enabled, then also call dispatchInterest.
 		/// </summary>
 		///
 		/// <param name="pendingInterestId"></param>
@@ -466,6 +491,9 @@ namespace net.named_data.jndn {
 					throw new Exception(
 							"The encoded interest size exceeds the maximum limit getMaxNdnPacketSize()");
 				transport_.send(encoding.buf());
+	
+				if (interestLoopbackEnabled_)
+					dispatchInterest(interestCopy);
 			}
 		}
 	
@@ -522,24 +550,23 @@ namespace net.named_data.jndn {
 	
 		public sealed class Anonymous_C3 : IRunnable {
 				private readonly Node outer_Node;
-				private readonly Face face;
-				private readonly long pendingInterestId;
 				private readonly OnTimeout onTimeout;
-				private readonly OnData onData;
-				private readonly Interest interestCopy;
 				private readonly OnNetworkNack onNetworkNack;
+				private readonly Interest interestCopy;
+				private readonly Face face;
+				private readonly OnData onData;
+				private readonly long pendingInterestId;
 				private readonly WireFormat wireFormat;
 		
-				public Anonymous_C3(Node paramouter_Node, Face face_0,
-						long pendingInterestId_1, OnTimeout onTimeout_2, OnData onData_3,
-						Interest interestCopy_4, OnNetworkNack onNetworkNack_5,
-						WireFormat wireFormat_6) {
-					this.face = face_0;
-					this.pendingInterestId = pendingInterestId_1;
-					this.onTimeout = onTimeout_2;
-					this.onData = onData_3;
-					this.interestCopy = interestCopy_4;
-					this.onNetworkNack = onNetworkNack_5;
+				public Anonymous_C3(Node paramouter_Node, OnTimeout onTimeout_0,
+						OnNetworkNack onNetworkNack_1, Interest interestCopy_2, Face face_3,
+						OnData onData_4, long pendingInterestId_5, WireFormat wireFormat_6) {
+					this.onTimeout = onTimeout_0;
+					this.onNetworkNack = onNetworkNack_1;
+					this.interestCopy = interestCopy_2;
+					this.face = face_3;
+					this.onData = onData_4;
+					this.pendingInterestId = pendingInterestId_5;
 					this.wireFormat = wireFormat_6;
 					this.outer_Node = paramouter_Node;
 				}
@@ -576,25 +603,24 @@ namespace net.named_data.jndn {
 			}
 		public sealed class Anonymous_C1 : IRunnable {
 				private readonly Node outer_Node;
-				private readonly Interest interestCopy;
-				private readonly WireFormat wireFormat;
 				private readonly long pendingInterestId;
 				private readonly OnNetworkNack onNetworkNack;
-				private readonly OnTimeout onTimeout;
-				private readonly OnData onData;
 				private readonly Face face;
+				private readonly Interest interestCopy;
+				private readonly OnData onData;
+				private readonly WireFormat wireFormat;
+				private readonly OnTimeout onTimeout;
 		
-				public Anonymous_C1(Node paramouter_Node, Interest interestCopy_0,
-						WireFormat wireFormat_1, long pendingInterestId_2,
-						OnNetworkNack onNetworkNack_3, OnTimeout onTimeout_4,
-						OnData onData_5, Face face_6) {
-					this.interestCopy = interestCopy_0;
-					this.wireFormat = wireFormat_1;
-					this.pendingInterestId = pendingInterestId_2;
-					this.onNetworkNack = onNetworkNack_3;
-					this.onTimeout = onTimeout_4;
-					this.onData = onData_5;
-					this.face = face_6;
+				public Anonymous_C1(Node paramouter_Node, long pendingInterestId_0,
+						OnNetworkNack onNetworkNack_1, Face face_2, Interest interestCopy_3,
+						OnData onData_4, WireFormat wireFormat_5, OnTimeout onTimeout_6) {
+					this.pendingInterestId = pendingInterestId_0;
+					this.onNetworkNack = onNetworkNack_1;
+					this.face = face_2;
+					this.interestCopy = interestCopy_3;
+					this.onData = onData_4;
+					this.wireFormat = wireFormat_5;
+					this.onTimeout = onTimeout_6;
 					this.outer_Node = paramouter_Node;
 				}
 		
@@ -864,6 +890,7 @@ namespace net.named_data.jndn {
 		private long lastEntryId_;
 		private readonly Object lastEntryIdLock_;
 		internal Node.ConnectStatus  connectStatus_;
+		internal bool interestLoopbackEnabled_;
 		private static Blob nonceTemplate_ = new Blob(new byte[] { 0, 0, 0, 0 });
 		static internal readonly Logger logger_ = ILOG.J2CsMapping.Util.Logging.Logger
 				.getLogger(typeof(Node).FullName);
