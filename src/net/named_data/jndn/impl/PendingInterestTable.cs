@@ -17,7 +17,6 @@ namespace net.named_data.jndn.impl {
 	using System.IO;
 	using System.Runtime.CompilerServices;
 	using net.named_data.jndn;
-	using net.named_data.jndn.encoding;
 	using net.named_data.jndn.util;
 	
 	/// <summary>

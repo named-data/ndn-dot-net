@@ -251,8 +251,14 @@ namespace net.named_data.jndn {
 	
 			Name fullName = new Name(getName());
 			// wireEncode will use the cached encoding if possible.
-			fullName.appendImplicitSha256Digest(net.named_data.jndn.util.Common.digestSha256(wireEncode(
-					wireFormat).buf()));
+			byte[] implicitDigest = net.named_data.jndn.util.Common.digestSha256(wireEncode(wireFormat)
+					.buf());
+			try {
+				fullName.appendImplicitSha256Digest(implicitDigest);
+			} catch (EncodingException ex) {
+				// We don't expect this since the digest is the correct length.
+				throw new Exception(ex.Message);
+			}
 	
 			if (wireFormat == net.named_data.jndn.encoding.WireFormat.getDefaultWireFormat())
 				// wireEncode has already set defaultWireEncodingFormat_.

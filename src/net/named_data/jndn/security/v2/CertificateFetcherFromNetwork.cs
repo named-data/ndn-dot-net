@@ -25,13 +25,13 @@ namespace net.named_data.jndn.security.v2 {
 	///
 	public class CertificateFetcherFromNetwork : CertificateFetcher {
 		public sealed class Anonymous_C2 : OnData {
-			private readonly CertificateFetcher.ValidationContinuation  continueValidation;
 			private readonly ValidationState state;
+			private readonly CertificateFetcher.ValidationContinuation  continueValidation;
 	
-			public Anonymous_C2(CertificateFetcher.ValidationContinuation  continueValidation_0,
-					ValidationState state_1) {
-				this.continueValidation = continueValidation_0;
-				this.state = state_1;
+			public Anonymous_C2(ValidationState state_0,
+					CertificateFetcher.ValidationContinuation  continueValidation_1) {
+				this.state = state_0;
+				this.continueValidation = continueValidation_1;
 			}
 	
 			public void onData(Interest interest, Data data) {
@@ -63,17 +63,17 @@ namespace net.named_data.jndn.security.v2 {
 		}
 		public sealed class Anonymous_C1 : OnTimeout {
 				private readonly CertificateFetcherFromNetwork outer_CertificateFetcherFromNetwork;
-				private readonly CertificateFetcher.ValidationContinuation  continueValidation;
-				private readonly CertificateRequest certificateRequest;
 				private readonly ValidationState state;
+				private readonly CertificateRequest certificateRequest;
+				private readonly CertificateFetcher.ValidationContinuation  continueValidation;
 		
 				public Anonymous_C1(
 						CertificateFetcherFromNetwork paramouter_CertificateFetcherFromNetwork,
-						CertificateFetcher.ValidationContinuation  continueValidation_0,
-						CertificateRequest certificateRequest_1, ValidationState state_2) {
-					this.continueValidation = continueValidation_0;
+						ValidationState state_0, CertificateRequest certificateRequest_1,
+						CertificateFetcher.ValidationContinuation  continueValidation_2) {
+					this.state = state_0;
 					this.certificateRequest = certificateRequest_1;
-					this.state = state_2;
+					this.continueValidation = continueValidation_2;
 					this.outer_CertificateFetcherFromNetwork = paramouter_CertificateFetcherFromNetwork;
 				}
 		
@@ -161,8 +161,8 @@ namespace net.named_data.jndn.security.v2 {
 				ValidationState state_1,
 				CertificateFetcher.ValidationContinuation  continueValidation_2) {
 			try {
-				face_.expressInterest(certificateRequest_0.interest_, new CertificateFetcherFromNetwork.Anonymous_C2 (continueValidation_2, state_1), new CertificateFetcherFromNetwork.Anonymous_C1 (this, continueValidation_2, certificateRequest_0,
-						state_1), new CertificateFetcherFromNetwork.Anonymous_C0 (this, state_1, certificateRequest_0,
+				face_.expressInterest(certificateRequest_0.interest_, new CertificateFetcherFromNetwork.Anonymous_C2 (state_1, continueValidation_2), new CertificateFetcherFromNetwork.Anonymous_C1 (this, state_1, certificateRequest_0,
+						continueValidation_2), new CertificateFetcherFromNetwork.Anonymous_C0 (this, state_1, certificateRequest_0,
 						continueValidation_2));
 			} catch (IOException ex) {
 				state_1.fail(new ValidationError(
