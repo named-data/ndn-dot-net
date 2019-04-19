@@ -62,8 +62,10 @@ namespace net.named_data.jndn {
 		/// </summary>
 		///
 		/// <param name="reason">setOtherReasonCode().</param>
-		public void setReason(NetworkNack.Reason  reason) {
+		/// <returns>This NetworkNack so that you can chain calls to update values.</returns>
+		public NetworkNack setReason(NetworkNack.Reason  reason) {
 			reason_ = reason;
+			return this;
 		}
 	
 		/// <summary>
@@ -73,11 +75,13 @@ namespace net.named_data.jndn {
 		/// </summary>
 		///
 		/// <param name="otherReasonCode"></param>
-		public void setOtherReasonCode(int otherReasonCode) {
+		/// <returns>This NetworkNack so that you can chain calls to update values.</returns>
+		public NetworkNack setOtherReasonCode(int otherReasonCode) {
 			if (otherReasonCode < 0)
 				throw new Exception(
 						"NetworkNack other reason code must be non-negative");
 			otherReasonCode_ = otherReasonCode;
+			return this;
 		}
 	
 		/// <summary>
