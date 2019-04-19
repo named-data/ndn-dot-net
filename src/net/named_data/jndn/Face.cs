@@ -90,7 +90,7 @@ namespace net.named_data.jndn {
 		/// </summary>
 		///
 		/// <param name="interestLoopbackEnabled"></param>
-		internal void setInterestLoopbackEnabled(bool interestLoopbackEnabled) {
+		public void setInterestLoopbackEnabled(bool interestLoopbackEnabled) {
 			node_.setInterestLoopbackEnabled(interestLoopbackEnabled);
 		}
 	
