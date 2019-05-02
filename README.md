@@ -11,7 +11,7 @@ NDN-DOT-NET conforms to the NDN Common Client Libraries API and your application
 should follow the equivalent Java methods in this public API:
 http://named-data.net/doc/ndn-ccl-api/ .
 
-See the file [INSTALL.md](https://github.com/named-data/jndn/blob/master/INSTALL.md) for build and install instructions.
+See the file [INSTALL.md](https://github.com/named-data/ndn-dot-net/blob/master/INSTALL.md) for build and install instructions.
 
 Please submit any bugs or issues to the jNDN issue tracker, mentioning that the
 issue is for NDN-DOT-NET. (If we get lots of issues, we may start a separate
