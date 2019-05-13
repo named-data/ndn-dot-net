@@ -306,8 +306,12 @@ namespace net.named_data.jndn.encoding {
 			signedPortionBeginOffset[0] = decoder.getOffset();
 	
 			decodeName(data.getName(), new int[1], new int[1], decoder, copy);
-			decodeMetaInfo(data.getMetaInfo(), decoder, copy);
-			data.setContent(new Blob(decoder.readBlobTlv(net.named_data.jndn.encoding.tlv.Tlv.Content), copy));
+			if (decoder.peekType(net.named_data.jndn.encoding.tlv.Tlv.MetaInfo, endOffset))
+				decodeMetaInfo(data.getMetaInfo(), decoder, copy);
+			else
+				data.getMetaInfo().clear();
+			data.setContent(new Blob(decoder.readOptionalBlobTlv(net.named_data.jndn.encoding.tlv.Tlv.Content,
+					endOffset), copy));
 			decodeSignatureInfo(data, decoder, copy);
 	
 			signedPortionEndOffset[0] = decoder.getOffset();
