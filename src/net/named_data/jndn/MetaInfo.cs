@@ -131,6 +131,19 @@ namespace net.named_data.jndn {
 		}
 	
 		/// <summary>
+		/// Clear fields and reset to default values.
+		/// </summary>
+		///
+		public void clear() {
+			type_ = net.named_data.jndn.ContentType.BLOB;
+			otherTypeCode_ = -1;
+			freshnessPeriod_ = -1;
+			finalBlockId_ = new Name.Component();
+	
+			++changeCount_;
+		}
+	
+		/// <summary>
 		/// Get the change count, which is incremented each time this object is changed.
 		/// </summary>
 		///
