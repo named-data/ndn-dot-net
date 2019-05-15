@@ -1237,6 +1237,47 @@ namespace net.named_data.jndn {
 		}
 	
 		/// <summary>
+		/// Append a component whose value is the nonNegativeInteger encoding of the
+		/// number.
+		/// </summary>
+		///
+		/// <param name="number">The number to be encoded.</param>
+		/// <returns>This name so that you can chain calls to append.</returns>
+		public Name appendNumber(long number) {
+			return appendNumber(number, net.named_data.jndn.ComponentType.GENERIC, -1);
+		}
+	
+		/// <summary>
+		/// Append a component of the given type whose value is the
+		/// nonNegativeInteger encoding of the number.
+		/// </summary>
+		///
+		/// <param name="number">The number to be encoded.</param>
+		/// <param name="type">fromNumber(number, ComponentType.OTHER_CODE, otherTypeCode).</param>
+		/// <returns>This name so that you can chain calls to append.</returns>
+		public Name appendNumber(long number, ComponentType type) {
+			if (type == net.named_data.jndn.ComponentType.OTHER_CODE)
+				throw new AssertionError(
+						"To use an other code, call appendNumber(value, ComponentType.OTHER_CODE, otherTypeCode)");
+	
+			return appendNumber(number, type, -1);
+		}
+	
+		/// <summary>
+		/// Append a component of the given type whose value is the
+		/// nonNegativeInteger encoding of the number.
+		/// </summary>
+		///
+		/// <param name="number">The number to be encoded.</param>
+		/// <param name="type">ComponentType.OTHER_CODE and use the otherTypeCode parameter.</param>
+		/// <param name="otherTypeCode">non-negative.</param>
+		/// <returns>This name so that you can chain calls to append.</returns>
+		public Name appendNumber(long number, ComponentType type,
+				int otherTypeCode) {
+			return append(net.named_data.jndn.Name.Component.fromNumber(number, type, otherTypeCode));
+		}
+	
+		/// <summary>
 		/// Append a component with the encoded segment number according to NDN
 		/// naming conventions for "Segment number" (marker 0x00).
 		/// http://named-data.net/doc/tech-memos/naming-conventions.pdf
