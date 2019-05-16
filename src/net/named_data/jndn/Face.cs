@@ -856,6 +856,18 @@ namespace net.named_data.jndn {
 		}
 	
 		/// <summary>
+		/// The OnInterest callback can call this to put a Nack for the received Interest.
+		/// </summary>
+		///
+		/// @note This method is an experimental feature, and the API may change.
+		/// <param name="interest">The Interest to put in the Nack packet.</param>
+		/// <param name="networkNack"></param>
+		/// <exception cref="System.Exception">If the encoded Nack packet size exceeds getMaxNdnPacketSize().</exception>
+		public void putNack(Interest interest, NetworkNack networkNack) {
+			node_.putNack(interest, networkNack);
+		}
+	
+		/// <summary>
 		/// Process any packets to receive and call callbacks such as onData,
 		/// onInterest or onTimeout. This returns immediately if there is no data to
 		/// receive. This blocks while calling the callbacks. You should repeatedly

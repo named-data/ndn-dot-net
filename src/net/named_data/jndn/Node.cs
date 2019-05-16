@@ -112,16 +112,15 @@ namespace net.named_data.jndn {
 							connectStatus_ = net.named_data.jndn.Node.ConnectStatus.CONNECT_REQUESTED;
 			
 							// expressInterestHelper will be called by onConnected.
-							ILOG.J2CsMapping.Collections.Collections.Add(onConnectedCallbacks_,new Node.Anonymous_C3 (this, onData, onTimeout, wireFormat,
-													onNetworkNack, pendingInterestId, face, interestCopy));
+							ILOG.J2CsMapping.Collections.Collections.Add(onConnectedCallbacks_,new Node.Anonymous_C3 (this, onNetworkNack, interestCopy,
+													pendingInterestId, face, onData, wireFormat, onTimeout));
 			
 							IRunnable onConnected = new Node.Anonymous_C2 (this);
 							transport_.connect(connectionInfo_, this, onConnected);
 						} else if (connectStatus_ == net.named_data.jndn.Node.ConnectStatus.CONNECT_REQUESTED) {
 							// Still connecting. add to the interests to express by onConnected.
-							ILOG.J2CsMapping.Collections.Collections.Add(onConnectedCallbacks_,new Node.Anonymous_C1 (this, interestCopy, wireFormat,
-													pendingInterestId, face, onData, onNetworkNack,
-													onTimeout));
+							ILOG.J2CsMapping.Collections.Collections.Add(onConnectedCallbacks_,new Node.Anonymous_C1 (this, pendingInterestId, onTimeout, onData,
+													wireFormat, face, interestCopy, onNetworkNack));
 						} else if (connectStatus_ == net.named_data.jndn.Node.ConnectStatus.CONNECT_COMPLETE)
 							// We have to repeat this check for CONNECT_COMPLETE in case the
 							// onConnected callback was called while we were waiting to enter this
@@ -279,6 +278,23 @@ namespace net.named_data.jndn {
 						"The encoded packet size exceeds the maximum limit getMaxNdnPacketSize()");
 	
 			transport_.send(encoding);
+		}
+	
+		/// <summary>
+		/// The OnInterest callback can call this to put a Nack for the received Interest.
+		/// </summary>
+		///
+		/// <param name="interest">The Interest to put in the Nack packet.</param>
+		/// <param name="networkNack"></param>
+		/// <exception cref="System.Exception">If the encoded Nack packet size exceeds getMaxNdnPacketSize().</exception>
+		public void putNack(Interest interest, NetworkNack networkNack) {
+			// TODO: Generalize this and move to WireFormat.encodeLpPacket.
+			Blob encoding = encodeLpNack(interest, networkNack);
+			if (encoding.size() > getMaxNdnPacketSize())
+				throw new Exception(
+						"The encoded Nack packet size exceeds the maximum limit getMaxNdnPacketSize()");
+	
+			transport_.send(encoding.buf());
 		}
 	
 		/// <summary>
@@ -551,25 +567,24 @@ namespace net.named_data.jndn {
 	
 		public sealed class Anonymous_C3 : IRunnable {
 				private readonly Node outer_Node;
-				private readonly OnData onData;
-				private readonly OnTimeout onTimeout;
-				private readonly WireFormat wireFormat;
 				private readonly OnNetworkNack onNetworkNack;
+				private readonly Interest interestCopy;
 				private readonly long pendingInterestId;
 				private readonly Face face;
-				private readonly Interest interestCopy;
+				private readonly OnData onData;
+				private readonly WireFormat wireFormat;
+				private readonly OnTimeout onTimeout;
 		
-				public Anonymous_C3(Node paramouter_Node, OnData onData_0,
-						OnTimeout onTimeout_1, WireFormat wireFormat_2,
-						OnNetworkNack onNetworkNack_3, long pendingInterestId_4, Face face_5,
-						Interest interestCopy_6) {
-					this.onData = onData_0;
-					this.onTimeout = onTimeout_1;
-					this.wireFormat = wireFormat_2;
-					this.onNetworkNack = onNetworkNack_3;
-					this.pendingInterestId = pendingInterestId_4;
-					this.face = face_5;
-					this.interestCopy = interestCopy_6;
+				public Anonymous_C3(Node paramouter_Node, OnNetworkNack onNetworkNack_0,
+						Interest interestCopy_1, long pendingInterestId_2, Face face_3,
+						OnData onData_4, WireFormat wireFormat_5, OnTimeout onTimeout_6) {
+					this.onNetworkNack = onNetworkNack_0;
+					this.interestCopy = interestCopy_1;
+					this.pendingInterestId = pendingInterestId_2;
+					this.face = face_3;
+					this.onData = onData_4;
+					this.wireFormat = wireFormat_5;
+					this.onTimeout = onTimeout_6;
 					this.outer_Node = paramouter_Node;
 				}
 		
@@ -605,24 +620,24 @@ namespace net.named_data.jndn {
 			}
 		public sealed class Anonymous_C1 : IRunnable {
 				private readonly Node outer_Node;
-				private readonly Interest interestCopy;
-				private readonly WireFormat wireFormat;
 				private readonly long pendingInterestId;
-				private readonly Face face;
-				private readonly OnData onData;
-				private readonly OnNetworkNack onNetworkNack;
 				private readonly OnTimeout onTimeout;
+				private readonly OnData onData;
+				private readonly WireFormat wireFormat;
+				private readonly Face face;
+				private readonly Interest interestCopy;
+				private readonly OnNetworkNack onNetworkNack;
 		
-				public Anonymous_C1(Node paramouter_Node, Interest interestCopy_0,
-						WireFormat wireFormat_1, long pendingInterestId_2, Face face_3,
-						OnData onData_4, OnNetworkNack onNetworkNack_5, OnTimeout onTimeout_6) {
-					this.interestCopy = interestCopy_0;
-					this.wireFormat = wireFormat_1;
-					this.pendingInterestId = pendingInterestId_2;
-					this.face = face_3;
-					this.onData = onData_4;
-					this.onNetworkNack = onNetworkNack_5;
-					this.onTimeout = onTimeout_6;
+				public Anonymous_C1(Node paramouter_Node, long pendingInterestId_0,
+						OnTimeout onTimeout_1, OnData onData_2, WireFormat wireFormat_3,
+						Face face_4, Interest interestCopy_5, OnNetworkNack onNetworkNack_6) {
+					this.pendingInterestId = pendingInterestId_0;
+					this.onTimeout = onTimeout_1;
+					this.onData = onData_2;
+					this.wireFormat = wireFormat_3;
+					this.face = face_4;
+					this.interestCopy = interestCopy_5;
+					this.onNetworkNack = onNetworkNack_6;
 					this.outer_Node = paramouter_Node;
 				}
 		
@@ -877,6 +892,48 @@ namespace net.named_data.jndn {
 							exception_3);
 				}
 			}
+		}
+	
+		/// <summary>
+		/// Encode the interest into an NDN-TLV LpPacket as a NACK with the reason code
+		/// in the networkNack object.
+		/// TODO: Generalize this and move to WireFormat.encodeLpPacket.
+		/// </summary>
+		///
+		/// <param name="interest">The Interest to put in the LpPacket fragment.</param>
+		/// <param name="networkNack">The NetworkNack with the reason code.</param>
+		/// <returns>A Blob containing the encoding.</returns>
+		private static Blob encodeLpNack(Interest interest, NetworkNack networkNack) {
+			TlvEncoder encoder = new TlvEncoder(256);
+			int saveLength = encoder.getLength();
+	
+			// Encode backwards.
+			// Encode the fragment with the Interest.
+			encoder.writeBlobTlv(net.named_data.jndn.encoding.tlv.Tlv.LpPacket_Fragment, interest.wireEncode().buf());
+	
+			// Encode the reason.
+			int reason;
+			if (networkNack.getReason() == net.named_data.jndn.NetworkNack.Reason.NONE
+					|| networkNack.getReason() == net.named_data.jndn.NetworkNack.Reason.CONGESTION
+					|| networkNack.getReason() == net.named_data.jndn.NetworkNack.Reason.DUPLICATE
+					|| networkNack.getReason() == net.named_data.jndn.NetworkNack.Reason.NO_ROUTE)
+				// The Reason enum is set up with the correct integer for each NDN-TLV Reason.
+				reason = networkNack.getReason().getNumericType();
+			else if (networkNack.getReason() == net.named_data.jndn.NetworkNack.Reason.OTHER_CODE)
+				reason = networkNack.getOtherReasonCode();
+			else
+				// We don't expect this to happen.
+				throw new Exception("unrecognized NetworkNack.getReason() value");
+	
+			int nackSaveLength = encoder.getLength();
+			encoder.writeNonNegativeIntegerTlv(net.named_data.jndn.encoding.tlv.Tlv.LpPacket_NackReason, reason);
+			encoder.writeTypeAndLength(net.named_data.jndn.encoding.tlv.Tlv.LpPacket_Nack, encoder.getLength()
+					- nackSaveLength);
+	
+			encoder.writeTypeAndLength(net.named_data.jndn.encoding.tlv.Tlv.LpPacket_LpPacket, encoder.getLength()
+					- saveLength);
+	
+			return new Blob(encoder.getOutput(), false);
 		}
 	
 		private readonly Transport transport_;
