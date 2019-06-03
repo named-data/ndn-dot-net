@@ -52,7 +52,7 @@ namespace net.named_data.jndn.encoding.tlv {
 		public const int SelectedDelegation = 32;
 		public const int CanBePrefix = 33;
 		public const int HopLimit = 34;
-		public const int ApplicationParameters = 35;
+		public const int ApplicationParameters = 36;
 	
 		public const int SignatureType_DigestSha256 = 0;
 		public const int SignatureType_SignatureSha256WithRsa = 1;
