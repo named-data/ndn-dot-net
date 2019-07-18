@@ -176,7 +176,8 @@ namespace net.named_data.jndn.security {
 	
 		/// <summary>
 		/// If the signature is a type that has a ValidityPeriod, then return it.
-		/// Otherwise throw an error.
+		/// Otherwise throw an error. To check if the signature has a ValidityPeriod
+		/// without throwing an error, you can use canGetFromSignature().
 		/// </summary>
 		///
 		/// <param name="signature">An object of a subclass of Signature.</param>
