@@ -81,7 +81,8 @@ namespace net.named_data.jndn.security {
 		}
 	
 		/// <summary>
-		/// Create a SigningInfo with a signerType of NULL and an empty signerName,
+		/// Create a SigningInfo with a signerType of NULL (which will cause
+		/// KeyChain.sign to use the default identity) and an empty signerName,
 		/// with other default values. The digest algorithm is set to
 		/// DigestAlgorithm.SHA256.
 		/// </summary>
