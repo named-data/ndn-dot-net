@@ -330,7 +330,7 @@ namespace net.named_data.jndn.util
         (byte)((value >> 16) & 0xff),
         (byte)((value >> 24) & 0xff)
       };
-      return murmurHash3(nHashSeed, dataToHash);
+      return MurmurHash3(nHashSeed, dataToHash);
     }
 
     // From https://gist.github.com/automatonic/3725443
