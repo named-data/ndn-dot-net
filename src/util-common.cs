@@ -295,6 +295,139 @@ namespace net.named_data.jndn.util
       return new FileInfo(Directory.GetCurrentDirectory());
     }
 
+    /// <summary>
+    /// Compute the MurmurHash3 of the data.
+    /// </summary>
+    /// <param name="nHashSeed">The hash seed.</param>
+    /// <param name="dataToHash">The input byte array to hash.</param>
+    /// <returns>The hash value. This returns a long to make it easier to interpret
+    /// it as an unsigned 32-bit integer (instead of the Java int which is signed).</returns>
+    public static long
+    murmurHash3(int nHashSeed, byte[] dataToHash)
+    {
+      using (MemoryStream stream = new MemoryStream(dataToHash)) {
+        int hash = MurMurHash3.Hash((uint)nHashSeed, stream);
+        if (hash < 0)
+          Console.Out.WriteLine("Debug converting negative.");
+        return hash >= 0 ? hash : 0x100000000L + hash;
+      }
+    }
+
+    /// <summary>
+    /// Compute the MurmurHash3 of the integer value.
+    /// </summary>
+    /// <param name="nHashSeed">The hash seed.</param>
+    /// <param name="value">The integer value, interpreted as a 4-byte little-endian array.
+    /// This ignores the upper 4 bytes of the long integer.</param>
+    /// <returns>The hash value. This returns a Java int which is a 32-bit signed
+    /// integer, but it should be interpreted as a 32-bit unsigned integer.</returns>
+    public static long
+    murmurHash3(int nHashSeed, long value)
+    {
+      byte[] dataToHash = new byte[] {
+        (byte) (value        & 0xff),
+        (byte)((value >> 8)  & 0xff),
+        (byte)((value >> 16) & 0xff),
+        (byte)((value >> 24) & 0xff)
+      };
+      return murmurHash3(nHashSeed, dataToHash);
+    }
+
+    // From https://gist.github.com/automatonic/3725443
+    public static class MurMurHash3
+    {
+      public static int Hash(uint seed, Stream stream)
+      {
+        const uint c1 = 0xcc9e2d51;
+        const uint c2 = 0x1b873593;
+
+        uint h1 = seed;
+        uint k1 = 0;
+        uint streamLength = 0;
+
+        using (BinaryReader reader = new BinaryReader(stream))
+        {
+          byte[] chunk = reader.ReadBytes(4);
+          while (chunk.Length > 0)
+          {
+            streamLength += (uint)chunk.Length;
+            switch(chunk.Length)
+            {
+            case 4:
+              /* Get four bytes from the input into an uint */
+              k1 = (uint)
+                (chunk[0]
+                  | chunk[1] << 8
+                  | chunk[2] << 16
+                  | chunk[3] << 24);
+
+              /* bitmagic hash */
+              k1 *= c1;
+              k1 = rotl32(k1, 15);
+              k1 *= c2;
+
+              h1 ^= k1;
+              h1 = rotl32(h1, 13);
+              h1 = h1 * 5 + 0xe6546b64;
+              break;
+            case 3:
+              k1 = (uint)
+                (chunk[0]
+                  | chunk[1] << 8
+                  | chunk[2] << 16);
+              k1 *= c1;
+              k1 = rotl32(k1, 15);
+              k1 *= c2;
+              h1 ^= k1;
+              break;
+            case 2:
+              k1 = (uint)
+                (chunk[0]
+                  | chunk[1] << 8);
+              k1 *= c1;
+              k1 = rotl32(k1, 15);
+              k1 *= c2;
+              h1 ^= k1;
+              break;
+            case 1:
+              k1 = (uint)(chunk[0]);
+              k1 *= c1;
+              k1 = rotl32(k1, 15);
+              k1 *= c2;
+              h1 ^= k1;
+              break;
+
+            }
+            chunk = reader.ReadBytes(4);
+          }
+        }
+
+        // finalization, magic chants to wrap it all up
+        h1 ^= streamLength;
+        h1 = fmix(h1);
+
+        unchecked //ignore overflow
+        {
+          return (int)h1;
+        }
+      }
+
+      private static uint rotl32(uint x, byte r)
+      {
+        return (x << r) | (x >> (32 - r));
+      }
+
+      private static uint fmix(uint h)
+      {
+        h ^= h >> 16;
+        h *= 0x85ebca6b;
+        h ^= h >> 13;
+        h *= 0xc2b2ae35;
+        h ^= h >> 16;
+        return h;
+      }
+    }
+
     private static SecureRandom randomNumberGenerator_;
     private static SHA256 sha256_ = SHA256Managed.Create();
     private static DateTime unixEpoch_ = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
