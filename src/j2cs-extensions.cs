@@ -168,6 +168,13 @@ namespace net.named_data.jndn.util {
       return new ArrayList(); 
     }
 
+    // MemoryStream extensions.
+    public static void
+    write(this MemoryStream memoryStream, byte[] buffer, int offset, int count) 
+    { 
+      memoryStream.Write(buffer, offset, count); 
+    }
+
     // Random extensions.
     public static void
     nextBytes(this Random random, byte[] array) { random.NextBytes(array); }
