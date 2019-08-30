@@ -303,7 +303,7 @@ namespace net.named_data.jndn.util
     /// <returns>The hash value. This returns a long to make it easier to interpret
     /// it as an unsigned 32-bit integer (instead of the Java int which is signed).</returns>
     public static long
-    murmurHash3(int nHashSeed, byte[] dataToHash)
+    MurmurHash3(int nHashSeed, byte[] dataToHash)
     {
       using (MemoryStream stream = new MemoryStream(dataToHash)) {
         int hash = MurMurHash3.Hash((uint)nHashSeed, stream);
@@ -322,7 +322,7 @@ namespace net.named_data.jndn.util
     /// <returns>The hash value. This returns a Java int which is a 32-bit signed
     /// integer, but it should be interpreted as a 32-bit unsigned integer.</returns>
     public static long
-    murmurHash3(int nHashSeed, long value)
+    MurmurHash3(int nHashSeed, long value)
     {
       byte[] dataToHash = new byte[] {
         (byte) (value        & 0xff),
