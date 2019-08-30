@@ -307,8 +307,6 @@ namespace net.named_data.jndn.util
     {
       using (MemoryStream stream = new MemoryStream(dataToHash)) {
         int hash = MurMurHash3.Hash((uint)nHashSeed, stream);
-        if (hash < 0)
-          Console.Out.WriteLine("Debug converting negative.");
         return hash >= 0 ? hash : 0x100000000L + hash;
       }
     }
