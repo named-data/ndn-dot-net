@@ -283,6 +283,8 @@ namespace net.named_data.jndn.util {
   public class ArrayList<T> : System.Collections.Generic.List<T> {
     public ArrayList() {}
 
+    public ArrayList(int capacity) : base(capacity) {}
+
     public ArrayList(IList list)
     {
       foreach (T item in list)
