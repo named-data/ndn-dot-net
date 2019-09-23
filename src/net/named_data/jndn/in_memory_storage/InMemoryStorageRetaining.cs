@@ -62,6 +62,25 @@ namespace net.named_data.jndn.in_memory_storage {
 		}
 	
 		/// <summary>
+		/// Remove matching entries by prefix.
+		/// </summary>
+		///
+		/// <param name="prefix">The prefix Name of the entries to remove.</param>
+		public void remove(Name prefix) {
+			// First get the keys to delete, to not change the HashMap while iterating.
+			ArrayList keys = new ArrayList();
+			/* foreach */
+			foreach (Object key  in  new ILOG.J2CsMapping.Collections.ListSet(cache_.Keys)) {
+				if (prefix.isPrefixOf((Name) key))
+					ILOG.J2CsMapping.Collections.Collections.Add(keys,key);
+			}
+	
+			/* foreach */
+			foreach (Object key_0  in  keys)
+				ILOG.J2CsMapping.Collections.Collections.Remove(cache_,key_0);
+		}
+	
+		/// <summary>
 		/// Get the number of packets stored in the in-memory storage.
 		/// </summary>
 		///
