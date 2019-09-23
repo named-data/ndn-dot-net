@@ -179,6 +179,9 @@ namespace net.named_data.jndn.util {
     public static void
     nextBytes(this Random random, byte[] array) { random.NextBytes(array); }
 
+    public static double
+    nextDouble(this Random random) { random.NextDouble(); }
+
     // SortedList extensions.
     public static object
     ceilingKey(this SortedList sortedList, IComparable key) 
