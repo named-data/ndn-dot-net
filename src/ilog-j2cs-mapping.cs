@@ -116,6 +116,13 @@ namespace ILOG.J2CsMapping.Collections {
       return result;
     }
 
+    public static TValue
+    Get<TValue>(IDictionary<Object, TValue> dictionary, Int64 key)
+      where TValue : class
+    { 
+      return Get(dictionary, (Object)key);
+    }
+
     public static void
     Put(IDictionary map, object key, object value) { map[key] = value; }
 
