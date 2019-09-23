@@ -789,7 +789,7 @@ namespace net.named_data.jndn.encoding {
 		/// <param name="signedPortionBeginOffset">name component and ends just before the final name component (which is assumed to be a signature for a signed interest).</param>
 		/// <param name="signedPortionEndOffset">name component and ends just before the final name component (which is assumed to be a signature for a signed interest).</param>
 		/// <param name="encoder">The TlvEncoder to receive the encoding.</param>
-		private static void encodeName(Name name, int[] signedPortionBeginOffset,
+		public static void encodeName(Name name, int[] signedPortionBeginOffset,
 				int[] signedPortionEndOffset, TlvEncoder encoder) {
 			int saveLength = encoder.getLength();
 	
@@ -825,7 +825,7 @@ namespace net.named_data.jndn.encoding {
 		/// <param name="decoder">The decoder with the input to decode.</param>
 		/// <param name="copy">unchanged while the Blob values are used.</param>
 		/// <exception cref="EncodingException"></exception>
-		private static void decodeName(Name name, int[] signedPortionBeginOffset,
+		public static void decodeName(Name name, int[] signedPortionBeginOffset,
 				int[] signedPortionEndOffset, TlvDecoder decoder, bool copy) {
 			name.clear();
 	
