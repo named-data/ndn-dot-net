@@ -247,6 +247,9 @@ namespace net.named_data.jndn.sync.detail {
 			/// </summary>
 			///
 			public HashTableEntry() {
+				this.count_ = 0;
+				this.keySum_ = 0;
+				this.keyCheck_ = 0;
 			}
 	
 			/// <summary>
@@ -254,6 +257,9 @@ namespace net.named_data.jndn.sync.detail {
 			/// </summary>
 			///
 			public HashTableEntry(InvertibleBloomLookupTable.HashTableEntry  entry) {
+				this.count_ = 0;
+				this.keySum_ = 0;
+				this.keyCheck_ = 0;
 				count_ = entry.count_;
 				keySum_ = entry.keySum_;
 				keyCheck_ = entry.keyCheck_;
@@ -261,7 +267,7 @@ namespace net.named_data.jndn.sync.detail {
 	
 			public bool isPure() {
 				if (count_ == 1 || count_ == -1) {
-					long check = Common.MurmurHash3(net.named_data.jndn.sync.detail.InvertibleBloomLookupTable.N_HASHCHECK, keySum_);
+					long check = net.named_data.jndn.util.Common.murmurHash3(net.named_data.jndn.sync.detail.InvertibleBloomLookupTable.N_HASHCHECK, keySum_);
 					return keyCheck_ == check;
 				}
 	
@@ -272,9 +278,9 @@ namespace net.named_data.jndn.sync.detail {
 				return count_ == 0 && keySum_ == 0 && keyCheck_ == 0;
 			}
 	
-			public int count_ = 0;
-			public long keySum_ = 0;
-			public long keyCheck_ = 0;
+			public int count_;
+			public long keySum_;
+			public long keyCheck_;
 		}
 	
 		/// <summary>
@@ -288,12 +294,12 @@ namespace net.named_data.jndn.sync.detail {
 	
 			for (int i = 0; i < N_HASH; i++) {
 				int startEntry = i * bucketsPerHash;
-				long h = Common.MurmurHash3(i, key);
+				long h = net.named_data.jndn.util.Common.murmurHash3(i, key);
 				InvertibleBloomLookupTable.HashTableEntry  entry = hashTable_[startEntry
 									+ (int) (h % bucketsPerHash)];
 				entry.count_ += plusOrMinus;
 				entry.keySum_ ^= key;
-				entry.keyCheck_ ^= Common.MurmurHash3(N_HASHCHECK, key);
+				entry.keyCheck_ ^= net.named_data.jndn.util.Common.murmurHash3(N_HASHCHECK, key);
 			}
 		}
 	

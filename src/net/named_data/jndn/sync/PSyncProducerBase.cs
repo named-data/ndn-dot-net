@@ -34,6 +34,8 @@ namespace net.named_data.jndn.sync {
 		/// <param name="syncReplyFreshnessPeriod"></param>
 		protected internal PSyncProducerBase(int expectedNEntries, Name syncPrefix,
 				double syncReplyFreshnessPeriod) {
+			this.nameToHash_ = new Hashtable<Name, Object>();
+					this.hashToName_ = new Hashtable<Object, Name>();
 			iblt_ = new InvertibleBloomLookupTable(expectedNEntries);
 			expectedNEntries_ = expectedNEntries;
 			threshold_ = expectedNEntries / 2;
@@ -49,7 +51,7 @@ namespace net.named_data.jndn.sync {
 		/// <param name="name">The Name to insert.</param>
 		protected internal void insertIntoIblt(Name name) {
 			String uri = name.toUri();
-			long newHash = Common.MurmurHash3(
+			long newHash = net.named_data.jndn.util.Common.murmurHash3(
 					net.named_data.jndn.sync.detail.InvertibleBloomLookupTable.N_HASHCHECK,
 					new Blob(uri).getImmutableArray());
 			ILOG.J2CsMapping.Collections.Collections.Put(nameToHash_,name,newHash);
@@ -91,9 +93,9 @@ namespace net.named_data.jndn.sync {
 		// nameToHash_ and hashToName_ are just for looking up the hash more quickly
 		// (instead of calculating it again).
 		// The key is the Name. The value is the hash.
-		protected internal readonly Hashtable<Name, Object> nameToHash_ = new Hashtable<Name, Object>();
+		protected internal readonly Hashtable<Name, Object> nameToHash_;
 		// The key is the hash. The value is the Name.
-		protected internal readonly Hashtable<Object, Name> hashToName_ = new Hashtable<Object, Name>();
+		protected internal readonly Hashtable<Object, Name> hashToName_;
 	
 		protected internal readonly Name syncPrefix_;
 		protected internal readonly double syncReplyFreshnessPeriod_;

@@ -62,6 +62,7 @@ namespace net.named_data.jndn.sync {
 				Name syncPrefix, Name userPrefix, FullPSync2017WithUsers.OnUpdate  onUpdate,
 				KeyChain keyChain, double syncInterestLifetime,
 				double syncReplyFreshnessPeriod, SigningInfo signingInfo) {
+			this.prefixes_ = new PSyncUserPrefixes();
 			onUpdate_ = onUpdate;
 			fullPSync_ = new FullPSync2017(expectedNEntries, face, syncPrefix,
 					this, keyChain, syncInterestLifetime, syncReplyFreshnessPeriod,
@@ -88,6 +89,7 @@ namespace net.named_data.jndn.sync {
 				Name syncPrefix, Name userPrefix, FullPSync2017WithUsers.OnUpdate  onUpdate,
 				KeyChain keyChain, double syncInterestLifetime,
 				double syncReplyFreshnessPeriod) {
+			this.prefixes_ = new PSyncUserPrefixes();
 			onUpdate_ = onUpdate;
 			fullPSync_ = new FullPSync2017(expectedNEntries, face, syncPrefix,
 					this, keyChain, syncInterestLifetime, syncReplyFreshnessPeriod,
@@ -113,6 +115,7 @@ namespace net.named_data.jndn.sync {
 		public FullPSync2017WithUsers(int expectedNEntries, Face face,
 				Name syncPrefix, Name userPrefix, FullPSync2017WithUsers.OnUpdate  onUpdate,
 				KeyChain keyChain) {
+			this.prefixes_ = new PSyncUserPrefixes();
 			onUpdate_ = onUpdate;
 			fullPSync_ = new FullPSync2017(expectedNEntries, face, syncPrefix,
 					this, keyChain, net.named_data.jndn.sync.FullPSync2017.DEFAULT_SYNC_INTEREST_LIFETIME,
@@ -269,13 +272,13 @@ namespace net.named_data.jndn.sync {
 	
 			String uri = new Name(prefix).appendNumber(
 					prefixes_.getSequenceNoOrZero(prefix) + 1).toUri();
-			long nextHash = Common.MurmurHash3(
+			long nextHash = net.named_data.jndn.util.Common.murmurHash3(
 					net.named_data.jndn.sync.detail.InvertibleBloomLookupTable.N_HASHCHECK,
 					new Blob(uri).getImmutableArray());
 	
 			/* foreach */
 			foreach (Int64 negativeHash  in  negative) {
-				if (negativeHash == nextHash)
+				if ((negativeHash) == nextHash)
 					return false;
 			}
 	
@@ -311,7 +314,7 @@ namespace net.named_data.jndn.sync {
 	
 		private readonly FullPSync2017WithUsers.OnUpdate  onUpdate_;
 		private readonly FullPSync2017 fullPSync_;
-		private readonly PSyncUserPrefixes prefixes_ = new PSyncUserPrefixes();
+		private readonly PSyncUserPrefixes prefixes_;
 		private static readonly Logger logger_ = ILOG.J2CsMapping.Util.Logging.Logger
 				.getLogger(typeof(FullPSync2017WithUsers).FullName);
 	}

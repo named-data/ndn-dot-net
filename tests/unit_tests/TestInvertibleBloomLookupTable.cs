@@ -30,7 +30,7 @@ namespace net.named_data.jndn.tests.unit_tests {
 			Assert.AssertTrue(iblt1.equals(iblt2));
 	
 			String prefix = new Name("/test/memphis").appendNumber(1).toUri();
-			long newHash = Common.MurmurHash3(11,
+			long newHash = net.named_data.jndn.util.Common.murmurHash3(11,
 					new Blob(prefix).getImmutableArray());
 			iblt1.insert(newHash);
 			iblt2.insert(newHash);
@@ -48,7 +48,7 @@ namespace net.named_data.jndn.tests.unit_tests {
 	
 			InvertibleBloomLookupTable iblt = new InvertibleBloomLookupTable(size);
 			String prefix = new Name("/test/memphis").appendNumber(1).toUri();
-			long newHash = Common.MurmurHash3(11,
+			long newHash = net.named_data.jndn.util.Common.murmurHash3(11,
 					new Blob(prefix).getImmutableArray());
 			iblt.insert(newHash);
 	
@@ -85,20 +85,20 @@ namespace net.named_data.jndn.tests.unit_tests {
 			InvertibleBloomLookupTable iblt1 = new InvertibleBloomLookupTable(size);
 	
 			String prefix = new Name("/test/memphis").appendNumber(1).toUri();
-			long hash1 = Common.MurmurHash3(11,
+			long hash1 = net.named_data.jndn.util.Common.murmurHash3(11,
 					new Blob(prefix).getImmutableArray());
 			iblt1.insert(hash1);
 	
 			InvertibleBloomLookupTable iblt2 = new InvertibleBloomLookupTable(iblt1);
 			iblt2.erase(hash1);
 			prefix = new Name("/test/memphis").appendNumber(2).toUri();
-			long hash3 = Common.MurmurHash3(11,
+			long hash3 = net.named_data.jndn.util.Common.murmurHash3(11,
 					new Blob(prefix).getImmutableArray());
 			iblt2.insert(hash3);
 	
 			iblt1.erase(hash1);
 			prefix = new Name("/test/memphis").appendNumber(5).toUri();
-			long hash5 = Common.MurmurHash3(11,
+			long hash5 = net.named_data.jndn.util.Common.murmurHash3(11,
 					new Blob(prefix).getImmutableArray());
 			iblt1.insert(hash5);
 	
@@ -119,12 +119,12 @@ namespace net.named_data.jndn.tests.unit_tests {
 					size);
 	
 			String prefix = new Name("/test/memphis").appendNumber(3).toUri();
-			long hash1 = Common.MurmurHash3(11,
+			long hash1 = net.named_data.jndn.util.Common.murmurHash3(11,
 					new Blob(prefix).getImmutableArray());
 			ownIblt.insert(hash1);
 	
 			String prefix2 = new Name("/test/memphis").appendNumber(4).toUri();
-			long hash2 = Common.MurmurHash3(11,
+			long hash2 = net.named_data.jndn.util.Common.murmurHash3(11,
 					new Blob(prefix2).getImmutableArray());
 			receivedIblt.insert(hash2);
 	
@@ -134,10 +134,10 @@ namespace net.named_data.jndn.tests.unit_tests {
 	
 			Assert.AssertTrue(diff.listEntries(positive, negative));
 			Assert.AssertEquals(1, positive.Count);
-			Assert.AssertTrue((Int64) ILOG.J2CsMapping.Collections.Collections.ToArray(positive)[0] == hash1);
+			Assert.AssertTrue(((Int64)ILOG.J2CsMapping.Collections.Collections.ToArray(positive)[0]) == hash1);
 	
 			Assert.AssertEquals(1, negative.Count);
-			Assert.AssertTrue((Int64) ILOG.J2CsMapping.Collections.Collections.ToArray(negative)[0] == hash2);
+			Assert.AssertTrue(((Int64)ILOG.J2CsMapping.Collections.Collections.ToArray(negative)[0]) == hash2);
 		}
 	
 		public void testDifference() {
@@ -160,7 +160,7 @@ namespace net.named_data.jndn.tests.unit_tests {
 			Assert.AssertEquals(0, negative.Count);
 	
 			String prefix = new Name("/test/memphis").appendNumber(1).toUri();
-			long newHash = Common.MurmurHash3(11,
+			long newHash = net.named_data.jndn.util.Common.murmurHash3(11,
 					new Blob(prefix).getImmutableArray());
 			ownIblt.insert(newHash);
 	
@@ -170,7 +170,7 @@ namespace net.named_data.jndn.tests.unit_tests {
 			Assert.AssertEquals(0, negative.Count);
 	
 			prefix = new Name("/test/csu").appendNumber(1).toUri();
-			newHash = Common.MurmurHash3(11, new Blob(prefix).getImmutableArray());
+			newHash = net.named_data.jndn.util.Common.murmurHash3(11, new Blob(prefix).getImmutableArray());
 			receivedIblt.insert(newHash);
 	
 			diff = ownIblt.difference(receivedIblt);
@@ -191,7 +191,7 @@ namespace net.named_data.jndn.tests.unit_tests {
 			for (int i = 0; i < 50; ++i) {
 				String prefix = new Name("/test/memphis" + i).appendNumber(1)
 						.toUri();
-				long newHash = Common.MurmurHash3(11,
+				long newHash = net.named_data.jndn.util.Common.murmurHash3(11,
 						new Blob(prefix).getImmutableArray());
 				ownIblt.insert(newHash);
 			}
@@ -200,7 +200,7 @@ namespace net.named_data.jndn.tests.unit_tests {
 					ownIblt);
 	
 			String prefix_0 = new Name("/test/ucla").appendNumber(1).toUri();
-			long newHash_1 = Common.MurmurHash3(11,
+			long newHash_1 = net.named_data.jndn.util.Common.murmurHash3(11,
 					new Blob(prefix_0).getImmutableArray());
 			ownIblt.insert(newHash_1);
 	
@@ -210,7 +210,7 @@ namespace net.named_data.jndn.tests.unit_tests {
 			HashedSet<Int64> negative = new HashedSet<Int64>();
 			Assert.AssertTrue(diff.listEntries(positive, negative));
 			Assert.AssertEquals(1, positive.Count);
-			Assert.AssertTrue(newHash_1 == (Int64) ILOG.J2CsMapping.Collections.Collections.ToArray(positive)[0]);
+			Assert.AssertTrue(newHash_1 == ((Int64)ILOG.J2CsMapping.Collections.Collections.ToArray(positive)[0]));
 			Assert.AssertEquals(0, negative.Count);
 	
 			Assert.AssertTrue(!ownIblt.listEntries(positive, negative));
