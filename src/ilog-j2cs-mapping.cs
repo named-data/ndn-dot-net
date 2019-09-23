@@ -84,8 +84,8 @@ namespace ILOG.J2CsMapping.Collections {
 
     public static void 
     AddAll<T>
-      (System.Collections.Generic.ICollection<T> toList, 
-       System.Collections.Generic.ICollection<T> fromList) 
+      (System.Collections.Generic.ICollection<T> fromList, 
+       System.Collections.Generic.ICollection<T> toList) 
     { 
       foreach (T item in fromList)
         toList.Add(item);
