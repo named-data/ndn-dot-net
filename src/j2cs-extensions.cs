@@ -315,6 +315,12 @@ namespace net.named_data.jndn.util {
     }
 
     public static void
+    AssertArrayEquals(object[] expected, object[] actual)
+    {
+      AssertArrayEquals("AssertArrayEquals", expected, actual);
+    }
+
+    public static void
     AssertEquals(string message, object expected, object actual)
     {
       if (expected == null) {
