@@ -180,7 +180,7 @@ namespace net.named_data.jndn.util {
     nextBytes(this Random random, byte[] array) { random.NextBytes(array); }
 
     public static double
-    nextDouble(this Random random) { random.NextDouble(); }
+    nextDouble(this Random random) { return random.NextDouble(); }
 
     // SortedList extensions.
     public static object
