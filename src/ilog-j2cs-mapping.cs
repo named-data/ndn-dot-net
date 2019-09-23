@@ -182,6 +182,14 @@ namespace ILOG.J2CsMapping.Collections {
       collection.CopyTo(result, 0);
       return result;
     }
+
+    public static T[]
+    ToArray<T>(ArrayList<T> collection)
+    { 
+      var result = new T[collection.Count];
+      collection.CopyTo(result, 0);
+      return result;
+    }
       
     public static TValue[]
     ToArray<TKey, TValue>
