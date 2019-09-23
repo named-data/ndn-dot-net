@@ -24,9 +24,11 @@
 
 using System;
 using System.Text;
+using System.IO;
 using System.Collections;
 using System.Reflection;
 using System.Text.RegularExpressions;
+using Ionic.Zlib;
 using net.named_data.jndn.util;
 
 namespace ILOG.J2CsMapping.Collections {
@@ -208,6 +210,66 @@ namespace ILOG.J2CsMapping.Collections {
         result.Add(obj);
       return result;
     }
+  }
+}
+
+namespace ILOG.J2CsMapping.IO.Zip {
+  public class Deflater {
+    public Deflater(int compressionLevel)
+    {
+      compressionLevel_ = compressionLevel;
+    }
+
+    public int compressionLevel_;
+  }
+
+  public class InflaterInputStream {
+    public InflaterInputStream(Stream stream)
+    {
+      zlibStream_ = new ZlibStream(stream, CompressionMode.Decompress);
+    }
+
+    public int 
+    Read(byte[] buffer, int offset, int length) 
+    { 
+      return zlibStream_.Read(buffer, offset, length);
+    }
+
+    public void
+    flush() { zlibStream_.Flush(); }
+
+    public void
+    close() { zlibStream_.Close(); }
+
+    private ZlibStream zlibStream_;
+  }
+
+  public class DeflaterOutputStream {
+    public DeflaterOutputStream(Stream stream, Deflater deflater)
+    {
+      CompressionLevel compressionLevel;
+      if (deflater.compressionLevel_ == 9)
+        compressionLevel = CompressionLevel.Level9;
+      else
+        throw new ArgumentException
+          ("DeflaterOutputStream: Unrecognised compression level: " + deflater.compressionLevel_);
+      
+      zlibStream_ = new ZlibStream(stream, CompressionMode.Compress, compressionLevel, false);
+    }
+
+    public void 
+    Write(byte[] buffer, int offset, int length) 
+    { 
+      zlibStream_.Write(buffer, offset, length); 
+    }
+
+    public void
+    flush() { zlibStream_.Flush(); }
+
+    public void
+    close() { zlibStream_.Close(); }
+
+    private ZlibStream zlibStream_;
   }
 }
 
