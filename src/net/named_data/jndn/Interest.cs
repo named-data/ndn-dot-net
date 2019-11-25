@@ -43,7 +43,7 @@ namespace net.named_data.jndn {
 					new KeyLocator());
 			this.exclude_ = new ChangeCounter(new Exclude());
 			this.childSelector_ = -1;
-			this.mustBeFresh_ = true;
+			this.mustBeFresh_ = false;
 			this.interestLifetimeMilliseconds_ = -1;
 			this.nonce_ = new Blob();
 			this.getNonceChangeCount_ = 0;
@@ -77,7 +77,7 @@ namespace net.named_data.jndn {
 					new KeyLocator());
 			this.exclude_ = new ChangeCounter(new Exclude());
 			this.childSelector_ = -1;
-			this.mustBeFresh_ = true;
+			this.mustBeFresh_ = false;
 			this.interestLifetimeMilliseconds_ = -1;
 			this.nonce_ = new Blob();
 			this.getNonceChangeCount_ = 0;
@@ -111,7 +111,7 @@ namespace net.named_data.jndn {
 					new KeyLocator());
 			this.exclude_ = new ChangeCounter(new Exclude());
 			this.childSelector_ = -1;
-			this.mustBeFresh_ = true;
+			this.mustBeFresh_ = false;
 			this.interestLifetimeMilliseconds_ = -1;
 			this.nonce_ = new Blob();
 			this.getNonceChangeCount_ = 0;
@@ -143,7 +143,7 @@ namespace net.named_data.jndn {
 					new KeyLocator());
 			this.exclude_ = new ChangeCounter(new Exclude());
 			this.childSelector_ = -1;
-			this.mustBeFresh_ = true;
+			this.mustBeFresh_ = false;
 			this.interestLifetimeMilliseconds_ = -1;
 			this.nonce_ = new Blob();
 			this.getNonceChangeCount_ = 0;
@@ -195,7 +195,7 @@ namespace net.named_data.jndn {
 					new KeyLocator());
 			this.exclude_ = new ChangeCounter(new Exclude());
 			this.childSelector_ = -1;
-			this.mustBeFresh_ = true;
+			this.mustBeFresh_ = false;
 			this.interestLifetimeMilliseconds_ = -1;
 			this.nonce_ = new Blob();
 			this.getNonceChangeCount_ = 0;
@@ -421,7 +421,7 @@ namespace net.named_data.jndn {
 		}
 	
 		/// <summary>
-		/// Get the must be fresh flag. If not specified, the default is true.
+		/// Get the must be fresh flag. If not specified, the default is false.
 		/// </summary>
 		///
 		/// <returns>The must be fresh flag.</returns>

@@ -112,15 +112,15 @@ namespace net.named_data.jndn {
 							connectStatus_ = net.named_data.jndn.Node.ConnectStatus.CONNECT_REQUESTED;
 			
 							// expressInterestHelper will be called by onConnected.
-							ILOG.J2CsMapping.Collections.Collections.Add(onConnectedCallbacks_,new Node.Anonymous_C3 (this, onData, wireFormat, face, onNetworkNack,
-													onTimeout, interestCopy, pendingInterestId));
+							ILOG.J2CsMapping.Collections.Collections.Add(onConnectedCallbacks_,new Node.Anonymous_C3 (this, onData, onNetworkNack, interestCopy,
+													face, pendingInterestId, onTimeout, wireFormat));
 			
 							IRunnable onConnected = new Node.Anonymous_C2 (this);
 							transport_.connect(connectionInfo_, this, onConnected);
 						} else if (connectStatus_ == net.named_data.jndn.Node.ConnectStatus.CONNECT_REQUESTED) {
 							// Still connecting. add to the interests to express by onConnected.
-							ILOG.J2CsMapping.Collections.Collections.Add(onConnectedCallbacks_,new Node.Anonymous_C1 (this, interestCopy, onData, onNetworkNack,
-													onTimeout, wireFormat, pendingInterestId, face));
+							ILOG.J2CsMapping.Collections.Collections.Add(onConnectedCallbacks_,new Node.Anonymous_C1 (this, wireFormat, face, pendingInterestId,
+													interestCopy, onNetworkNack, onData, onTimeout));
 						} else if (connectStatus_ == net.named_data.jndn.Node.ConnectStatus.CONNECT_COMPLETE)
 							// We have to repeat this check for CONNECT_COMPLETE in case the
 							// onConnected callback was called while we were waiting to enter this
@@ -568,24 +568,24 @@ namespace net.named_data.jndn {
 		public sealed class Anonymous_C3 : IRunnable {
 				private readonly Node outer_Node;
 				private readonly OnData onData;
-				private readonly WireFormat wireFormat;
-				private readonly Face face;
 				private readonly OnNetworkNack onNetworkNack;
-				private readonly OnTimeout onTimeout;
 				private readonly Interest interestCopy;
+				private readonly Face face;
 				private readonly long pendingInterestId;
+				private readonly OnTimeout onTimeout;
+				private readonly WireFormat wireFormat;
 		
 				public Anonymous_C3(Node paramouter_Node, OnData onData_0,
-						WireFormat wireFormat_1, Face face_2, OnNetworkNack onNetworkNack_3,
-						OnTimeout onTimeout_4, Interest interestCopy_5,
-						long pendingInterestId_6) {
+						OnNetworkNack onNetworkNack_1, Interest interestCopy_2, Face face_3,
+						long pendingInterestId_4, OnTimeout onTimeout_5,
+						WireFormat wireFormat_6) {
 					this.onData = onData_0;
-					this.wireFormat = wireFormat_1;
-					this.face = face_2;
-					this.onNetworkNack = onNetworkNack_3;
-					this.onTimeout = onTimeout_4;
-					this.interestCopy = interestCopy_5;
-					this.pendingInterestId = pendingInterestId_6;
+					this.onNetworkNack = onNetworkNack_1;
+					this.interestCopy = interestCopy_2;
+					this.face = face_3;
+					this.pendingInterestId = pendingInterestId_4;
+					this.onTimeout = onTimeout_5;
+					this.wireFormat = wireFormat_6;
 					this.outer_Node = paramouter_Node;
 				}
 		
@@ -621,25 +621,24 @@ namespace net.named_data.jndn {
 			}
 		public sealed class Anonymous_C1 : IRunnable {
 				private readonly Node outer_Node;
-				private readonly Interest interestCopy;
-				private readonly OnData onData;
-				private readonly OnNetworkNack onNetworkNack;
-				private readonly OnTimeout onTimeout;
 				private readonly WireFormat wireFormat;
-				private readonly long pendingInterestId;
 				private readonly Face face;
+				private readonly long pendingInterestId;
+				private readonly Interest interestCopy;
+				private readonly OnNetworkNack onNetworkNack;
+				private readonly OnData onData;
+				private readonly OnTimeout onTimeout;
 		
-				public Anonymous_C1(Node paramouter_Node, Interest interestCopy_0,
-						OnData onData_1, OnNetworkNack onNetworkNack_2,
-						OnTimeout onTimeout_3, WireFormat wireFormat_4,
-						long pendingInterestId_5, Face face_6) {
-					this.interestCopy = interestCopy_0;
-					this.onData = onData_1;
-					this.onNetworkNack = onNetworkNack_2;
-					this.onTimeout = onTimeout_3;
-					this.wireFormat = wireFormat_4;
-					this.pendingInterestId = pendingInterestId_5;
-					this.face = face_6;
+				public Anonymous_C1(Node paramouter_Node, WireFormat wireFormat_0,
+						Face face_1, long pendingInterestId_2, Interest interestCopy_3,
+						OnNetworkNack onNetworkNack_4, OnData onData_5, OnTimeout onTimeout_6) {
+					this.wireFormat = wireFormat_0;
+					this.face = face_1;
+					this.pendingInterestId = pendingInterestId_2;
+					this.interestCopy = interestCopy_3;
+					this.onNetworkNack = onNetworkNack_4;
+					this.onData = onData_5;
+					this.onTimeout = onTimeout_6;
 					this.outer_Node = paramouter_Node;
 				}
 		
@@ -838,6 +837,7 @@ namespace net.named_data.jndn {
 	
 			Interest commandInterest = new Interest();
 			commandInterest.setCanBePrefix(true);
+			commandInterest.setMustBeFresh(true);
 	
 			// Determine whether to use remote prefix registration.
 			bool faceIsLocal;
