@@ -1964,6 +1964,12 @@ namespace net.named_data.jndn.security {
 		///
 		private void construct(String pibLocator, String tpmLocator,
 				bool allowReset) {
+			ConfigFile config = new ConfigFile();
+			if (pibLocator.equals(""))
+				pibLocator = getDefaultPibLocator(config);
+			if (tpmLocator.equals(""))
+				tpmLocator = getDefaultTpmLocator(config);
+	
 			// PIB locator.
 			String[] pibScheme = new String[1];
 			String[] pibLocation = new String[1];
@@ -1985,7 +1991,6 @@ namespace net.named_data.jndn.security {
 			parseAndCheckTpmLocator(tpmLocator, tpmScheme, tpmLocation);
 			String canonicalTpmLocator = tpmScheme[0] + ":" + tpmLocation[0];
 	
-			ConfigFile config = new ConfigFile();
 			if (canonicalPibLocator.equals(getDefaultPibLocator(config))) {
 				// The default PIB must use the default TPM.
 				if (!oldTpmLocator.equals("")
@@ -2166,6 +2171,11 @@ namespace net.named_data.jndn.security {
 			else
 				defaultPibLocator_ = config.get("pib", getDefaultPibScheme() + ":");
 	
+			String[] pibScheme = new String[1];
+			String[] pibLocation = new String[1];
+			parseAndCheckPibLocator(defaultPibLocator_, pibScheme, pibLocation);
+			defaultPibLocator_ = pibScheme[0] + ":" + pibLocation[0];
+	
 			return defaultPibLocator_;
 		}
 	
@@ -2178,6 +2188,11 @@ namespace net.named_data.jndn.security {
 				defaultTpmLocator_ = clientTpm;
 			else
 				defaultTpmLocator_ = config.get("tpm", getDefaultTpmScheme() + ":");
+	
+			String[] tpmScheme = new String[1];
+			String[] tpmLocation = new String[1];
+			parseAndCheckTpmLocator(defaultTpmLocator_, tpmScheme, tpmLocation);
+			defaultTpmLocator_ = tpmScheme[0] + ":" + tpmLocation[0];
 	
 			return defaultTpmLocator_;
 		}
