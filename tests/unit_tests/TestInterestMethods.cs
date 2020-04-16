@@ -5,7 +5,7 @@
 // ${CustomMessageForDisclaimer}                                                                             
 // --------------------------------------------------------------------------------------------------
  /// <summary>
-/// Copyright (C) 2014-2019 Regents of the University of California.
+/// Copyright (C) 2014-2020 Regents of the University of California.
 /// </summary>
 ///
 namespace net.named_data.jndn.tests.unit_tests {
@@ -273,29 +273,6 @@ namespace net.named_data.jndn.tests.unit_tests {
 					ILOG.J2CsMapping.Collections.Collections.ToArray(initialDump), ILOG.J2CsMapping.Collections.Collections.ToArray(redecodedDump));
 		}
 	
-		public void testRedecodeImplicitDigestExclude() {
-			// Check that we encode and decode correctly with an implicit digest exclude.
-			Interest interest = new Interest(new Name("/A"));
-			interest.getExclude()
-					.appendComponent(
-							new Name(
-									"/sha256digest="
-											+ "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f")
-									.get(0));
-			ArrayList dump = dumpInterest(interest);
-	
-			Blob encoding = interest.wireEncode();
-			Interest reDecodedInterest = new Interest();
-			try {
-				reDecodedInterest.wireDecode(encoding);
-			} catch (EncodingException ex) {
-				Assert.Fail("Can't decode reDecodedInterest");
-			}
-			ArrayList redecodedDump = dumpInterest(reDecodedInterest);
-			Assert.AssertTrue("Re-decoded interest does not match original",
-					interestDumpsEqual(dump, redecodedDump));
-		}
-	
 		public void testCreateFresh() {
 			Interest freshInterest = createFreshInterest();
 			ArrayList freshDump = dumpInterest(freshInterest);
@@ -304,7 +281,8 @@ namespace net.named_data.jndn.tests.unit_tests {
 	
 			Interest reDecodedFreshInterest = new Interest();
 			try {
-				reDecodedFreshInterest.wireDecode(freshInterest.wireEncode());
+				reDecodedFreshInterest.wireDecode(freshInterest
+						.wireEncode(net.named_data.jndn.encoding.Tlv0_2WireFormat.get()));
 			} catch (EncodingException ex) {
 				Assert.Fail("Can't decode reDecodedFreshInterest");
 			}
@@ -341,7 +319,7 @@ namespace net.named_data.jndn.tests.unit_tests {
 			Assert.AssertFalse(referenceInterest.getNonce().isNull());
 			Interest interest = new Interest(referenceInterest);
 			// Change a child object.
-			interest.getExclude().clear();
+			interest.setInterestLifetimeMilliseconds(1);
 			Assert.AssertTrue("Interest should not have a nonce after changing fields",
 					interest.getNonce().isNull());
 		}
@@ -356,25 +334,6 @@ namespace net.named_data.jndn.tests.unit_tests {
 					oldNonce.size(), interest.getNonce().size());
 			Assert.AssertFalse("The refreshed nonce should be different", interest
 					.getNonce().equals(oldNonce));
-		}
-	
-		public void testExcludeMatches() {
-			Exclude exclude = new Exclude();
-			exclude.appendComponent(new Name("%00%02").get(0));
-			exclude.appendAny();
-			exclude.appendComponent(new Name("%00%20").get(0));
-	
-			Name.Component component;
-			component = new Name("%00%01").get(0);
-			Assert.AssertFalse(component.toEscapedString() + " should not match "
-					+ exclude.toUri(), exclude.matches(component));
-			component = new Name("%00%0F").get(0);
-			Assert.AssertTrue(
-					component.toEscapedString() + " should match "
-							+ exclude.toUri(), exclude.matches(component));
-			component = new Name("%00%21").get(0);
-			Assert.AssertFalse(component.toEscapedString() + " should not match "
-					+ exclude.toUri(), exclude.matches(component));
 		}
 	
 		public void testVerifyDigestSha256() {
